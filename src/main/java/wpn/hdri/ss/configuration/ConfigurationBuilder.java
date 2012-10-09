@@ -133,7 +133,13 @@ public class ConfigurationBuilder {
         Interpolation interpolation = Interpolation.forAlias(interpolationAlias);
 
 
-        DeviceAttribute attribute = new DeviceAttribute(attrName, null, method, interpolation, delay, BigDecimal.valueOf(precision));
+        DeviceAttribute attribute = new DeviceAttribute();
+        attribute.setName(attrName);
+        attribute.setAlias(null);
+        attribute.setMethod(method);
+        attribute.setInterpolation(interpolation);
+        attribute.setDelay(delay);
+        attribute.setPrecision(BigDecimal.valueOf(precision));
         attributes.put(deviceName, attribute);
         return this;
     }

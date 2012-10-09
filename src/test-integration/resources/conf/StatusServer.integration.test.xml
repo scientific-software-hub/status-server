@@ -27,7 +27,7 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
   -->
-<StatusServer server-name="Test" instance-name="Test">
+<StatusServer server-name="Test" instance-name="Test" use-aliases="false">
     <devices>
         <!--<device name="production/json/0">
             <attributes>

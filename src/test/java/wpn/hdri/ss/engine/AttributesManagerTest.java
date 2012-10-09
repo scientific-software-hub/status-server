@@ -50,7 +50,15 @@ public class AttributesManagerTest {
     public static final String TEST_ATTR = "test-attr";
 
     private final AttributesManager instance = new AttributesManager();
-    private final DeviceAttribute attr = new DeviceAttribute(TEST_ATTR, null, Method.POLL, Interpolation.LAST, 20L, BigDecimal.ZERO);
+    private final DeviceAttribute attr = new DeviceAttribute();
+    {
+        attr.setName(TEST_ATTR);
+        attr.setAlias(null);
+        attr.setMethod(Method.POLL);
+        attr.setInterpolation(Interpolation.LAST);
+        attr.setDelay(20L);
+        attr.setPrecision(BigDecimal.ZERO);
+    }
     private final Device dev = new Device("Test", Lists.newArrayList(attr));
 
     @Test

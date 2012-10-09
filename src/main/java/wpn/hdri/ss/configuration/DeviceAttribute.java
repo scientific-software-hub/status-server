@@ -33,6 +33,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
+import org.simpleframework.xml.core.Validate;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
@@ -43,61 +44,38 @@ import java.math.BigDecimal;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 26.04.12
  */
-@Immutable
 @Element(name = "attribute")
 public final class DeviceAttribute {
     @Attribute(name = "name")
-    private final String name;
+    private String name;
     @Attribute(name = "alias", required = false)
-    private final String alias;
+    private String alias;
     @Attribute(name = "method")
-    private final Method method;
+    private Method method;
     @Attribute(name = "interpolation")
-    private final Interpolation interpolation;
+    private Interpolation interpolation;
     @Attribute(name = "delay")
-    private final long delay;
+    private long delay;
     @Attribute(name = "precision", required = false)
-    private final BigDecimal precision;
+    private BigDecimal precision;
 
-    public DeviceAttribute(
-            @Attribute(name = "name") String name,
-            @Attribute(name = "alias") String alias,
-            @Attribute(name = "method") Method method,
-            @Attribute(name = "interpolation") Interpolation interpolation,
-            @Attribute(name = "delay") long delay,
-            @Attribute(name = "precision") BigDecimal precision
-    ) {
-        if (method == Method.EVENT) {
-            Preconditions.checkArgument(delay == 0, "For event attributes delay should be equal to 0");
+
+
+//        if (method == Method.EVENT) {
+//            Preconditions.checkArgument(delay == 0, "For event attributes delay should be equal to 0");
+//        }
+//        if (method == Method.POLL) {
+//            Preconditions.checkArgument(delay >= 20, "For poll attributes delay should be greater or equal to 20");
+//        }
+
+    @Validate
+    public void validate(){
+        if(this.method == Method.POLL){
+            Preconditions.checkArgument(this.delay >= 20,"polling delay should be greater than 20");
         }
-        if (method == Method.POLL) {
-            Preconditions.checkArgument(delay >= 20, "For poll attributes delay should be greater or equal to 20");
+        if(this.precision == null){
+            this.precision = BigDecimal.ZERO;
         }
-        this.name = name;
-        this.alias = alias;
-        this.method = method;
-        this.interpolation = interpolation;
-        this.delay = delay;
-        this.precision = precision;
-    }
-
-    public DeviceAttribute(
-            @Attribute(name = "name") String name,
-            @Attribute(name = "alias") String alias,
-            @Attribute(name = "method") Method method,
-            @Attribute(name = "interpolation") Interpolation interpolation,
-            @Attribute(name = "delay") long delay
-    ) {
-        this(name, alias, method, interpolation, delay, BigDecimal.ZERO);
-    }
-
-    public DeviceAttribute(
-            @Attribute(name = "name") String name,
-            @Attribute(name = "method") Method method,
-            @Attribute(name = "interpolation") Interpolation interpolation,
-            @Attribute(name = "delay") long delay
-    ) {
-        this(name, null, method, interpolation, delay, BigDecimal.ZERO);
     }
 
     public String getName() {
@@ -121,7 +99,7 @@ public final class DeviceAttribute {
     }
 
     public BigDecimal getPrecision() {
-        return precision;
+        return precision == null ? BigDecimal.ZERO : precision;
     }
 
     @Override
@@ -133,5 +111,29 @@ public final class DeviceAttribute {
                 .add("interpolation", interpolation)
                 .add("delay", delay)
                 .toString();
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
+    }
+
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
+    public void setInterpolation(Interpolation interpolation) {
+        this.interpolation = interpolation;
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
+    }
+
+    public void setPrecision(BigDecimal precision) {
+        this.precision = precision;
     }
 }
