@@ -51,16 +51,20 @@ public final class StatusServerConfiguration {
     private final String serverName;
     @Attribute(name = "instance-name")
     private final String instanceName;
+    @Attribute(name = "use-aliases")
+    private final boolean useAliases;
     @ElementList(name = "devices")
     private final List<Device> devices;
 
     public StatusServerConfiguration(
             @Attribute(name = "server-name") String serverName,
             @Attribute(name = "instance-name") String instanceName,
+            @Attribute(name = "use-aliases") boolean useAliases,
             @ElementList(name = "devices") List<Device> devices) {
         this.serverName = serverName;
         this.instanceName = instanceName;
-        this.devices = Collections.unmodifiableList(devices);
+        this.useAliases = useAliases;
+        this.devices = devices;
     }
 
     public String getServerName() {
@@ -69,6 +73,10 @@ public final class StatusServerConfiguration {
 
     public String getInstanceName() {
         return instanceName;
+    }
+
+    public boolean isUseAliases() {
+        return useAliases;
     }
 
     public List<Device> getDevices() {

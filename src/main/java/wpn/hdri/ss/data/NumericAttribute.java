@@ -56,15 +56,30 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
 
     private final ConcurrentNavigableMap<Timestamp, BigDecimal> numericValues = new ConcurrentSkipListMap<Timestamp, BigDecimal>();
 
-    public NumericAttribute(String deviceName, String name, Interpolation interpolation, BigDecimal precision) {
-        super(deviceName, name, interpolation);
+    public NumericAttribute(String deviceName, String name, String alias, Interpolation interpolation, BigDecimal precision) {
+        super(deviceName, name, alias, interpolation);
         this.precision = precision;
     }
 
+    /**
+     * For tests
+     *
+     * @param deviceName
+     * @param name
+     * @param interpolation
+     * @param precision
+     */
     public NumericAttribute(String deviceName, String name, Interpolation interpolation, double precision) {
-        this(deviceName, name, interpolation, BigDecimal.valueOf(precision));
+        this(deviceName, name, name, interpolation, BigDecimal.valueOf(precision));
     }
 
+    /**
+     * For tests
+     *
+     * @param deviceName
+     * @param name
+     * @param interpolation
+     */
     public NumericAttribute(String deviceName, String name, Interpolation interpolation) {
         this(deviceName, name, interpolation, DEFAULT_PRECISION);
     }
@@ -85,7 +100,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
             return;
         }
 
-        AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), value, readTimestamp, writeTimestamp);
+        AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
         if (value == Value.NULL) {
             values.putIfAbsent(readTimestamp, attributeValue);
             return;

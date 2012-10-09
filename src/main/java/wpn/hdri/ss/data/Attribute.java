@@ -51,13 +51,15 @@ import java.util.concurrent.ConcurrentNavigableMap;
 public abstract class Attribute<T> {
     private final String deviceName;
     private final String name;
+    private final String alias;
     private final String fullName;
     protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
     private final Interpolation interpolation;
 
-    public Attribute(String deviceName, String name, Interpolation interpolation) {
+    public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
         this.deviceName = deviceName;
         this.name = name;
+        this.alias = alias;
         this.fullName = deviceName + "/" + name;
 
         this.interpolation = interpolation;
@@ -95,7 +97,7 @@ public abstract class Attribute<T> {
     public AttributeValue<T> getAttributeValue() {
         Map.Entry<Timestamp, AttributeValue<T>> lastEntry = values.lastEntry();
         if (lastEntry == null) {
-            return new AttributeValue<T>(fullName, Value.NULL, Timestamp.now(), Timestamp.now());
+            return new AttributeValue<T>(fullName, alias, Value.NULL, Timestamp.now(), Timestamp.now());
         }
         return lastEntry.getValue();
     }
@@ -143,7 +145,7 @@ public abstract class Attribute<T> {
     @SuppressWarnings("unchecked")
     public AttributeValue<T> getAttributeValue(Timestamp timestamp, Interpolation interpolation) {
         if (values.isEmpty()) {
-            return new AttributeValue<T>(fullName, Value.NULL, timestamp, timestamp);
+            return new AttributeValue<T>(fullName, alias, Value.NULL, timestamp, timestamp);
         }
         //TODO this creates new ImmutableEntry this could be avoided because there is only one writter to this but many readers - read is safe
         Map.Entry<Timestamp, AttributeValue<T>> left = values.floorEntry(timestamp);
@@ -165,6 +167,10 @@ public abstract class Attribute<T> {
 
     public String getName() {
         return name;
+    }
+
+    public String getAlias(){
+        return alias;
     }
 
     public String getDeviceName() {

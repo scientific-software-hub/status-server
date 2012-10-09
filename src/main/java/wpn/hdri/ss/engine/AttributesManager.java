@@ -119,9 +119,9 @@ public final class AttributesManager {
         Interpolation interpolation = attr.getInterpolation();
         //consider char as numeric type
         if (Number.class.isAssignableFrom(type) || (type.isPrimitive() && type != boolean.class)) {
-            return new NumericAttribute<Number>(dev.getName(), attr.getName(), interpolation, attr.getPrecision());
+            return new NumericAttribute<Number>(dev.getName(), attr.getName(), attr.getAlias(), interpolation, attr.getPrecision());
         } else {
-            return new NonNumericAttribute<Object>(dev.getName(), attr.getName(), interpolation);
+            return new NonNumericAttribute<Object>(dev.getName(), attr.getName(), attr.getAlias(), interpolation);
         }
     }
 

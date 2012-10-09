@@ -40,13 +40,15 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class AttributeValue<T> {
     private final String attributeFullName;
+    private final String alias;
     private final Value<T> value;
     private final Timestamp readTimestamp;
     private final Timestamp writeTimestamp;
 
     @SuppressWarnings("unchecked")
-    AttributeValue(String attributeFullName, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
+    AttributeValue(String attributeFullName, String alias, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
         this.attributeFullName = attributeFullName;
+        this.alias = alias;
         this.value = (Value<T>) value;//cast from super
         this.readTimestamp = readTimestamp;
         this.writeTimestamp = writeTimestamp;
@@ -54,6 +56,10 @@ public class AttributeValue<T> {
 
     public String getAttributeFullName() {
         return attributeFullName;
+    }
+
+    public String getAlias(){
+        return alias;
     }
 
     public Value<T> getValue() {

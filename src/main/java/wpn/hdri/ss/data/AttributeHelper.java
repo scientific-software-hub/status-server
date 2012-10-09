@@ -38,7 +38,7 @@ public class AttributeHelper {
     private AttributeHelper() {
     }
 
-    public static <T> AttributeValue<T> newAttributeValue(String fullName, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
-        return new AttributeValue<T>(fullName, value, readTimestamp, writeTimestamp);
+    public static <T> AttributeValue<T> newAttributeValue(String fullName, String alias, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
+        return new AttributeValue<T>(fullName, alias, value, readTimestamp, writeTimestamp);
     }
 }

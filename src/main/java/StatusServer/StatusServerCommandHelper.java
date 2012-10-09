@@ -50,13 +50,20 @@ public class StatusServerCommandHelper {
 
         int ndx = 0;
         for (AttributeValue<?> value : data) {
-            bld.append(value.getAttributeFullName()).append('\n');
+            bld.append(getAttributeNameView(value)).append('\n');
             bld.append(value.getReadTimestamp()).append('[').append(value.getValue()).append(value.getWriteTimestamp()).append(']');
             result[ndx++] = bld.toString();
             bld.setLength(0);
         }
         bld.setLength(0);
         return result;
+    }
+
+    private static String getAttributeNameView(AttributeValue<?> value) {
+        if(StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().getCurrentValue() && value.getAlias() != null)
+            return value.getAlias();
+        else
+            return value.getAttributeFullName();
     }
 
     private static StringBuilder getStringBuilderInstance() {

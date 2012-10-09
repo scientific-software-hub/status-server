@@ -29,16 +29,16 @@
   -->
 
 <!-- server-name - a tango server name for this server; instance-name - a tango instance name for this server-->
-<StatusServer server-name="StatusServer" instance-name="development">
+<StatusServer server-name="StatusServer" instance-name="development" use-aliases="true">
     <devices>
         <!-- tango or tine full device name-->
         <device name="sys/tg_test/1">
             <attributes>
                 <!-- name - an attribute name; method=[event|poll]; interpolation=[last|nearest|linear]; delay - polling frequency in millis. Note: delay for event=0; polling delay >= 20 -->
-                <attribute name="long_scalar_w" method="event" interpolation="nearest" delay="0"/>
-                <attribute name="float_scalar" method="poll" interpolation="linear" precision="0.5" delay="200"/>
-                <attribute name="short_scalar" method="poll" interpolation="linear" precision="0.125" delay="150"/>
-                <attribute name="double_scalar" method="poll" interpolation="linear" precision="0.125" delay="150"/>
+                <attribute name="long_scalar_w" alias="long" method="event" interpolation="nearest" delay="0"/>
+                <attribute name="float_scalar" alias="float" method="poll" interpolation="linear" precision="0.5" delay="200"/>
+                <attribute name="short_scalar" alias="short" method="poll" interpolation="linear" precision="0.125" delay="150"/>
+                <attribute name="double_scalar" alias="double" method="poll" interpolation="linear" precision="0.125" delay="150"/>
                 <!--attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/-->
             </attributes>
         </device>

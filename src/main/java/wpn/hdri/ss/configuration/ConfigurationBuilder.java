@@ -101,10 +101,16 @@ public class ConfigurationBuilder {
 
     private String serverName;
     private String instanceName;
+    private boolean useAliases;
 
     public ConfigurationBuilder setServerName(String serverName, String instanceName) {
         this.serverName = Preconditions.checkNotNull(serverName);
         this.instanceName = Preconditions.checkNotNull(instanceName);
+        return this;
+    }
+
+    public ConfigurationBuilder setUseAliases(boolean useAliases){
+        this.useAliases = useAliases;
         return this;
     }
 
@@ -127,13 +133,13 @@ public class ConfigurationBuilder {
         Interpolation interpolation = Interpolation.forAlias(interpolationAlias);
 
 
-        DeviceAttribute attribute = new DeviceAttribute(attrName, method, interpolation, delay, BigDecimal.valueOf(precision));
+        DeviceAttribute attribute = new DeviceAttribute(attrName, null, method, interpolation, delay, BigDecimal.valueOf(precision));
         attributes.put(deviceName, attribute);
         return this;
     }
 
     public StatusServerConfiguration build() {
-        return new StatusServerConfiguration(serverName, instanceName,
+        return new StatusServerConfiguration(serverName, instanceName, useAliases,
                 new ArrayList<Device>(
                         Collections2.<String, Device>transform(devices, new Function<String, Device>() {
                             @Override

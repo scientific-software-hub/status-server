@@ -36,14 +36,14 @@ import java.util.Map;
  * @since 02.05.12
  */
 public final class NonNumericAttribute<T> extends Attribute<T> {
-    public NonNumericAttribute(String deviceName, String name, Interpolation interpolation) {
-        super(deviceName, name, interpolation);
+    public NonNumericAttribute(String deviceName, String name, String alias, Interpolation interpolation) {
+        super(deviceName, name, alias, interpolation);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp) {
-        AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), value, readTimestamp, writeTimestamp);
+        AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
         Map.Entry<Timestamp, AttributeValue<T>> lastEntry = values.lastEntry();
         if (lastEntry == null) {
             values.putIfAbsent(readTimestamp, attributeValue);

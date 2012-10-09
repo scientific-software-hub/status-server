@@ -36,6 +36,7 @@ import fr.esrf.TangoDs.Util;
 import org.apache.log4j.Logger;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Vector;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -87,6 +88,13 @@ public class StatusServerClass extends DeviceClass {
     public void command_factory() {
         for (StatusServerCommand cmd : StatusServerCommand.values()) {
             command_list.add(cmd.toCommand());
+        }
+    }
+
+    @Override
+    public void attribute_factory(Vector attrs) throws DevFailed {
+        for(StatusServerAttribute attribute : StatusServerAttribute.values()){
+            attrs.add(attribute.toAttr());
         }
     }
 

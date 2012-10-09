@@ -48,6 +48,8 @@ import java.math.BigDecimal;
 public final class DeviceAttribute {
     @Attribute(name = "name")
     private final String name;
+    @Attribute(name = "alias", required = false)
+    private final String alias;
     @Attribute(name = "method")
     private final Method method;
     @Attribute(name = "interpolation")
@@ -59,6 +61,7 @@ public final class DeviceAttribute {
 
     public DeviceAttribute(
             @Attribute(name = "name") String name,
+            @Attribute(name = "alias") String alias,
             @Attribute(name = "method") Method method,
             @Attribute(name = "interpolation") Interpolation interpolation,
             @Attribute(name = "delay") long delay,
@@ -71,6 +74,7 @@ public final class DeviceAttribute {
             Preconditions.checkArgument(delay >= 20, "For poll attributes delay should be greater or equal to 20");
         }
         this.name = name;
+        this.alias = alias;
         this.method = method;
         this.interpolation = interpolation;
         this.delay = delay;
@@ -79,15 +83,29 @@ public final class DeviceAttribute {
 
     public DeviceAttribute(
             @Attribute(name = "name") String name,
+            @Attribute(name = "alias") String alias,
             @Attribute(name = "method") Method method,
             @Attribute(name = "interpolation") Interpolation interpolation,
             @Attribute(name = "delay") long delay
     ) {
-        this(name, method, interpolation, delay, BigDecimal.ZERO);
+        this(name, alias, method, interpolation, delay, BigDecimal.ZERO);
+    }
+
+    public DeviceAttribute(
+            @Attribute(name = "name") String name,
+            @Attribute(name = "method") Method method,
+            @Attribute(name = "interpolation") Interpolation interpolation,
+            @Attribute(name = "delay") long delay
+    ) {
+        this(name, null, method, interpolation, delay, BigDecimal.ZERO);
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getAlias(){
+        return alias;
     }
 
     public Method getMethod() {
@@ -110,6 +128,7 @@ public final class DeviceAttribute {
     public String toString() {
         return Objects.toStringHelper(this)
                 .add("name", name)
+                .add("alias", alias)
                 .add("method", method)
                 .add("interpolation", interpolation)
                 .add("delay", delay)

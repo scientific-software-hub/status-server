@@ -86,7 +86,7 @@ public enum Interpolation {
                 BigDecimal result = y0.add(x.subtract(x0).multiply(y1.subtract(y0)).divide(divisor, RoundingMode.HALF_UP));
 
                 Value<T> value = Value.getInstance(convertToType(result, valueType));
-                return AttributeHelper.newAttributeValue(left.getAttributeFullName(), value, timestamp, timestamp);
+                return AttributeHelper.newAttributeValue(left.getAttributeFullName(), left.getAlias(), value, timestamp, timestamp);
             }
         }
 
