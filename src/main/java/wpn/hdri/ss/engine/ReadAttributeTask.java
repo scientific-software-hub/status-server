@@ -143,4 +143,8 @@ public final class ReadAttributeTask implements Runnable, TangoEventCallback<Obj
     public Attribute<?> getAttribute() {
         return attribute;
     }
+
+    public Client getDevClient(){
+        return devClient;
+    }
 }

@@ -72,21 +72,18 @@ public class Engine {
     public static final int MAX_INITIAL_DELAY = 1000;
 
     private final //TODO use guava concurrency
-            ScheduledExecutorService pollingService;
+            ScheduledExecutorService scheduler;
 
     private final StatusServerConfiguration configuration;
     private final Storage storage;
     private final ClientsManager clientsManager;
     private final AttributesManager attributesManager;
 
+    private volatile Activity crtActivity = Activity.IDLE;
+    private final ActivityContext activityCtx = new ActivityContext();
+
     private final Logger logger;
 
-    private final List<ReadAttributeTask> pollingTasks = new ArrayList<ReadAttributeTask>();
-    private final List<ReadAttributeTask> eventTasks = new ArrayList<ReadAttributeTask>();
-
-    private volatile boolean running = false;
-
-    private final Collection<ScheduledFuture<?>> runningTasks = new ArrayList<ScheduledFuture<?>>();
     private final EngineInitializer initializer;
 
     /**
@@ -110,7 +107,7 @@ public class Engine {
         this.logger = logger;
 
         this.initializer = new EngineInitializer();
-        this.pollingService = Executors.newScheduledThreadPool(cpus);
+        this.scheduler = Executors.newScheduledThreadPool(cpus);
     }
 
     /**
@@ -171,7 +168,7 @@ public class Engine {
      */
     public void shutdown() {
         logger.info("Shutting down engine...");
-        List<Runnable> awaitingTasks = pollingService.shutdownNow();
+        List<Runnable> awaitingTasks = scheduler.shutdownNow();
         logger.info(awaitingTasks.size() + " awaiting tasks cancelled.");
     }
 
@@ -190,16 +187,11 @@ public class Engine {
      * @param taskInitialDelay actual delay will be randomly chosen starting from '0' to this value exclusively
      */
     synchronized void start(int taskInitialDelay) {
-        Preconditions.checkState(!running);
+        Preconditions.checkState(isNotRunning(),"Can not start collectData while current activity is not IDLE");
         logger.info("Starting...");
 
-        //cancel light polling tasks
-        cancelScheduledTasks(runningTasks);
-
-        scheduleTasks(pollingTasks, taskInitialDelay);
-        subscribeEventTasks(eventTasks);
-
-        running = true;
+        crtActivity = Activity.HEAVY_DUTY;
+        crtActivity.start(scheduler, activityCtx, logger);
     }
 
     /**
@@ -208,13 +200,14 @@ public class Engine {
      * @throws IllegalStateException if engine is not running
      */
     public synchronized void stop() {
-        Preconditions.checkState(running);
         logger.info("Stopping...");
 
-        cancelScheduledTasks(runningTasks);
-        unsubscribeEventTasks(eventTasks);
+        crtActivity = Activity.IDLE;
+        crtActivity.start(scheduler,activityCtx,logger);
+    }
 
-        running = false;
+    public String getCurrentActivity(){
+        return crtActivity.name();
     }
 
     /**
@@ -223,79 +216,23 @@ public class Engine {
      * All polls will be performed at rate of 1 s.
      */
     public void startLightPolling() {
-        Preconditions.checkState(!running);
-        logger.info("Start light polling.");
+        Preconditions.checkState(isNotRunning(),"Can not start lightPolling while current activity is not IDLE");
 
-        cancelScheduledTasks(runningTasks);
-        for (final Attribute<?> attribute : attributesManager.getAttributes()) {
-            final Client client = clientsManager.getClient(attribute.getDeviceName());
-
-            logger.info("Scheduling light polling task for " + attribute.getFullName());
-            runningTasks.add(
-                    pollingService.scheduleAtFixedRate(
-                            new Runnable() {
-                                private final ReadAttributeTask innerTask = new ReadAttributeTask(attribute, client, 1000L, logger);
-
-                                @Override
-                                public void run() {
-                                    if (innerTask.getAttribute().getAttributeValue() != null) {
-                                        innerTask.getAttribute().clear();
-                                    }
-                                    innerTask.run();
-                                }
-                            }, rnd.nextInt(MAX_INITIAL_DELAY), 1000L, TimeUnit.MILLISECONDS));
-
-        }
-    }
-
-    private void unsubscribeEventTasks(List<ReadAttributeTask> tasks) {
-        for (ReadAttributeTask task : tasks) {
-            try {
-                logger.info("Unsubscribing from " + task.getAttribute().getFullName());
-                Client devClient = clientsManager.getClient(task.getAttribute().getDeviceName());
-                devClient.unsubscribeEvent(task.getAttribute().getName());
-            } catch (ClientException e) {
-                logger.error("Event unsubscription failed.", e);
-                attributesManager.reportBadAttribute(task.getAttribute().getFullName(), e.getMessage());
-            }
-        }
-    }
-
-    private void cancelScheduledTasks(Collection<ScheduledFuture<?>> tasks) {
-        for (ScheduledFuture<?> task : tasks) {
-            logger.info("Canceling scheduled task...");
-            task.cancel(false);
-        }
-        tasks.clear();
-    }
-
-    private void scheduleTasks(Collection<ReadAttributeTask> tasks, int taskInitialDelay) {
-        for (final ReadAttributeTask task : tasks) {
-            logger.info("Scheduling read task for " + task.getAttribute().getFullName());
-            runningTasks.add(pollingService.scheduleWithFixedDelay(task, rnd.nextInt(taskInitialDelay), task.getDelay(), TimeUnit.MILLISECONDS));
-        }
-    }
-
-    private void subscribeEventTasks(Collection<ReadAttributeTask> tasks) {
-        for (ReadAttributeTask task : tasks) {
-            try {
-                logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
-                Client devClient = clientsManager.getClient(task.getAttribute().getDeviceName());
-                devClient.subscribeEvent(task.getAttribute().getName(), task);
-            } catch (ClientException e) {
-                logger.error("Event subscription failed.", e);
-                attributesManager.reportBadAttribute(task.getAttribute().getFullName(), e.getMessage());
-            }
-        }
+        crtActivity = Activity.LIGHT_POLLING;
+        crtActivity.start(scheduler,activityCtx,logger);
     }
 
     /**
      * Clears all the previously collected data
      */
     public synchronized void clear() {
-        Preconditions.checkState(!running);
+        Preconditions.checkState(isNotRunning(),"Can not eraseData while current activity is not IDLE");
         logger.info("Erase all data.");
         attributesManager.clear();
+    }
+
+    private boolean isNotRunning() {
+        return crtActivity == Activity.IDLE;
     }
 
     public void createAttributesGroup(String groupName, Collection<String> attrFullNames) {
@@ -356,15 +293,23 @@ public class Engine {
         }
 
         private void initializeReadAttributeTasks() {
+            initializePollTasks();
+
+            initializeEventTasks();
+        }
+
+        private void initializeEventTasks() {
+            for (Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.EVENT)) {
+                final Client devClient = clientsManager.getClient(attribute.getDeviceName());
+                activityCtx.addEventTask(new ReadAttributeTask(attribute, devClient, 0L, logger));
+            }
+        }
+
+        private void initializePollTasks() {
             for (final Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.POLL)) {
                 DeviceAttribute attr = configuration.getDeviceAttribute(attribute.getDeviceName(), attribute.getName());
                 final Client devClient = clientsManager.getClient(attribute.getDeviceName());
-                pollingTasks.add(new ReadAttributeTask(attribute, devClient, attr.getDelay(), logger));
-            }
-
-            for (Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.EVENT)) {
-                final Client devClient = clientsManager.getClient(attribute.getDeviceName());
-                eventTasks.add(new ReadAttributeTask(attribute, devClient, 0L, logger));
+                activityCtx.addPollTask(new ReadAttributeTask(attribute, devClient, attr.getDelay(), logger));
             }
         }
     }

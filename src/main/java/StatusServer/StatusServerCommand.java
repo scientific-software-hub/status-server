@@ -56,6 +56,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 10.05.12
  */
 public enum StatusServerCommand {
+    CRT_ACTIVITY(new AbsCommand<StatusServer, Void, String>("getCurrentActivity",
+            ScalarTangoDataTypes.VOID, ScalarTangoDataTypes.STRING,
+            "void", "Current activity") {
+        @Override
+        protected String executeInternal(StatusServer instance, Void data, Logger log) throws DevFailed {
+            return instance.getEngine().getCurrentActivity();
+        }
+    }),
     ERASE_DATA(new AbsCommand<StatusServer, Void, Void>("eraseData",
             ScalarTangoDataTypes.VOID, ScalarTangoDataTypes.VOID,
             "void", "void") {
@@ -71,6 +79,8 @@ public enum StatusServerCommand {
         @Override
         protected Void executeInternal(StatusServer ss, Void data, Logger log) throws DevFailed {
             ss.getEngine().startLightPolling();
+            ss.set_state(EnumDevState.RUNNING.toDevState());
+            ss.set_status(EnumDevState.RUNNING.name());
             return null;
         }
     }),
