@@ -31,11 +31,11 @@ package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.Client;
+import wpn.hdri.ss.client.EventCallback;
+import wpn.hdri.ss.client.EventData;
 import wpn.hdri.ss.data.Attribute;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
-import wpn.hdri.tango.proxy.EventData;
-import wpn.hdri.tango.proxy.TangoEventCallback;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 02.05.12
  */
-public final class ReadAttributeTask implements Runnable, TangoEventCallback<Object> {
+public final class ReadAttributeTask implements Runnable, EventCallback<Object> {
     private final Attribute<?> attribute;
     private final Client devClient;
 
@@ -78,7 +78,7 @@ public final class ReadAttributeTask implements Runnable, TangoEventCallback<Obj
      */
     public final void onEvent(EventData<Object> eventData) {
         Timestamp timestamp = getCurrentMilliseconds();
-        attribute.addValue(timestamp, Value.getInstance(eventData.getValue()), new Timestamp(eventData.getTime()));
+        attribute.addValue(timestamp, Value.getInstance(eventData.getData()), new Timestamp(eventData.getTimestamp()));
     }
 
     /**

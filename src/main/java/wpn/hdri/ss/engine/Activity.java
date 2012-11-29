@@ -3,6 +3,8 @@ package wpn.hdri.ss.engine;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
+import wpn.hdri.ss.client.EventCallback;
+import wpn.hdri.ss.client.EventData;
 
 import java.util.Collection;
 import java.util.Random;
@@ -22,7 +24,7 @@ public enum Activity {
 
             Collection<ScheduledFuture<?>> runningTasks = ctx.getRunningTasks();
 
-            for (final ReadAttributeTask task : ctx.getAllTasks()) {
+            for (final ReadAttributeTask task : ctx.getPollTasks()) {
                 final Client client = task.getDevClient();
 
                 logger.info("Scheduling light polling task for " + task.getAttribute().getFullName());
@@ -38,17 +40,39 @@ public enum Activity {
                                         }
                                         innerTask.run();
                                     }
-                                }, rnd.nextInt(1000), 1000L, TimeUnit.MILLISECONDS));
+                                }, rnd.nextInt((int)task.getDelay()), task.getDelay(), TimeUnit.MILLISECONDS));
 
+            }
+
+            for (final ReadAttributeTask task : ctx.getEventTasks()) {
+                try {
+                    logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
+                    task.getDevClient().subscribeEvent(task.getAttribute().getName(), new EventCallback<Object>(){
+                        private final ReadAttributeTask innerTask = task;
+                        @Override
+                        public void onEvent(EventData<Object> data) {
+                            if (innerTask.getAttribute().getAttributeValue() != null) {
+                                innerTask.getAttribute().clear();
+                            }
+                            task.onEvent(data);
+                        }
+
+                        @Override
+                        public void onError(Throwable cause) {
+                            task.onError(cause);
+                        }
+                    });
+                    ctx.addSubscribedTask(task);
+                } catch (ClientException e) {
+                    logger.error("Event subscription failed.", e);
+                }
             }
         }
     },
     HEAVY_DUTY{
-
-
         @Override
         public void start(ScheduledExecutorService scheduler, ActivityContext ctx, Logger logger) {
-            schedulePollTasks(ctx.getPollTasks(),ctx.getRunningTasks(),scheduler,logger);
+            schedulePollTasks(ctx.getPollTasks(), ctx.getRunningTasks(), scheduler, logger);
             subscribeEventTasks(ctx.getEventTasks(), ctx.getSubscribedTasks(), logger);
         }
 

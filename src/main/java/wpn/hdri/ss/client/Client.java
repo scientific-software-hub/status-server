@@ -94,7 +94,7 @@ public abstract class Client {
      * @param cbk      onRead, onError
      * @throws ClientException if subscription process failed
      */
-    public abstract void subscribeEvent(String attrName, ReadAttributeTask cbk) throws ClientException;
+    public abstract void subscribeEvent(String attrName, EventCallback cbk) throws ClientException;
 
     /**
      * Checks attribute. Most implementations will try to acquire an info from server.

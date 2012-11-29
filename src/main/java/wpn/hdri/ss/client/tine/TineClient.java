@@ -40,9 +40,9 @@ import de.desy.tine.queryUtils.TQuery;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
+import wpn.hdri.ss.client.EventCallback;
+import wpn.hdri.ss.client.EventData;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.engine.ReadAttributeTask;
-import wpn.hdri.tango.proxy.EventData;
 
 import java.lang.reflect.Array;
 import java.util.AbstractMap;
@@ -145,7 +145,7 @@ public class TineClient extends Client {
     }
 
     @Override
-    public void subscribeEvent(final String attrName, final ReadAttributeTask cbk) throws ClientException {
+    public void subscribeEvent(final String attrName, final EventCallback cbk) throws ClientException {
         Future<TLink> futureLink = getFutureLink(attrName);
         try {
             final TLink link = futureLink.get();

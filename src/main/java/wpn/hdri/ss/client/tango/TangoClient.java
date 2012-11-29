@@ -30,14 +30,10 @@
 package wpn.hdri.ss.client.tango;
 
 import org.apache.log4j.Logger;
-import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.client.ClientException;
+import wpn.hdri.ss.client.*;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.engine.ReadAttributeTask;
-import wpn.hdri.tango.proxy.TangoAttributeInfoWrapper;
-import wpn.hdri.tango.proxy.TangoEvent;
-import wpn.hdri.tango.proxy.TangoProxyException;
-import wpn.hdri.tango.proxy.TangoProxyWrapper;
+import wpn.hdri.tango.proxy.*;
+import wpn.hdri.tango.proxy.EventData;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
@@ -86,9 +82,19 @@ public class TangoClient extends Client {
     }
 
     @Override
-    public void subscribeEvent(final String attrName, final ReadAttributeTask cbk) throws ClientException {
+    public void subscribeEvent(final String attrName, final EventCallback cbk) throws ClientException {
         try {
-            int eventId = proxy.subscribeEvent(attrName, TangoEvent.CHANGE, cbk);
+            int eventId = proxy.subscribeEvent(attrName, TangoEvent.CHANGE, new TangoEventCallback<Object>() {
+                @Override
+                public void onEvent(EventData<Object> data) {
+                    cbk.onEvent(new wpn.hdri.ss.client.EventData(data.getValue(),data.getTime()));
+                }
+
+                @Override
+                public void onError(Throwable cause) {
+                    cbk.onError(cause);
+                }
+            });
             listeners.put(attrName, eventId);
         } catch (TangoProxyException devFailed) {
             throw new ClientException("Exception in " + proxy.getName(), devFailed);

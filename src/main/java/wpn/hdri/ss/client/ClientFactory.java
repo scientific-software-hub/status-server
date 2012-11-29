@@ -35,7 +35,6 @@ import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.tango.TangoClientFactory;
 import wpn.hdri.ss.client.tine.TineClientFactory;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.engine.ReadAttributeTask;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -109,7 +108,7 @@ public class ClientFactory extends AbsClientFactory {
         }
 
         @Override
-        public void subscribeEvent(String attrName, ReadAttributeTask cbk) throws ClientException {
+        public void subscribeEvent(String attrName, EventCallback cbk) throws ClientException {
             cbk.onError(new IllegalStateException("Illegal attempt of subscription to attribute " + attrName + " in BadClient"));
         }
 
