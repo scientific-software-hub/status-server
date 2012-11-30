@@ -18,8 +18,16 @@ import java.util.concurrent.TimeUnit;
  */
 public enum Activity {
     LIGHT_POLLING{
+        /**
+         * Schedules polling tasks at fixed rate if settings is not null. Each scheduled task deletes all previous records before putting a new one.
+         *
+         * @param scheduler
+         * @param ctx
+         * @param settings
+         * @param logger
+         */
         @Override
-        public void start(ScheduledExecutorService scheduler, ActivityContext ctx, final Logger logger) {
+        public void start(ScheduledExecutorService scheduler, ActivityContext ctx, ActivitySettings settings, final Logger logger) {
             logger.info("Start light polling.");
 
             Collection<ScheduledFuture<?>> runningTasks = ctx.getRunningTasks();
@@ -40,7 +48,7 @@ public enum Activity {
                                         }
                                         innerTask.run();
                                     }
-                                }, rnd.nextInt((int)task.getDelay()), task.getDelay(), TimeUnit.MILLISECONDS));
+                                }, rnd.nextInt(settings.getInitialDelay()), settings != null ? settings.getDelay() : task.getDelay(), TimeUnit.MILLISECONDS));
 
             }
 
@@ -71,7 +79,7 @@ public enum Activity {
     },
     HEAVY_DUTY{
         @Override
-        public void start(ScheduledExecutorService scheduler, ActivityContext ctx, Logger logger) {
+        public void start(ScheduledExecutorService scheduler, ActivityContext ctx, ActivitySettings settings, Logger logger) {
             schedulePollTasks(ctx.getPollTasks(), ctx.getRunningTasks(), scheduler, logger);
             subscribeEventTasks(ctx.getEventTasks(), ctx.getSubscribedTasks(), logger);
         }
@@ -98,7 +106,7 @@ public enum Activity {
     },
     IDLE{
         @Override
-        public void start(ScheduledExecutorService scheduler, ActivityContext ctx, Logger logger) {
+        public void start(ScheduledExecutorService scheduler, ActivityContext ctx, ActivitySettings settings, Logger logger) {
             cancelScheduledTasks(ctx.getRunningTasks(),logger);
             unsubscribeEventTasks(ctx.getSubscribedTasks(), logger);
         }
@@ -126,5 +134,5 @@ public enum Activity {
 
     protected final Random rnd = new Random();
 
-    public abstract void start(ScheduledExecutorService scheduler, ActivityContext ctx, Logger logger);
+    public abstract void start(ScheduledExecutorService scheduler, ActivityContext ctx, ActivitySettings settings, Logger logger);
 }

@@ -48,8 +48,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Engine should never fail during its work. It may fail during initialization.
@@ -70,6 +68,7 @@ public class Engine {
      * This one is used as a multiplicator for Math.random in {@link this#scheduleTasks(java.util.Collection, int)}
      */
     public static final int MAX_INITIAL_DELAY = 1000;
+    public static final long MAX_DELAY = 1000L;
 
     private final //TODO use guava concurrency
             ScheduledExecutorService scheduler;
@@ -90,6 +89,7 @@ public class Engine {
      * Used to determine initial delay for the submitted tasks
      */
     private final Random rnd = new Random();
+
 
     /**
      * @param configuration
@@ -191,7 +191,7 @@ public class Engine {
         logger.info("Starting...");
 
         crtActivity = Activity.HEAVY_DUTY;
-        crtActivity.start(scheduler, activityCtx, logger);
+        crtActivity.start(scheduler, activityCtx, null, logger);
     }
 
     /**
@@ -203,7 +203,7 @@ public class Engine {
         logger.info("Stopping...");
 
         crtActivity = Activity.IDLE;
-        crtActivity.start(scheduler,activityCtx,logger);
+        crtActivity.start(scheduler,activityCtx, null, logger);
     }
 
     public String getCurrentActivity(){
@@ -219,7 +219,21 @@ public class Engine {
         Preconditions.checkState(isNotRunning(),"Can not start lightPolling while current activity is not IDLE");
 
         crtActivity = Activity.LIGHT_POLLING;
-        crtActivity.start(scheduler,activityCtx,logger);
+        crtActivity.start(scheduler,activityCtx, null, logger);
+    }
+
+    /**
+     * Submits poll tasks for all attributes. These tasks will clear attribute before adding new data.
+     * <p/>
+     * All polls will be performed at rate of 1 s.
+     */
+    public void startLightPollingAtFixedRate(long delay) {
+        Preconditions.checkState(isNotRunning(),"Can not start lightPolling while current activity is not IDLE");
+
+        ActivitySettings settings = new ActivitySettings(delay,MAX_INITIAL_DELAY);
+
+        crtActivity = Activity.LIGHT_POLLING;
+        crtActivity.start(scheduler,activityCtx, settings, logger);
     }
 
     /**

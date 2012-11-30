@@ -84,6 +84,17 @@ public enum StatusServerCommand {
             return null;
         }
     }),
+    START_LIGHT_POLLING_AT_FIXED_RATE(new AbsCommand<StatusServer, Integer, Void>("startLightPollingAtFixedRate",
+            ScalarTangoDataTypes.INT, ScalarTangoDataTypes.VOID,
+            "milliseconds", "void") {
+        @Override
+        protected Void executeInternal(StatusServer ss, Integer data, Logger log) throws DevFailed {
+            ss.getEngine().startLightPollingAtFixedRate(data.longValue());
+            ss.set_state(EnumDevState.RUNNING.toDevState());
+            ss.set_status(EnumDevState.RUNNING.name());
+            return null;
+        }
+    }),
     START_COLLECT_DATA(new AbsCommand<StatusServer, Void, Void>("startCollectData",
             ScalarTangoDataTypes.VOID, ScalarTangoDataTypes.VOID,
             "void", "void") {

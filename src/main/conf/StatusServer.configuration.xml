@@ -39,6 +39,7 @@
                 <attribute name="float_scalar" alias="float" method="poll" interpolation="linear" precision="0.5" delay="200"/>
                 <attribute name="short_scalar" alias="short" method="poll" interpolation="linear" precision="0.125" delay="150"/>
                 <attribute name="double_scalar" alias="double" method="poll" interpolation="linear" precision="0.125" delay="150"/>
+                <attribute name="double_spectrum" alias="double_arr" method="poll" interpolation="linear" delay="150"/>
                 <!--attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/-->
             </attributes>
         </device>
