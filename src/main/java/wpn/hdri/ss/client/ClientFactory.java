@@ -123,6 +123,11 @@ public class ClientFactory extends AbsClientFactory {
         }
 
         @Override
+        public boolean isArrayAttribute(String attrName) throws ClientException {
+            return false;
+        }
+
+        @Override
         public void unsubscribeEvent(String attrName) throws ClientException {
             throw new ClientException("Could not unsubscribe from BadClient", new IllegalStateException());
         }

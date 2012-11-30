@@ -31,6 +31,8 @@ package StatusServer;
 
 import wpn.hdri.ss.data.AttributeValue;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 

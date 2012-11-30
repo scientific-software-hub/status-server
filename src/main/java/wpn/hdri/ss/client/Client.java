@@ -114,6 +114,14 @@ public abstract class Client {
     public abstract Class<?> getAttributeClass(String attrName) throws ClientException;
 
     /**
+     *
+     * @param attrName
+     * @return true if an attribute value is an array
+     * @throws ClientException
+     */
+    public abstract boolean isArrayAttribute(String attrName) throws ClientException;
+
+    /**
      * Unsubscribe from attribute change event, i.e. stop respond to new values from the attribute
      *
      * @param attrName attribute name

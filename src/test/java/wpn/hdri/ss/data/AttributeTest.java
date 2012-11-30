@@ -37,6 +37,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 
 import static junit.framework.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -255,6 +256,21 @@ public class AttributeTest {
         assertEquals("World", value1);
         String value2 = resultArray[1];
         assertEquals("!!!", value2);
+    }
+
+    @Test
+    public void testArrayAttribute() {
+        ArrayAttribute attribute = new ArrayAttribute(deviceName, name, "string");
+
+        attribute.addValue(timestamp, Value.getInstance((Object)new double[]{0.D,0.1D,0.2D}), timestamp);
+        attribute.addValue(timestamp + 10, Value.getInstance((Object)new double[]{0.1D,0.2D,0.3D}), timestamp);
+        attribute.addValue(timestamp + 20, Value.getInstance((Object)new double[]{0.2D,0.3D,0.4D}), timestamp);
+
+        AttributeValue<Object> value = attribute.getAttributeValue(timestamp + 15);
+
+        double[] result = (double[])value.getValue().get();
+
+        assertArrayEquals(new double[]{0.1D,0.2D,0.3D},result,0.0D);
     }
 
     @Test

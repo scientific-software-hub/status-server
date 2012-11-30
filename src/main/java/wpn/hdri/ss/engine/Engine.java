@@ -296,7 +296,8 @@ public class Engine {
                     devClient.printAttributeInfo(attr.getName(), logger);
                     try {
                         Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
-                        attributesManager.initializeAttribute(attr, dev, devClient, attributeClass);
+                        boolean isArray = devClient.isArrayAttribute(attr.getName());
+                        attributesManager.initializeAttribute(attr, dev, devClient, attributeClass, isArray);
                         logger.info("Initialization succeed.");
                     } catch (ClientException e) {
                         logger.error("Attribute initialization failed.", e);

@@ -48,7 +48,7 @@ public enum Activity {
                                         }
                                         innerTask.run();
                                     }
-                                }, rnd.nextInt(settings.getInitialDelay()), settings != null ? settings.getDelay() : task.getDelay(), TimeUnit.MILLISECONDS));
+                                }, rnd.nextInt((int)task.getDelay()), settings != null ? settings.getDelay() : task.getDelay(), TimeUnit.MILLISECONDS));
 
             }
 

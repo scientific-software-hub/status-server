@@ -209,6 +209,12 @@ public class TineClient extends Client {
     }
 
     @Override
+    public boolean isArrayAttribute(String attrName) throws ClientException {
+        //see comment in getAttributeClass
+        return false;
+    }
+
+    @Override
     public void unsubscribeEvent(String attrName) throws ClientException {
         Future<TLink> futureLink = tlinks.remove(attrName);
         try {

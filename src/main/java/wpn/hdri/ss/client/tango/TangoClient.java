@@ -32,6 +32,8 @@ package wpn.hdri.ss.client.tango;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.*;
 import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.tango.data.format.SpectrumTangoDataFormat;
+import wpn.hdri.tango.data.format.TangoDataFormat;
 import wpn.hdri.tango.proxy.*;
 import wpn.hdri.tango.proxy.EventData;
 
@@ -78,6 +80,16 @@ public class TangoClient extends Client {
             proxy.writeAttribute(attrName, value);
         } catch (TangoProxyException devFailed) {
             throw new ClientException("Failed to write value[" + value.toString() + "] to " + proxy.getName() + "/" + attrName, devFailed);
+        }
+    }
+
+    @Override
+    public boolean isArrayAttribute(String attrName) throws ClientException {
+        try {
+            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+            return SpectrumTangoDataFormat.class.isAssignableFrom(attributeInfo.getFormat().getClass());
+        } catch (TangoProxyException e) {
+            throw new ClientException("Can not execute query!",e);
         }
     }
 

@@ -32,6 +32,7 @@ package wpn.hdri.ss.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
+import java.lang.reflect.Array;
 import java.util.Map;
 
 /**
@@ -57,6 +58,9 @@ public class ValueFormatters {
     }
 
     public static <T> ValueFormatter<T> getFormatter(Class<T> clazz) {
+        if(clazz.isArray()){
+            return(ValueFormatter<T>) ARRAY_FORMATTER;
+        }
         ValueFormatter<?> formatter = FORMATTERS.get(clazz);
         if (formatter != null)
             return (ValueFormatter<T>) formatter;
@@ -104,6 +108,23 @@ public class ValueFormatters {
         }
     };
 
+    public static final ValueFormatter<?> ARRAY_FORMATTER = new ValueFormatter<Object>() {
+        @Override
+        public String format(Object value) {
+            StringBuilder result = new StringBuilder();
+            int length = Array.getLength(value);
+            for ( int idx = 0 ; idx < length ; ++idx ) {
+                Object item = Array.get(value, idx);
+                ValueFormatter<Object> formatter = ValueFormatters.<Object>getFormatter((Class<Object>)item.getClass());
+                result.append( formatter.format(item) );
+                if ( idx !=  length - 1) {
+                    result.append(';');
+                }
+            }
+            return result.toString();
+        }
+    };
+
     public static final ValueFormatter<?> NULL_FORMATTER = new ValueFormatter<Object>() {
         @Override
         public String format(Object value) {
@@ -115,5 +136,6 @@ public class ValueFormatters {
 
     static {
         FORMATTERS.put(Double.class, ValueFormatters.DOUBLE_FORMATTER);
+        FORMATTERS.put(double.class, ValueFormatters.DOUBLE_FORMATTER);
     }
 }

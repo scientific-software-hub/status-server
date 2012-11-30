@@ -63,28 +63,28 @@ public class AttributesManagerTest {
 
     @Test
     public void testCreateAttribute_primitive() throws Exception {
-        Attribute result = instance.createAttribute(attr, dev, float.class);
+        Attribute result = instance.createAttribute(attr, dev, float.class, false);
 
         assertTrue(NumericAttribute.class == result.getClass());
     }
 
     @Test
     public void testCreateAttribute_Numeric() throws Exception {
-        Attribute result = instance.createAttribute(attr, dev, Float.class);
+        Attribute result = instance.createAttribute(attr, dev, Float.class, false);
 
         assertTrue(NumericAttribute.class == result.getClass());
     }
 
     @Test
     public void testCreateAttribute_NonNumeric() throws Exception {
-        Attribute result = instance.createAttribute(attr, dev, String.class);
+        Attribute result = instance.createAttribute(attr, dev, String.class, false);
 
         assertTrue(NonNumericAttribute.class == result.getClass());
     }
 
     @Test
     public void testAttributesGroup() {
-        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev, null, Double.class);
+        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev, null, Double.class, false);
         instance.createAttributesGroup("group1", Sets.newHashSet(initializedAttribute.getFullName()));
 
         Collection<Attribute<?>> result = instance.getAttributesByGroup("group1");
