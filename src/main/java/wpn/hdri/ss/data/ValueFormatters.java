@@ -76,20 +76,38 @@ public class ValueFormatters {
         return (ValueFormatter<T>) NULL_FORMATTER;
     }
 
-    private static final int POW10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
+    private static final int MAX_PRECISION = 128;
+    private static final long POW10[] = new long[MAX_PRECISION + 1];
+    private static final double NEGATIVE_POW10[] = new double[MAX_PRECISION + 1];
+    static{
+        for(int i = 0; i <= MAX_PRECISION; ++i){
+            POW10[i] = (long)Math.pow(10,i);
+            NEGATIVE_POW10[i] = Math.pow(10,-i);
+        }
+    }
 
     public static final ValueFormatter<Double> DOUBLE_FORMATTER = new ValueFormatter<Double>() {
+        private int defineRequiredPrecision(double value){
+            //define the part after '.' in double
+            value = value - (long)value;
+            for(int i = 0; i<MAX_PRECISION; i++){
+                if(value >= NEGATIVE_POW10[i]){
+                    return i;
+                }
+            }
+            return MAX_PRECISION;
+        }
 
         @Override
         public String format(Double value) {
             StringBuilder bld = new StringBuilder();
-            int precision = 6;//max precision
             double val = value;
+            int precision = defineRequiredPrecision(val);
             if (val < 0) {
                 bld.append('-');
                 val = -val;
             }
-            int exp = POW10[precision];
+            long exp = POW10[precision];
             long lval = (long) (val * exp + 0.5);
             bld.append(lval / exp).append('.');
             long fval = lval % exp;
