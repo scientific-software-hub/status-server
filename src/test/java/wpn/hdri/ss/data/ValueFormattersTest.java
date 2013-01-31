@@ -35,6 +35,14 @@ public class ValueFormattersTest {
     }
 
     @Test
+    public void testDoubleFormatter_OrdinaryNegativeValue(){
+        ValueFormatter<Double> fmt = ValueFormatters.DOUBLE_FORMATTER;
+        String highPres = fmt.format(-123.00003D);
+
+        assertEquals("-123.00003", highPres);
+    }
+
+    @Test
     public void testDoubleFormatter_MaxValue(){
         ValueFormatter<Double> fmt = ValueFormatters.DOUBLE_FORMATTER;
         String highPres = fmt.format(Double.MAX_VALUE);

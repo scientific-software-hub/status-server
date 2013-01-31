@@ -89,13 +89,13 @@ public class ValueFormatters {
     public static final ValueFormatter<Double> DOUBLE_FORMATTER = new ValueFormatter<Double>() {
         private int defineRequiredPrecision(double value){
             //define the part after '.' in double
-            value = value - (long)value;
+            value = Math.abs(value - (long)value);
             for(int i = 0; i<MAX_PRECISION; i++){
                 if(value >= NEGATIVE_POW10[i]){
                     return i;
                 }
             }
-            return MAX_PRECISION;
+            return -1;
         }
 
         @Override
@@ -103,6 +103,9 @@ public class ValueFormatters {
             StringBuilder bld = new StringBuilder();
             double val = value;
             int precision = defineRequiredPrecision(val);
+            if(precision == -1){
+                return "1.0E-" + MAX_PRECISION;
+            }
             if (val < 0) {
                 bld.append('-');
                 val = -val;
