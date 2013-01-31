@@ -56,7 +56,7 @@ public class ValueFormattersTest {
         String highPres = fmt.format(Double.MIN_VALUE);
 
         //exceeds maximum precision
-        assertEquals("0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", highPres);
+        assertEquals("1.0E-128", highPres);
     }
 
 }
