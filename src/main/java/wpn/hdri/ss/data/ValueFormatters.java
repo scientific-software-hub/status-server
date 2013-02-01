@@ -31,6 +31,7 @@ package wpn.hdri.ss.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.onjava.lang.DoubleToString;
 
 import java.lang.reflect.Array;
 import java.util.Map;
@@ -87,38 +88,33 @@ public class ValueFormatters {
     }
 
     public static final ValueFormatter<Double> DOUBLE_FORMATTER = new ValueFormatter<Double>() {
-        private int defineRequiredPrecision(double value){
-            //define the part after '.' in double
-            value = Math.abs(value - (long)value);
-            for(int i = 0; i<MAX_PRECISION; i++){
-                if(value >= NEGATIVE_POW10[i]){
-                    return i;
-                }
+        private ThreadLocal<DoubleToString> tlDoubleToString = new ThreadLocal<DoubleToString>(){
+            @Override
+            protected DoubleToString initialValue() {
+                return new DoubleToString();
             }
-            return -1;
-        }
+        };
+
+        private ThreadLocal<StringBuffer> tlBld = new ThreadLocal<StringBuffer>(){
+            @Override
+            protected StringBuffer initialValue() {
+                return new StringBuffer();
+            }
+        };
 
         @Override
         public String format(Double value) {
-            StringBuilder bld = new StringBuilder();
             double val = value;
-            int precision = defineRequiredPrecision(val);
-            if(precision == -1){
-                return "1.0E-" + MAX_PRECISION;
+
+            DoubleToString doubleToString = tlDoubleToString.get();
+            StringBuffer bld = tlBld.get();
+            doubleToString.append(bld,val);
+
+            try {
+                return bld.toString();
+            } finally {
+                bld.setLength(0);
             }
-            if (val < 0) {
-                bld.append('-');
-                val = -val;
-            }
-            long exp = POW10[precision];
-            long lval = (long) (val * exp + 0.5);
-            bld.append(lval / exp).append('.');
-            long fval = lval % exp;
-            for (int p = precision - 1; p > 0 && fval < POW10[p]; p--) {
-                bld.append('0');
-            }
-            bld.append(fval);
-            return bld.toString();
         }
     };
 
