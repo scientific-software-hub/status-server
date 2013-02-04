@@ -180,6 +180,14 @@ public final class AttributesManager {
         return snapshot.getValues();
     }
 
+    public Collection<AttributeValue<?>> takeLatestSnapshot(AttributeFilter filter) {
+        AttributesSnapshot snapshot = snapshotLocal.get();
+        snapshot.clear();
+        snapshot.update(filter);
+
+        return snapshot.getValues();
+    }
+
     /**
      * Designed to be thread confinement
      */
@@ -194,6 +202,13 @@ public final class AttributesManager {
             for (Attribute<?> attr : attributes.keySet()) {
                 if (filter.apply(AttributesManager.this, attr))
                     values.add(attr.getAttributeValue(timestamp));
+            }
+        }
+
+        void update(AttributeFilter filter) {
+            for (Attribute<?> attr : attributes.keySet()) {
+                if (filter.apply(AttributesManager.this, attr))
+                    values.add(attr.getLatestAttributeValue());
             }
         }
 

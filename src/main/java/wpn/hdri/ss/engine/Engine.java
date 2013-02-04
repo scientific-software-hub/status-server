@@ -253,6 +253,11 @@ public class Engine {
         attributesManager.createAttributesGroup(groupName, attrFullNames);
     }
 
+    public Collection<AttributeValue<?>> getLatestValues(AttributeFilter filter) {
+        Preconditions.checkNotNull(filter);
+        return attributesManager.takeLatestSnapshot(filter);
+    }
+
     /**
      * Encapsulates initialization logic of this engine.
      */

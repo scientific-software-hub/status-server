@@ -175,7 +175,7 @@ public enum StatusServerCommand {
         public String[] executeInternal(StatusServer dev, Void data_in, Logger log) throws DevFailed {
             Engine engine = dev.getEngine();
 
-            Collection<AttributeValue<?>> values = engine.getValues(Timestamp.now(), AttributeFilters.none());
+            Collection<AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
 
             String[] output = StatusServerCommandHelper.printValues(values);
             return output;
@@ -187,7 +187,7 @@ public enum StatusServerCommand {
         public String[] executeInternal(StatusServer dev, String data_in, Logger log) throws DevFailed {
             Engine engine = dev.getEngine();
 
-            Collection<AttributeValue<?>> values = engine.getValues(Timestamp.now(), AttributeFilters.byGroup(data_in));
+            Collection<AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(data_in));
 
             String[] output = StatusServerCommandHelper.printValues(values);
             return output;
