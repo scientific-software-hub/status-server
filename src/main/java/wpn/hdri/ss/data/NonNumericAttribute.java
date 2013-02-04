@@ -47,11 +47,13 @@ public final class NonNumericAttribute<T> extends Attribute<T> {
         Map.Entry<Timestamp, AttributeValue<T>> lastEntry = values.lastEntry();
         if (lastEntry == null) {
             values.putIfAbsent(readTimestamp, attributeValue);
+            latestValue.set(attributeValue);
             return;
         }
         AttributeValue<T> lastValue = lastEntry.getValue();
         if (lastValue.getValue() != value) {
             values.putIfAbsent(readTimestamp, attributeValue);
+            latestValue.set(attributeValue);
         }
     }
 

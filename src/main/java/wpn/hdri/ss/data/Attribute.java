@@ -36,6 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Stores values and corresponding read timestamps
@@ -55,6 +56,9 @@ public abstract class Attribute<T> {
     private final String fullName;
     protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
     private final Interpolation interpolation;
+
+    //TODO encapsulate this into a dedicated class together with values field
+    protected final AtomicReference<AttributeValue<T>> latestValue = new AtomicReference<AttributeValue<T>>();
 
     public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
         this.deviceName = deviceName;
@@ -104,6 +108,14 @@ public abstract class Attribute<T> {
 
     public AttributeValue<T> getAttributeValue(long timestamp) {
         return getAttributeValue(new Timestamp(timestamp), interpolation);
+    }
+
+    /**
+     *
+     * @return latest stored value of the attribute
+     */
+    public AttributeValue<T> getLatestAttributeValue() {
+        return latestValue.get();
     }
 
     public AttributeValue<T> getAttributeValue(Timestamp timestamp) {

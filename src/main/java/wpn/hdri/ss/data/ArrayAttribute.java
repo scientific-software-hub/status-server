@@ -18,11 +18,13 @@ public class ArrayAttribute extends Attribute<Object> {
         Map.Entry<Timestamp, AttributeValue<Object>> lastEntry = values.lastEntry();
         if (lastEntry == null) {
             values.putIfAbsent(readTimestamp, attributeValue);
+            latestValue.set(attributeValue);
             return;
         }
         AttributeValue<Object> lastValue = lastEntry.getValue();
         if (!isArrayEquals(lastValue.getValue().get(), value.get())) {
             values.putIfAbsent(readTimestamp, attributeValue);
+            latestValue.set(attributeValue);
         }
     }
 

@@ -103,6 +103,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
         AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
         if (value == Value.NULL) {
             values.putIfAbsent(readTimestamp, attributeValue);
+            latestValue.set(attributeValue);
             return;
         }
 
@@ -116,6 +117,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
         Map.Entry<Timestamp, BigDecimal> lastNumericEntry = numericValues.floorEntry(readTimestamp);
         if (lastNumericEntry == null) {
             values.putIfAbsent(readTimestamp, attributeValue);
+            latestValue.set(attributeValue);
             numericValues.putIfAbsent(readTimestamp, decimal);
             return;
         }
@@ -125,6 +127,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
         // |x - y| > precision
         if (decimal.subtract(lastDecimal).abs().compareTo(precision) > 0) {
             values.putIfAbsent(readTimestamp, attributeValue);
+            latestValue.set(attributeValue);
             numericValues.putIfAbsent(readTimestamp, decimal);
         }
     }
