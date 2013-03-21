@@ -30,6 +30,10 @@
 
 <!-- server-name - a tango server name for this server; instance-name - a tango instance name for this server-->
 <StatusServer server-name="StatusServer" instance-name="development" use-aliases="true">
+    <!-- these attributes can be used for writing data directly to StatusServer -->
+    <attributes>
+        <attribute name="some_attr" alias="attr" type="DevString"/>
+    </attributes>
     <devices>
         <!-- tango or tine full device name-->
         <device name="sys/tg_test/1">

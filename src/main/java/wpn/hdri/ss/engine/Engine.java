@@ -36,12 +36,12 @@ import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
+import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.data.Attribute;
-import wpn.hdri.ss.data.AttributeValue;
-import wpn.hdri.ss.data.Method;
-import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.*;
 import wpn.hdri.ss.storage.Storage;
+import wpn.hdri.tango.data.type.TangoDataType;
+import wpn.hdri.tango.data.type.TangoDataTypes;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.text.SimpleDateFormat;
@@ -258,16 +258,32 @@ public class Engine {
         return attributesManager.takeLatestSnapshot(filter);
     }
 
+    public <T> void writeAttributeValue(String attrName, T data, Timestamp timestamp) {
+        Attribute<T> attr = (Attribute<T>) attributesManager.getAttribute(attrName);
+        attr.addValue(timestamp, Value.<T>getInstance(data), Timestamp.now());
+    }
+
     /**
      * Encapsulates initialization logic of this engine.
      */
     private class EngineInitializer {
         private void initialize() {
+            initializeStatusServerAttributes();
+
             initializeClients();
 
             initializeAttributes();
 
             initializeReadAttributeTasks();
+        }
+
+        private void initializeStatusServerAttributes() {
+            for (StatusServerAttribute attr : configuration.getStatusServerAttributes()) {
+                logger.info("Initializing embedded attribute " + attr.getName());
+                TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
+                attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false);
+                logger.info("Initialization succeed.");
+            }
         }
 
         private void initializeClients() {
@@ -302,7 +318,7 @@ public class Engine {
                     try {
                         Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
                         boolean isArray = devClient.isArrayAttribute(attr.getName());
-                        attributesManager.initializeAttribute(attr, dev, devClient, attributeClass, isArray);
+                        attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray);
                         logger.info("Initialization succeed.");
                     } catch (ClientException e) {
                         logger.error("Attribute initialization failed.", e);

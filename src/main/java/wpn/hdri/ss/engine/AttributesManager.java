@@ -33,7 +33,6 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.*;
 import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.data.*;
 
@@ -75,8 +74,8 @@ public final class AttributesManager {
 
     private final Map<String, String> badAttributes = new HashMap<String, String>();
 
-    public Attribute<?> initializeAttribute(DeviceAttribute attr, Device dev, Client devClient, Class<?> attributeClass, boolean isArray) {
-        Attribute<?> attribute = createAttribute(attr, dev, attributeClass, isArray);
+    public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray) {
+        Attribute<?> attribute = createAttribute(attr, devName, attributeClass, isArray);
         attributes.put(attribute, devClient);
         attributesByMethod.put(attr.getMethod(), attribute);
         attributesByFullName.put(attribute.getFullName(), attribute);
@@ -115,16 +114,16 @@ public final class AttributesManager {
         return attributes.keySet();
     }
 
-    public Attribute<?> createAttribute(DeviceAttribute attr, Device dev, Class<?> type, boolean isArray) {
+    public Attribute<?> createAttribute(DeviceAttribute attr, String devName, Class<?> type, boolean isArray) {
         Interpolation interpolation = attr.getInterpolation();
         if(isArray){
-            return new ArrayAttribute(dev.getName(), attr.getName(), attr.getAlias());
+            return new ArrayAttribute(devName, attr.getName(), attr.getAlias());
         } else
         //consider char as numeric type
         if (Number.class.isAssignableFrom(type) || (type.isPrimitive() && type != boolean.class)) {
-            return new NumericAttribute<Number>(dev.getName(), attr.getName(), attr.getAlias(), interpolation, attr.getPrecision());
+            return new NumericAttribute<Number>(devName, attr.getName(), attr.getAlias(), interpolation, attr.getPrecision());
         } else {
-            return new NonNumericAttribute<Object>(dev.getName(), attr.getName(), attr.getAlias(), interpolation);
+            return new NonNumericAttribute<Object>(devName, attr.getName(), attr.getAlias(), interpolation);
         }
     }
 
@@ -186,6 +185,10 @@ public final class AttributesManager {
         snapshot.update(filter);
 
         return snapshot.getValues();
+    }
+
+    public Attribute<?> getAttribute(String attrName) {
+        return attributesByFullName.get(attrName);
     }
 
     /**

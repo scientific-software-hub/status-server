@@ -31,18 +31,24 @@ package StatusServer;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoDs.Attribute;
-import fr.esrf.TangoDs.DeviceClass;
-import fr.esrf.TangoDs.DeviceImpl;
-import fr.esrf.TangoDs.WAttribute;
+import fr.esrf.TangoDs.*;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.Launcher;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.ClientsManager;
 import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.storage.Storage;
+import wpn.hdri.tango.attribute.EnumAttrWriteType;
+import wpn.hdri.tango.attribute.TangoAttribute;
+import wpn.hdri.tango.attribute.TangoAttributeListener;
+import wpn.hdri.tango.data.format.TangoDataFormat;
+import wpn.hdri.tango.data.type.TangoDataType;
+import wpn.hdri.tango.data.type.TangoDataTypes;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -70,6 +76,7 @@ public class StatusServer extends DeviceImpl {
     }
 
     private Engine engine;
+    private Map<String, TangoAttribute<?>> attributes = new HashMap<String, TangoAttribute<?>>();
 
     public StatusServer(DeviceClass cl, String d_name, String de, DevState st, String sta) throws DevFailed {
         super(cl, d_name, de, st, sta);
@@ -93,11 +100,35 @@ public class StatusServer extends DeviceImpl {
         set_state(DevState.INIT);
     }
 
-    public void postInit_device(StatusServerConfiguration configuration, Storage storage, ClientsManager clientsManager, AttributesManager attributesManager) {
+    public void postInit_device(StatusServerConfiguration configuration, Storage storage, ClientsManager clientsManager, AttributesManager attributesManager) throws DevFailed{
         StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().setCurrentValue(configuration.isUseAliases());
 
         this.engine = new Engine(configuration, storage, clientsManager, attributesManager /*DEFAULT LOGGER*/, utilizedCpus);
         this.engine.initialize();
+
+        for(final wpn.hdri.ss.configuration.StatusServerAttribute attr : configuration.getStatusServerAttributes()){
+//            TangoDataType<?> type = TangoDataTypes.forString(attr.getType());
+            TangoDataType<String> type = TangoDataTypes.forClass(String.class);
+            TangoAttribute<?> attribute = new TangoAttribute<String>(
+                    attr.getName(), TangoDataFormat.<String>createScalarDataFormat(), type, EnumAttrWriteType.WRITE, new TangoAttributeListener<String>() {
+                @Override
+                public String onLoad() {
+                    throw new UnsupportedOperationException("This method is not supported in " + this.getClass());
+                }
+
+                @Override
+                public void onSave(String value) {
+                    String[] data_timestamp = value.split("@");
+
+                    String data = data_timestamp[0];
+                    Timestamp timestamp = new Timestamp(Long.parseLong(data_timestamp[1]));
+
+                    engine.writeAttributeValue("/" + attr.getName(),data,timestamp);
+                }
+            });
+            attributes.put(attr.getName(),attribute);
+            add_attribute(attribute.toAttr());
+        }
 
         set_state(DevState.ON);
     }
@@ -145,6 +176,10 @@ public class StatusServer extends DeviceImpl {
 
             if(attr_name.equalsIgnoreCase(StatusServerAttribute.USE_ALIAS.toTangoAttribute().getName())){
                 StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().write(att);
+            } else {
+                if(attributes.containsKey(attr_name)){
+                    attributes.get(attr_name).write(att);
+                }
             }
         }
     }

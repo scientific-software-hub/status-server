@@ -46,6 +46,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -152,6 +153,6 @@ public class ConfigurationBuilder {
                             public Device apply(String input) {
                                 return new Device(input, new ArrayList<DeviceAttribute>(attributes.get(input)));
                             }
-                        })));
+                        })), Collections.<StatusServerAttribute>emptyList());
     }
 }

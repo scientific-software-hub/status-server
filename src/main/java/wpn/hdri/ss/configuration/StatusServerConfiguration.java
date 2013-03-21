@@ -55,16 +55,20 @@ public final class StatusServerConfiguration {
     private final boolean useAliases;
     @ElementList(name = "devices")
     private final List<Device> devices;
+    @ElementList(name = "attributes")
+    private final List<StatusServerAttribute> attrs;
 
     public StatusServerConfiguration(
             @Attribute(name = "server-name") String serverName,
             @Attribute(name = "instance-name") String instanceName,
             @Attribute(name = "use-aliases") boolean useAliases,
-            @ElementList(name = "devices") List<Device> devices) {
+            @ElementList(name = "devices") List<Device> devices,
+            @ElementList(name = "attributes") List<StatusServerAttribute> attrs) {
         this.serverName = serverName;
         this.instanceName = instanceName;
         this.useAliases = useAliases;
         this.devices = devices;
+        this.attrs = attrs;
     }
 
     public String getServerName() {
@@ -81,6 +85,10 @@ public final class StatusServerConfiguration {
 
     public List<Device> getDevices() {
         return devices;
+    }
+
+    public List<StatusServerAttribute> getStatusServerAttributes(){
+        return attrs;
     }
 
     @Override
