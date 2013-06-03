@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * @since 29.11.12
  */
 public enum Activity {
-    LIGHT_POLLING{
+    LIGHT_POLLING {
         /**
          * Schedules polling tasks at fixed rate if settings is not null. Each scheduled task deletes all previous records before putting a new one.
          *
@@ -48,15 +48,16 @@ public enum Activity {
                                         }
                                         innerTask.run();
                                     }
-                                }, rnd.nextInt((int)task.getDelay()), settings != null ? settings.getDelay() : task.getDelay(), TimeUnit.MILLISECONDS));
+                                }, rnd.nextInt((int) task.getDelay()), settings != null ? settings.getDelay() : task.getDelay(), TimeUnit.MILLISECONDS));
 
             }
 
             for (final ReadAttributeTask task : ctx.getEventTasks()) {
                 try {
                     logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
-                    task.getDevClient().subscribeEvent(task.getAttribute().getName(), new EventCallback<Object>(){
+                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), new EventCallback<Object>() {
                         private final ReadAttributeTask innerTask = task;
+
                         @Override
                         public void onEvent(EventData<Object> data) {
                             if (innerTask.getAttribute().getAttributeValue() != null) {
@@ -77,7 +78,7 @@ public enum Activity {
             }
         }
     },
-    HEAVY_DUTY{
+    HEAVY_DUTY {
         @Override
         public void start(ScheduledExecutorService scheduler, ActivityContext ctx, ActivitySettings settings, Logger logger) {
             schedulePollTasks(ctx.getPollTasks(), ctx.getRunningTasks(), scheduler, logger);
@@ -87,7 +88,7 @@ public enum Activity {
         private void schedulePollTasks(Collection<ReadAttributeTask> tasks, Collection<ScheduledFuture<?>> runningTasks, ScheduledExecutorService scheduler, Logger logger) {
             for (final ReadAttributeTask task : tasks) {
                 logger.info("Scheduling read task for " + task.getAttribute().getFullName());
-                runningTasks.add(scheduler.scheduleWithFixedDelay(task, rnd.nextInt((int)task.getDelay()), task.getDelay(), TimeUnit.MILLISECONDS));
+                runningTasks.add(scheduler.scheduleWithFixedDelay(task, rnd.nextInt((int) task.getDelay()), task.getDelay(), TimeUnit.MILLISECONDS));
             }
         }
 
@@ -96,7 +97,7 @@ public enum Activity {
                 try {
                     logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
 
-                    task.getDevClient().subscribeEvent(task.getAttribute().getName(), task);
+                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), task);
                     subscribedTasks.add(task);
                 } catch (ClientException e) {
                     logger.error("Event subscription failed.", e);
@@ -104,10 +105,10 @@ public enum Activity {
             }
         }
     },
-    IDLE{
+    IDLE {
         @Override
         public void start(ScheduledExecutorService scheduler, ActivityContext ctx, ActivitySettings settings, Logger logger) {
-            cancelScheduledTasks(ctx.getRunningTasks(),logger);
+            cancelScheduledTasks(ctx.getRunningTasks(), logger);
             unsubscribeEventTasks(ctx.getSubscribedTasks(), logger);
         }
 
@@ -123,7 +124,7 @@ public enum Activity {
             for (ReadAttributeTask task : tasks) {
                 try {
                     logger.info("Unsubscribing from " + task.getAttribute().getFullName());
-                    task.getDevClient().unsubscribeEvent(task.getAttribute().getName());
+                    task.getDevClient().unsubscribeEvent(task.getAttribute().getName().getName());
                 } catch (ClientException e) {
                     logger.error("Event unsubscription failed.", e);
                 }

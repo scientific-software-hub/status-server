@@ -16,7 +16,9 @@ public enum StatusServerAttribute {
     CURRENT_ACTIVITY(new TangoAttribute<String>("crtActivity", TangoDataFormat.<String>createScalarDataFormat(),
             ScalarTangoDataTypes.STRING, EnumAttrWriteType.READ, null)),
     TIMESTAMP(new TangoAttribute<Long>("timestamp", TangoDataFormat.<Long>createScalarDataFormat(),
-            ScalarTangoDataTypes.LONG, EnumAttrWriteType.READ, null));
+            ScalarTangoDataTypes.LONG, EnumAttrWriteType.READ, null)),
+    DATA_ENCODED(new TangoAttribute<String>("data_encoded", TangoDataFormat.<String>createScalarDataFormat(),
+            ScalarTangoDataTypes.STRING, EnumAttrWriteType.READ, null));
 
     private final TangoAttribute<?> attribute;
 
@@ -25,11 +27,11 @@ public enum StatusServerAttribute {
     }
 
     //ouch... this is not nice
-    public <T> TangoAttribute<T> toTangoAttribute(){
+    public <T> TangoAttribute<T> toTangoAttribute() {
         return (TangoAttribute<T>) attribute;
     }
 
-    public Attr toAttr(){
+    public Attr toAttr() {
         return attribute.toAttr();
     }
 }

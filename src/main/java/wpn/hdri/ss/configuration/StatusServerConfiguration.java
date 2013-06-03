@@ -37,7 +37,6 @@ import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
 
 import javax.annotation.concurrent.Immutable;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,19 +55,19 @@ public final class StatusServerConfiguration {
     @ElementList(name = "devices")
     private final List<Device> devices;
     @ElementList(name = "attributes")
-    private final List<StatusServerAttribute> attrs;
+    private final List<StatusServerAttribute> attributes;
 
     public StatusServerConfiguration(
             @Attribute(name = "server-name") String serverName,
             @Attribute(name = "instance-name") String instanceName,
             @Attribute(name = "use-aliases") boolean useAliases,
             @ElementList(name = "devices") List<Device> devices,
-            @ElementList(name = "attributes") List<StatusServerAttribute> attrs) {
+            @ElementList(name = "attributes") List<StatusServerAttribute> attributes) {
         this.serverName = serverName;
         this.instanceName = instanceName;
         this.useAliases = useAliases;
         this.devices = devices;
-        this.attrs = attrs;
+        this.attributes = attributes;
     }
 
     public String getServerName() {
@@ -87,8 +86,8 @@ public final class StatusServerConfiguration {
         return devices;
     }
 
-    public List<StatusServerAttribute> getStatusServerAttributes(){
-        return attrs;
+    public List<StatusServerAttribute> getStatusServerAttributes() {
+        return attributes;
     }
 
     @Override

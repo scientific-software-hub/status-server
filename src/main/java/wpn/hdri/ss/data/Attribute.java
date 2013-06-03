@@ -32,9 +32,6 @@ package wpn.hdri.ss.data;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NavigableSet;
 
 /**
  * Stores values and corresponding read timestamps
@@ -48,24 +45,15 @@ import java.util.NavigableSet;
  */
 @ThreadSafe
 public abstract class Attribute<T> {
-    private final String deviceName;
-    private final String name;
-    private final String alias;
-    private final String fullName;
+    private final AttributeName name;
 
     protected final AttributeValuesStorage<T> storage = new AttributeValuesStorage<T>(null, null);
 
 //    protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
     private final Interpolation interpolation;
 
-    //TODO encapsulate this into a dedicated class together with values field
-//    protected final AtomicReference<AttributeValue<T>> latestValue = new AtomicReference<AttributeValue<T>>();
-
     public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
-        this.deviceName = deviceName;
-        this.name = name;
-        this.alias = alias;
-        this.fullName = deviceName + "/" + name;
+        this.name = new AttributeName(deviceName, name, alias);
 
         this.interpolation = interpolation;
     }
@@ -161,20 +149,20 @@ public abstract class Attribute<T> {
                 timestamp);
     }
 
-    public String getName() {
+    public AttributeName getName() {
         return name;
     }
 
-    public String getAlias(){
-        return alias;
+    public String getAlias() {
+        return name.getAlias();
     }
 
     public String getDeviceName() {
-        return deviceName;
+        return name.getDeviceName();
     }
 
     public String getFullName() {
-        return fullName;
+        return name.getFullName();
     }
 
     @Override
@@ -184,20 +172,20 @@ public abstract class Attribute<T> {
 
         Attribute attribute = (Attribute) o;
 
-        if (fullName != null ? !fullName.equals(attribute.fullName) : attribute.fullName != null) return false;
+        if (name != null ? !name.equals(attribute.name) : attribute.name != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(fullName);
+        return Objects.hashCode(name);
     }
 
 
     @Override
     public String toString() {
-        return fullName;
+        return name.toString();
     }
 
     public Iterable<AttributeValue<T>> getAttributeValues(long timestamp) {
@@ -209,7 +197,7 @@ public abstract class Attribute<T> {
     }
 
     /**
-     * Erases all the data from this attribute stored in mem. Before erasure data is moved to persistent
+     * Erases all the data from this attribute
      */
     public void clear() {
         storage.persistInMemoryValues();

@@ -99,7 +99,7 @@ public final class ReadAttributeTask implements Runnable, EventCallback<Object> 
     @Override
     public void run() {
         try {
-            Map.Entry<Object, Timestamp> result = devClient.readAttribute(attribute.getName());
+            Map.Entry<Object, Timestamp> result = devClient.readAttribute(attribute.getName().getName());
             Object data = result.getKey();
             //uncomment this will produce a huge number of Strings. So it is not recommended in production
             //logger.info("Read attribute " + attribute.getFullName() + ": " + data);
@@ -144,7 +144,7 @@ public final class ReadAttributeTask implements Runnable, EventCallback<Object> 
         return attribute;
     }
 
-    public Client getDevClient(){
+    public Client getDevClient() {
         return devClient;
     }
 }

@@ -29,13 +29,13 @@
 
 package StatusServer;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Multimap;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoDs.Command;
 import org.apache.log4j.Logger;
+import wpn.hdri.ss.data.AttributeName;
 import wpn.hdri.ss.data.AttributeValue;
+import wpn.hdri.ss.data.AttributesView;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.Engine;
@@ -45,8 +45,6 @@ import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
 import wpn.hdri.tango.data.type.SpectrumTangoDataTypes;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -140,15 +138,11 @@ public enum StatusServerCommand {
 
             final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             final Timestamp oldTimestamp = timestamps.put(uuid, timestamp);
-            Multimap<String, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
+            Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
 
-            String[] rv = Collections2.transform(attributes.asMap().entrySet(), new Function<Map.Entry<String, Collection<AttributeValue<?>>>, String>() {
-                @Override
-                public String apply(Map.Entry<String, Collection<AttributeValue<?>>> input) {
-                    return StatusServerCommandHelper.attributeToString(input);
-                }
-            }).toArray(new String[attributes.keySet().size()]);
-            return rv;
+            AttributesView view = new AttributesView(attributes, ss.isUseAliases());
+
+            return view.toStringArray();
         }
     }),
     GET_DATA(new AbsCommand<StatusServer, Void, String[]>("getData",
@@ -158,15 +152,27 @@ public enum StatusServerCommand {
         protected String[] executeInternal(StatusServer ss, Void data_in, Logger log) throws DevFailed {
             Engine engine = ss.getEngine();
 
-            Multimap<String, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, AttributeFilters.none());
+            Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, AttributeFilters.none());
 
-            String[] rv = Collections2.transform(attributes.asMap().entrySet(), new Function<Map.Entry<String, Collection<AttributeValue<?>>>, String>() {
-                @Override
-                public String apply(Map.Entry<String, Collection<AttributeValue<?>>> input) {
-                    return StatusServerCommandHelper.attributeToString(input);
-                }
-            }).toArray(new String[attributes.keySet().size()]);
-            return rv;
+            AttributesView view = new AttributesView(attributes, ss.isUseAliases());
+
+            return view.toStringArray();
+        }
+    }),
+    GET_DATA_ENCODED(new AbsCommand<StatusServer, Void, String>("getDataEncoded",
+            ScalarTangoDataTypes.VOID, ScalarTangoDataTypes.STRING, "", "Encoded in Base 64 collected data. Data is in json format") {
+
+        @Override
+        protected String executeInternal(StatusServer instance, Void _void, Logger log) throws DevFailed {
+            Engine engine = instance.getEngine();
+
+            Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(null, AttributeFilters.none());
+
+            AttributesView view = new AttributesView(data, instance.isUseAliases());
+
+            String result = view.toJsonString();
+            //TODO encode in Base64
+            return result;
         }
     }),
     GET_LATEST_SNAPSHOT(new AbsCommand<StatusServer, Void, String[]>("getLatestSnapshot",
@@ -175,9 +181,11 @@ public enum StatusServerCommand {
         public String[] executeInternal(StatusServer dev, Void data_in, Logger log) throws DevFailed {
             Engine engine = dev.getEngine();
 
-            Collection<AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
+            Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
 
-            String[] output = StatusServerCommandHelper.printValues(values);
+            AttributesView view = new AttributesView(values, dev.isUseAliases());
+
+            String[] output = view.toStringArray();
             return output;
         }
     }),
@@ -187,9 +195,11 @@ public enum StatusServerCommand {
         public String[] executeInternal(StatusServer dev, String data_in, Logger log) throws DevFailed {
             Engine engine = dev.getEngine();
 
-            Collection<AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(data_in));
+            Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(data_in));
 
-            String[] output = StatusServerCommandHelper.printValues(values);
+            AttributesView view = new AttributesView(values, dev.isUseAliases());
+
+            String[] output = view.toStringArray();
             return output;
         }
     }),
@@ -202,9 +212,11 @@ public enum StatusServerCommand {
             Engine engine = ss.getEngine();
             long value = Long.parseLong(data_in);
             Timestamp timestamp = new Timestamp(value);
-            Collection<AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.none());
+            Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.none());
 
-            String[] output = StatusServerCommandHelper.printValues(values);
+            AttributesView view = new AttributesView(values, ss.isUseAliases());
+
+            String[] output = view.toStringArray();
             return output;
         }
     }),
@@ -220,9 +232,11 @@ public enum StatusServerCommand {
             String groupName = data_in[1];
 
             Timestamp timestamp = new Timestamp(value);
-            Collection<AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.byGroup(groupName));
+            Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.byGroup(groupName));
 
-            String[] output = StatusServerCommandHelper.printValues(values);
+            AttributesView view = new AttributesView(values, ss.isUseAliases());
+
+            String[] output = view.toStringArray();
             return output;
         }
     }),

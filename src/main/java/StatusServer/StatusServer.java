@@ -29,13 +29,21 @@
 
 package StatusServer;
 
+import com.google.common.collect.Multimap;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.Tango.DevState;
-import fr.esrf.TangoDs.*;
+import fr.esrf.TangoDs.Attribute;
+import fr.esrf.TangoDs.DeviceClass;
+import fr.esrf.TangoDs.DeviceImpl;
+import fr.esrf.TangoDs.WAttribute;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.Launcher;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.data.AttributeName;
+import wpn.hdri.ss.data.AttributeValue;
+import wpn.hdri.ss.data.AttributesView;
 import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.ClientsManager;
 import wpn.hdri.ss.engine.Engine;
@@ -100,13 +108,13 @@ public class StatusServer extends DeviceImpl {
         set_state(DevState.INIT);
     }
 
-    public void postInit_device(StatusServerConfiguration configuration, Storage storage, ClientsManager clientsManager, AttributesManager attributesManager) throws DevFailed{
+    public void postInit_device(StatusServerConfiguration configuration, Storage storage, ClientsManager clientsManager, AttributesManager attributesManager) throws DevFailed {
         StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().setCurrentValue(configuration.isUseAliases());
 
         this.engine = new Engine(configuration, storage, clientsManager, attributesManager /*DEFAULT LOGGER*/, utilizedCpus);
         this.engine.initialize();
 
-        for(final wpn.hdri.ss.configuration.StatusServerAttribute attr : configuration.getStatusServerAttributes()){
+        for (final wpn.hdri.ss.configuration.StatusServerAttribute attr : configuration.getStatusServerAttributes()) {
 //            TangoDataType<?> type = TangoDataTypes.forString(attr.getType());
             TangoDataType<String> type = TangoDataTypes.forClass(String.class);
             TangoAttribute<?> attribute = new TangoAttribute<String>(
@@ -123,10 +131,13 @@ public class StatusServer extends DeviceImpl {
                     String data = data_timestamp[0];
                     Timestamp timestamp = new Timestamp(Long.parseLong(data_timestamp[1]));
 
-                    engine.writeAttributeValue("/" + attr.getName(),data,timestamp);
+                    engine.writeAttributeValue("/" + attr.getName(), data, timestamp);
                 }
             });
-            attributes.put(attr.getName(),attribute);
+            //write default value
+            engine.writeAttributeValue("/" + attr.getName(), null, Timestamp.now());
+
+            attributes.put(attr.getName(), attribute);
             add_attribute(attribute.toAttr());
         }
 
@@ -156,15 +167,28 @@ public class StatusServer extends DeviceImpl {
         return (StatusServer) StatusServerClass.instance().get_device_at(0);
     }
 
+    public boolean isUseAliases() {
+        return StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().getCurrentValue();
+    }
+
     @Override
     public void read_attr(Attribute attribute) throws DevFailed {
         String name = attribute.get_name();
-        if(name.equalsIgnoreCase(StatusServerAttribute.USE_ALIAS.toTangoAttribute().getName())){
+        if (name.equalsIgnoreCase(StatusServerAttribute.USE_ALIAS.toTangoAttribute().getName())) {
             StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().read(attribute);
-        } else if(name.equalsIgnoreCase(StatusServerAttribute.CURRENT_ACTIVITY.toTangoAttribute().getName())){
+        } else if (name.equalsIgnoreCase(StatusServerAttribute.CURRENT_ACTIVITY.toTangoAttribute().getName())) {
             attribute.set_value(engine.getCurrentActivity());
-        } else if(name.equalsIgnoreCase(StatusServerAttribute.TIMESTAMP.toTangoAttribute().getName())){
+        } else if (name.equalsIgnoreCase(StatusServerAttribute.TIMESTAMP.toTangoAttribute().getName())) {
             attribute.set_value(System.currentTimeMillis());
+        } else if (name.equalsIgnoreCase(StatusServerAttribute.DATA_ENCODED.toTangoAttribute().getName())) {
+            //TODO call StatusServerCommand#GET_DATA_ENCODED instead
+            Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(null, AttributeFilters.none());
+
+            AttributesView view = new AttributesView(data, isUseAliases());
+
+            String result = view.toJsonString();
+            //TODO encode in Base64
+            attribute.set_value(result);
         }
     }
 
@@ -174,10 +198,10 @@ public class StatusServer extends DeviceImpl {
             WAttribute att = dev_attr.get_w_attr_by_ind(((Integer) (attr_list.elementAt(i))).intValue());
             String attr_name = att.get_name();
 
-            if(attr_name.equalsIgnoreCase(StatusServerAttribute.USE_ALIAS.toTangoAttribute().getName())){
+            if (attr_name.equalsIgnoreCase(StatusServerAttribute.USE_ALIAS.toTangoAttribute().getName())) {
                 StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().write(att);
             } else {
-                if(attributes.containsKey(attr_name)){
+                if (attributes.containsKey(attr_name)) {
                     attributes.get(attr_name).write(att);
                 }
             }

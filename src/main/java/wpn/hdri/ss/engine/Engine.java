@@ -46,7 +46,10 @@ import wpn.hdri.tango.data.type.TangoDataTypes;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -138,7 +141,7 @@ public class Engine {
      * @param filter
      * @return a multimap: attribute full name -> attribute values
      */
-    public Multimap<String, AttributeValue<?>> getAllAttributeValues(Timestamp timestamp, AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> getAllAttributeValues(Timestamp timestamp, AttributeFilter filter) {
         if (timestamp == null) {
             timestamp = Timestamp.DEEP_PAST;
         }
@@ -153,7 +156,7 @@ public class Engine {
      * @return attribute full name -> attribute value @ timestamp
      * @throws NullPointerException if any of arguments is null
      */
-    public Collection<AttributeValue<?>> getValues(Timestamp timestamp, AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> getValues(Timestamp timestamp, AttributeFilter filter) {
         Preconditions.checkNotNull(timestamp);
         Preconditions.checkNotNull(filter);
         return attributesManager.takeSnapshot(timestamp, filter);
@@ -188,7 +191,7 @@ public class Engine {
      * @param taskInitialDelay actual delay will be randomly chosen starting from '0' to this value exclusively
      */
     synchronized void start(int taskInitialDelay) {
-        Preconditions.checkState(isNotRunning(),"Can not start collectData while current activity is not IDLE");
+        Preconditions.checkState(isNotRunning(), "Can not start collectData while current activity is not IDLE");
         logger.info("Starting...");
 
         crtActivity = Activity.HEAVY_DUTY;
@@ -204,10 +207,10 @@ public class Engine {
         logger.info("Stopping...");
 
         crtActivity = Activity.IDLE;
-        crtActivity.start(scheduler,activityCtx, null, logger);
+        crtActivity.start(scheduler, activityCtx, null, logger);
     }
 
-    public String getCurrentActivity(){
+    public String getCurrentActivity() {
         return crtActivity.name();
     }
 
@@ -217,10 +220,10 @@ public class Engine {
      * All polls will be performed at rate of 1 s.
      */
     public void startLightPolling() {
-        Preconditions.checkState(isNotRunning(),"Can not start lightPolling while current activity is not IDLE");
+        Preconditions.checkState(isNotRunning(), "Can not start lightPolling while current activity is not IDLE");
 
         crtActivity = Activity.LIGHT_POLLING;
-        crtActivity.start(scheduler,activityCtx, null, logger);
+        crtActivity.start(scheduler, activityCtx, null, logger);
     }
 
     /**
@@ -229,19 +232,19 @@ public class Engine {
      * All polls will be performed at rate of 1 s.
      */
     public void startLightPollingAtFixedRate(long delay) {
-        Preconditions.checkState(isNotRunning(),"Can not start lightPolling while current activity is not IDLE");
+        Preconditions.checkState(isNotRunning(), "Can not start lightPolling while current activity is not IDLE");
 
-        ActivitySettings settings = new ActivitySettings(delay,MAX_INITIAL_DELAY);
+        ActivitySettings settings = new ActivitySettings(delay, MAX_INITIAL_DELAY);
 
         crtActivity = Activity.LIGHT_POLLING;
-        crtActivity.start(scheduler,activityCtx, settings, logger);
+        crtActivity.start(scheduler, activityCtx, settings, logger);
     }
 
     /**
      * Clears all the previously collected data
      */
     public synchronized void clear() {
-        Preconditions.checkState(isNotRunning(),"Can not eraseData while current activity is not IDLE");
+        Preconditions.checkState(isNotRunning(), "Can not eraseData while current activity is not IDLE");
         logger.info("Erase all data.");
         attributesManager.clear();
     }
@@ -254,7 +257,7 @@ public class Engine {
         attributesManager.createAttributesGroup(groupName, attrFullNames);
     }
 
-    public Collection<AttributeValue<?>> getLatestValues(AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> getLatestValues(AttributeFilter filter) {
         Preconditions.checkNotNull(filter);
         return attributesManager.takeLatestSnapshot(filter);
     }
@@ -337,15 +340,15 @@ public class Engine {
 
         private void initializeEventTasks() {
             for (Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.EVENT)) {
-                final Client devClient = clientsManager.getClient(attribute.getDeviceName());
+                final Client devClient = clientsManager.getClient(attribute.getName().getDeviceName());
                 activityCtx.addEventTask(new ReadAttributeTask(attribute, devClient, 0L, logger));
             }
         }
 
         private void initializePollTasks() {
             for (final Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.POLL)) {
-                DeviceAttribute attr = configuration.getDeviceAttribute(attribute.getDeviceName(), attribute.getName());
-                final Client devClient = clientsManager.getClient(attribute.getDeviceName());
+                DeviceAttribute attr = configuration.getDeviceAttribute(attribute.getName().getDeviceName(), attribute.getName().getName());
+                final Client devClient = clientsManager.getClient(attribute.getName().getDeviceName());
                 activityCtx.addPollTask(new ReadAttributeTask(attribute, devClient, attr.getDelay(), logger));
             }
         }

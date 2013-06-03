@@ -102,7 +102,7 @@ public final class AttributesManager {
      * @param filter
      * @return collection of attributes managed by this manager
      */
-    public Multimap<String, AttributeValue<?>> takeAllAttributeValues(Timestamp timestamp, AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> takeAllAttributeValues(Timestamp timestamp, AttributeFilter filter) {
         AttributeValues attributeValues = attributeValuesLocal.get();
         attributeValues.clear();
         attributeValues.update(timestamp, filter);
@@ -116,15 +116,15 @@ public final class AttributesManager {
 
     public Attribute<?> createAttribute(DeviceAttribute attr, String devName, Class<?> type, boolean isArray) {
         Interpolation interpolation = attr.getInterpolation();
-        if(isArray){
+        if (isArray) {
             return new ArrayAttribute(devName, attr.getName(), attr.getAlias());
         } else
-        //consider char as numeric type
-        if (Number.class.isAssignableFrom(type) || (type.isPrimitive() && type != boolean.class)) {
-            return new NumericAttribute<Number>(devName, attr.getName(), attr.getAlias(), interpolation, attr.getPrecision());
-        } else {
-            return new NonNumericAttribute<Object>(devName, attr.getName(), attr.getAlias(), interpolation);
-        }
+            //consider char as numeric type
+            if (Number.class.isAssignableFrom(type) || (type.isPrimitive() && type != boolean.class)) {
+                return new NumericAttribute<Number>(devName, attr.getName(), attr.getAlias(), interpolation, attr.getPrecision());
+            } else {
+                return new NonNumericAttribute<Object>(devName, attr.getName(), attr.getAlias(), interpolation);
+            }
     }
 
     /**
@@ -158,7 +158,7 @@ public final class AttributesManager {
         attributesByGroup.putAll(groupName, Iterables.filter(attributesByFullName.values(), new Predicate<Attribute<?>>() {
             @Override
             public boolean apply(Attribute<?> input) {
-                return attrNames.contains(input.getFullName()) && !badAttributes.containsKey(input.getFullName());
+                return attrNames.contains(input.getName().getFullName()) && !badAttributes.containsKey(input.getName().getFullName());
             }
         }));
     }
@@ -171,7 +171,7 @@ public final class AttributesManager {
         return collection;
     }
 
-    public Collection<AttributeValue<?>> takeSnapshot(Timestamp timestamp, final AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> takeSnapshot(Timestamp timestamp, final AttributeFilter filter) {
         AttributesSnapshot snapshot = snapshotLocal.get();
         snapshot.clear();
         snapshot.update(timestamp, filter);
@@ -179,7 +179,7 @@ public final class AttributesManager {
         return snapshot.getValues();
     }
 
-    public Collection<AttributeValue<?>> takeLatestSnapshot(AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> takeLatestSnapshot(AttributeFilter filter) {
         AttributesSnapshot snapshot = snapshotLocal.get();
         snapshot.clear();
         snapshot.update(filter);
@@ -195,7 +195,7 @@ public final class AttributesManager {
      * Designed to be thread confinement
      */
     private class AttributesSnapshot {
-        private final Set<AttributeValue<?>> values = Sets.newLinkedHashSetWithExpectedSize(attributes.size());
+        private final Multimap<AttributeName, AttributeValue<?>> values = HashMultimap.create();
 
         void clear() {
             values.clear();
@@ -204,18 +204,18 @@ public final class AttributesManager {
         void update(Timestamp timestamp, AttributeFilter filter) {
             for (Attribute<?> attr : attributes.keySet()) {
                 if (filter.apply(AttributesManager.this, attr))
-                    values.add(attr.getAttributeValue(timestamp));
+                    values.put(attr.getName(), attr.getAttributeValue(timestamp));
             }
         }
 
         void update(AttributeFilter filter) {
             for (Attribute<?> attr : attributes.keySet()) {
                 if (filter.apply(AttributesManager.this, attr))
-                    values.add(attr.getLatestAttributeValue());
+                    values.put(attr.getName(), attr.getLatestAttributeValue());
             }
         }
 
-        Collection<AttributeValue<?>> getValues() {
+        Multimap<AttributeName, AttributeValue<?>> getValues() {
             return values;
         }
     }
@@ -224,7 +224,7 @@ public final class AttributesManager {
      * Designed to be thread confinement
      */
     private class AttributeValues {
-        private final Multimap<String, AttributeValue<?>> values = LinkedListMultimap.create();
+        private final Multimap<AttributeName, AttributeValue<?>> values = LinkedListMultimap.create();
 
         void clear() {
             values.clear();
@@ -233,11 +233,11 @@ public final class AttributesManager {
         void update(Timestamp timestamp, AttributeFilter filter) {
             for (Attribute<?> attr : attributes.keySet()) {
                 if (filter.apply(AttributesManager.this, attr))
-                    values.putAll(attr.getFullName(), attr.getAttributeValues(timestamp));
+                    values.putAll(attr.getName(), attr.getAttributeValues(timestamp));
             }
         }
 
-        Multimap<String, AttributeValue<?>> getValues() {
+        Multimap<AttributeName, AttributeValue<?>> getValues() {
             return values;
         }
 
