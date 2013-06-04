@@ -109,6 +109,8 @@ public class AttributeValuesStorage<T> {
 
     public void clearInMemoryValues() {
         inMemValues.clear();
+        //issue #20 - always preserve last value
+        inMemValues.put(lastValue.get().getReadTimestamp(), lastValue.get());
     }
 
     public void persistInMemoryValues() {

@@ -199,7 +199,7 @@ public abstract class Attribute<T> {
      * Erases all the data from this attribute
      */
     public void clear() {
-        storage.persistInMemoryValues();
+//        storage.persistInMemoryValues();
         storage.clearInMemoryValues();
     }
 }

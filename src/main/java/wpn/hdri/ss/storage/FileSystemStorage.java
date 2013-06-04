@@ -19,7 +19,7 @@ public class FileSystemStorage implements Storage {
 
     public FileSystemStorage(String root) {
         this.root = new File(root);
-        if(!this.root.exists()){
+        if (!this.root.exists()) {
             this.root.mkdirs();
         }
     }
@@ -28,11 +28,13 @@ public class FileSystemStorage implements Storage {
     public void save(String dataName, Iterable<String> header, Iterable<Iterable<String>> body) throws StorageException {
         Writer writer = null;
         try {
-            writer = new BufferedWriter(new FileWriter(new File(root,dataName)));
+            File file = new File(root, dataName);
+            file.getParentFile().mkdirs();
+            writer = new BufferedWriter(new FileWriter(file));
 
             writer.write(headerParser.makeHeader(header));
 
-            for(Iterable<String> data : body){
+            for (Iterable<String> data : body) {
                 String values = bodyParser.makeBody(data);
 
                 writer.write(values);
@@ -49,8 +51,7 @@ public class FileSystemStorage implements Storage {
         BufferedReader rdr = null;
         List<T> result = new ArrayList<T>();
         try {
-            rdr = new BufferedReader(new FileReader(new File(this.root,dataName)));
-
+            rdr = new BufferedReader(new FileReader(new File(this.root, dataName)));
 
 
             String line;
@@ -60,10 +61,10 @@ public class FileSystemStorage implements Storage {
             Iterable<String> header = headerParser.parse(line);
 
             //read body
-            while((line = rdr.readLine()) != null){
+            while ((line = rdr.readLine()) != null) {
                 Iterable<String> values = bodyParser.parse(line);
 
-                result.add(factory.createType(dataName,header,values));
+                result.add(factory.createType(dataName, header, values));
             }
 
             return result;
@@ -74,12 +75,12 @@ public class FileSystemStorage implements Storage {
         }
     }
 
-    public static class HeaderParser{
-        public String makeHeader(Iterable<String> header){
+    public static class HeaderParser {
+        public String makeHeader(Iterable<String> header) {
             StringBuilder bld = new StringBuilder();
 
             bld.append('#');
-            for(String val : header){
+            for (String val : header) {
                 bld.append(val).append(';');
             }
             bld.append('\n');
@@ -87,16 +88,16 @@ public class FileSystemStorage implements Storage {
             return bld.toString();
         }
 
-        public Iterable<String> parse(String line){
+        public Iterable<String> parse(String line) {
             return Arrays.asList(line.split(";"));
         }
     }
 
-    public static class BodyParser{
-        public String makeBody(Iterable<String> values){
+    public static class BodyParser {
+        public String makeBody(Iterable<String> values) {
             StringBuilder bld = new StringBuilder();
 
-            for(String val : values){
+            for (String val : values) {
                 bld.append(val).append(';');
             }
             bld.append('\n');
@@ -104,7 +105,7 @@ public class FileSystemStorage implements Storage {
             return bld.toString();
         }
 
-        public Iterable<String> parse(String line){
+        public Iterable<String> parse(String line) {
             return Arrays.asList(line.split(";"));
         }
     }

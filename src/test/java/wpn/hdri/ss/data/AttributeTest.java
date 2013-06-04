@@ -285,4 +285,40 @@ public class AttributeTest {
 
         assertNull(result);
     }
+
+    /**
+     * Test case for issue #20
+     */
+    @Test
+    public void testStoreErase_Last() {
+        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, Interpolation.LAST);
+
+        attribute.addValue(timestamp, Value.getInstance(12.), timestamp);
+        attribute.addValue(timestamp + 10, Value.getInstance(14.), timestamp);
+
+        attribute.clear();
+
+
+        Double result = attribute.getAttributeValue().getValue().get();
+
+        assertEquals(14., result);
+    }
+
+    /**
+     * Test case for issue #20
+     */
+    @Test
+    public void testStoreErase_All() {
+        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, Interpolation.LAST);
+
+        attribute.addValue(timestamp, Value.getInstance(12.), timestamp);
+        attribute.addValue(timestamp + 10, Value.getInstance(14.), timestamp);
+
+        attribute.clear();
+
+
+        Double result = Iterables.getFirst(attribute.getAttributeValues(timestamp), null).getValue().get();
+
+        assertEquals(14., result);
+    }
 }
