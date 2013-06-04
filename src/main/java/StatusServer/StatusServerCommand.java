@@ -32,6 +32,7 @@ package StatusServer;
 import com.google.common.collect.Multimap;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoDs.Command;
+import hzg.wpn.util.compressor.Compressor;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.data.AttributeName;
 import wpn.hdri.ss.data.AttributeValue;
@@ -43,13 +44,18 @@ import wpn.hdri.tango.command.AbsCommand;
 import wpn.hdri.tango.data.EnumDevState;
 import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
 import wpn.hdri.tango.data.type.SpectrumTangoDataTypes;
+import wpn.hdri.tango.util.TangoUtils;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * GET_*_UPDATES are not consistent, i.e. each call to one GET_*_UPDATES does not affect others.
+ * TODO after implementation of persistent client ID this situation could change or not
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 10.05.12
  */
@@ -171,8 +177,37 @@ public enum StatusServerCommand {
             AttributesView view = new AttributesView(data, instance.isUseAliases());
 
             String result = view.toJsonString();
-            //TODO encode in Base64
-            return result;
+
+            try {
+                return new String(Compressor.encodeAndCompress(result.getBytes()));
+            } catch (IOException e) {
+                throw TangoUtils.createDevFailed(e);
+            }
+        }
+    }),
+    GET_DATA_ENCODED_UPDATES(new AbsCommand<StatusServer, String, String>("getDataEncodedUpdates",
+            ScalarTangoDataTypes.STRING, ScalarTangoDataTypes.STRING, "ClientId", "Encoded in Base 64 collected data. Data is in json format") {
+        private final ConcurrentMap<Integer, Timestamp> timestamps = new ConcurrentHashMap<Integer, Timestamp>();
+
+        @Override
+        protected String executeInternal(StatusServer instance, String cid, Logger log) throws DevFailed {
+            Integer uuid = Integer.valueOf(cid);
+
+            Engine engine = instance.getEngine();
+
+            final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            final Timestamp oldTimestamp = timestamps.put(uuid, timestamp);
+            Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
+
+            AttributesView view = new AttributesView(data, instance.isUseAliases());
+
+            String result = view.toJsonString();
+
+            try {
+                return new String(Compressor.encodeAndCompress(result.getBytes()));
+            } catch (IOException e) {
+                throw TangoUtils.createDevFailed(e);
+            }
         }
     }),
     GET_LATEST_SNAPSHOT(new AbsCommand<StatusServer, Void, String[]>("getLatestSnapshot",

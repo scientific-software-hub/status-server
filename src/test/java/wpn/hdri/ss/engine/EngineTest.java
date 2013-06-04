@@ -98,7 +98,7 @@ public class EngineTest {
             }
         });
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), mockStorage, clientsManager, attributesManager, mockLogger, 2);
+        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
 
         engine.initialize();
 
@@ -115,7 +115,7 @@ public class EngineTest {
     public void testBadClient() throws Exception {
         ClientsManager clientsManager = new ClientsManager(new ClientFactory());
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), mockStorage, clientsManager, attributesManager, mockLogger, 2);
+        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
 
         engine.initialize();
 
@@ -130,7 +130,7 @@ public class EngineTest {
     public void testBadAttribute() throws Exception {
         ClientsManager clientsManager = new ClientsManager(new ClientFactory());
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), mockStorage, clientsManager, attributesManager, mockLogger, 2);
+        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
 
         engine.initialize();
 
@@ -165,7 +165,7 @@ public class EngineTest {
             }
         });
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), mockStorage, clientsManager, attributesManager, mockLogger, 2);
+        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
 
         engine.initialize();
 

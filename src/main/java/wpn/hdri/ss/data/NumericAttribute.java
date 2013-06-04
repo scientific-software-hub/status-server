@@ -85,7 +85,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
     }
 
     /**
-     * Adds a value if it satisfies the precision test.
+     * Adds a value if it satisfies the precision test. If by ane means value can not be converted to BigDecimal it is skipped.
      *
      * @param readTimestamp  when the value was read by StatusServer
      * @param value          the value
@@ -100,12 +100,17 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
         String text = String.valueOf(value.get());
         BigDecimal decimal = (BigDecimal) DECIMAL_FORMAT.parse(text, POSITION);
         if (decimal == null) {
-            decimal = new BigDecimal(text);
+            try {
+                decimal = new BigDecimal(text);
+            } catch (NumberFormatException e) {
+                //TODO log
+                return;
+            }
         }
 
         Map.Entry<Timestamp, BigDecimal> lastNumericEntry = numericValues.floorEntry(readTimestamp);
         if (lastNumericEntry == null) {
-            if(storage.addValue(attributeValue))
+            if (storage.addValue(attributeValue))
                 numericValues.putIfAbsent(readTimestamp, decimal);
             return;
         }
@@ -114,7 +119,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
 
         // |x - y| > precision
         if (decimal.subtract(lastDecimal).abs().compareTo(precision) > 0) {
-            if(storage.addValue(attributeValue))
+            if (storage.addValue(attributeValue))
                 numericValues.putIfAbsent(readTimestamp, decimal);
         }
     }

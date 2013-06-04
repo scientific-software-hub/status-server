@@ -61,7 +61,7 @@ public class Timestamp implements Comparable<Timestamp> {
      */
     public Timestamp(long value, TimeUnit unit) {
         this.value = (unit == TimeUnit.MILLISECONDS ? value : unit.toMillis(value));
-        this.string = "@" + this.value;
+        this.string = String.valueOf(this.value);
     }
 
     /**
@@ -112,7 +112,6 @@ public class Timestamp implements Comparable<Timestamp> {
     }
 
     /**
-     *
      * @param s long value as String
      */
     public static Timestamp fromString(String s) {

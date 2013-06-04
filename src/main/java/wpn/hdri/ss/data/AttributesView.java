@@ -78,9 +78,9 @@ public class AttributesView {
         for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry : data.asMap().entrySet()) {
             bld.append(resolveAttributeName(entry.getKey())).append('\n');
             for (AttributeValue<?> value : entry.getValue()) {
-                bld.append(value.getReadTimestamp())
+                bld.append('@').append(value.getReadTimestamp())
                         .append('[').append(value.getValue())
-                        .append(value.getWriteTimestamp())
+                        .append('@').append(value.getWriteTimestamp())
                         .append("]\n");
             }
         }

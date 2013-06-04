@@ -47,9 +47,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class Attribute<T> {
     private final AttributeName name;
 
-    protected final AttributeValuesStorage<T> storage = new AttributeValuesStorage<T>(null, null);
+    protected final AttributeValuesStorage<T> storage = new AttributeValuesStorage<T>();
 
-//    protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
+    //    protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
     private final Interpolation interpolation;
 
     public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
@@ -96,7 +96,6 @@ public abstract class Attribute<T> {
     }
 
     /**
-     *
      * @return latest stored value of the attribute
      */
     public AttributeValue<T> getLatestAttributeValue() {

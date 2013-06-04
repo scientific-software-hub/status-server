@@ -39,7 +39,6 @@ import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.*;
-import wpn.hdri.ss.storage.Storage;
 import wpn.hdri.ss.storage.StorageFactory;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
@@ -123,7 +122,7 @@ public class Engine {
      * @param attributesManager
      * @param cpus
      */
-    public Engine(StatusServerConfiguration configuration, Storage storage, ClientsManager clientsManager, AttributesManager attributesManager, int cpus) {
+    public Engine(StatusServerConfiguration configuration, StorageFactory storage, ClientsManager clientsManager, AttributesManager attributesManager, int cpus) {
         this(configuration, storage, clientsManager, attributesManager, DEFAULT_LOGGER, cpus);
     }
 

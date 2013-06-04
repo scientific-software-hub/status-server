@@ -1,8 +1,6 @@
 package wpn.hdri.ss.data;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Map;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -18,8 +16,9 @@ public class ArrayAttribute extends Attribute<Object> {
         AttributeValue<Object> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
 
         AttributeValue<Object> lastValue = storage.getLastValue();
-
-        if (!Arrays.equals((Object[])lastValue.getValue().get(), (Object[])value.get())) {
+        if (lastValue == null) {
+            storage.addValue(attributeValue);
+        } else if (!ArrayUtils.isEquals(lastValue.getValue().get(), value.get())) {
             storage.addValue(attributeValue);
         }
     }

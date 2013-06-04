@@ -47,7 +47,7 @@ import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.ClientsManager;
 import wpn.hdri.ss.engine.Engine;
-import wpn.hdri.ss.storage.Storage;
+import wpn.hdri.ss.storage.StorageFactory;
 import wpn.hdri.tango.attribute.EnumAttrWriteType;
 import wpn.hdri.tango.attribute.TangoAttribute;
 import wpn.hdri.tango.attribute.TangoAttributeListener;
@@ -108,7 +108,7 @@ public class StatusServer extends DeviceImpl {
         set_state(DevState.INIT);
     }
 
-    public void postInit_device(StatusServerConfiguration configuration, Storage storage, ClientsManager clientsManager, AttributesManager attributesManager) throws DevFailed {
+    public void postInit_device(StatusServerConfiguration configuration, StorageFactory storage, ClientsManager clientsManager, AttributesManager attributesManager) throws DevFailed {
         StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().setCurrentValue(configuration.isUseAliases());
 
         this.engine = new Engine(configuration, storage, clientsManager, attributesManager /*DEFAULT LOGGER*/, utilizedCpus);

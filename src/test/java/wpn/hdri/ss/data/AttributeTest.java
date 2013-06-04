@@ -222,7 +222,8 @@ public class AttributeTest {
         attribute.addValue(timestamp + 10, Value.NULL, timestamp);
 
         Double result = attribute.getAttributeValue().getValue().get();
-        assertNull(result);
+//        assertNull(result);
+        assertEquals(12., result);
     }
 
     @Test
@@ -262,21 +263,22 @@ public class AttributeTest {
     public void testArrayAttribute() {
         ArrayAttribute attribute = new ArrayAttribute(deviceName, name, "string");
 
-        attribute.addValue(timestamp, Value.getInstance((Object)new double[]{0.D,0.1D,0.2D}), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance((Object)new double[]{0.1D,0.2D,0.3D}), timestamp);
-        attribute.addValue(timestamp + 20, Value.getInstance((Object)new double[]{0.2D,0.3D,0.4D}), timestamp);
+        attribute.addValue(timestamp, Value.getInstance((Object) new double[]{0.D, 0.1D, 0.2D}), timestamp);
+        attribute.addValue(timestamp + 10, Value.getInstance((Object) new double[]{0.1D, 0.2D, 0.3D}), timestamp);
+        attribute.addValue(timestamp + 20, Value.getInstance((Object) new double[]{0.2D, 0.3D, 0.4D}), timestamp);
 
         AttributeValue<Object> value = attribute.getAttributeValue(timestamp + 15);
 
-        double[] result = (double[])value.getValue().get();
+        double[] result = (double[]) value.getValue().get();
 
-        assertArrayEquals(new double[]{0.1D,0.2D,0.3D},result,0.0D);
+        assertArrayEquals(new double[]{0.1D, 0.2D, 0.3D}, result, 0.0D);
     }
 
     @Test
     public void testSetNullValue() {
         Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST);
 
+//        attribute.addValue(timestamp, null, timestamp);
         attribute.addValue(timestamp, Value.getInstance(null), timestamp);
 
         String result = attribute.getAttributeValue().getValue().get();

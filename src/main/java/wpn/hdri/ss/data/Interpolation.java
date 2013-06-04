@@ -59,8 +59,11 @@ public enum Interpolation {
          * @throws NumberFormatException if actual values are not valid numbers
          */
         @Override
-        protected  <T> AttributeValue<T> interpolateInternal(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
+        protected <T> AttributeValue<T> interpolateInternal(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
             checkPreconditions(left, right, timestamp);
+            if (left == right || left.equals(right)) {
+                return left;
+            }
 
             if (left.getWriteTimestamp().equals(timestamp)) {
                 return left;
@@ -108,7 +111,7 @@ public enum Interpolation {
     },
     LAST("last") {
         @Override
-        protected  <T> AttributeValue<T> interpolateInternal(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
+        protected <T> AttributeValue<T> interpolateInternal(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
             checkPreconditions(left);
             return left;
         }
@@ -125,7 +128,7 @@ public enum Interpolation {
          * @return AttributeValue which writeTimestamp is nearest to specified timestamp
          * @throws NullPointerException if any of the parameters is null
          */
-        protected  <T> AttributeValue<T> interpolateInternal(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
+        protected <T> AttributeValue<T> interpolateInternal(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
             checkPreconditions(left, right, timestamp);
 
             long leftValue = left.getWriteTimestamp().getValue();
@@ -169,9 +172,9 @@ public enum Interpolation {
 
     /**
      * If both left and right are nulls throws NPE
-     *
+     * <p/>
      * If one of the left or right is null returns the opposite.
-     *
+     * <p/>
      * If both are not nulls interpolate them.
      *
      * @param left
@@ -180,16 +183,16 @@ public enum Interpolation {
      * @param <T>
      * @return
      */
-    public  <T> AttributeValue<T> interpolate(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp){
-        if(left == null & right == null){
+    public <T> AttributeValue<T> interpolate(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
+        if (left == null & right == null) {
             throw new NullPointerException("Both left and right values are null.");
         }
 
-        if(left == null){
+        if (left == null) {
             return right;
         }
 
-        if(right == null){
+        if (right == null) {
             return left;
         }
 
