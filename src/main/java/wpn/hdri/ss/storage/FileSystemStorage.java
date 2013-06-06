@@ -18,7 +18,7 @@ public class FileSystemStorage implements Storage {
     private final BodyParser bodyParser = new BodyParser();
 
     public FileSystemStorage(String root) {
-        this.root = new File(root);
+        this.root = new File(root, "data");
         if (!this.root.exists()) {
             this.root.mkdirs();
         }

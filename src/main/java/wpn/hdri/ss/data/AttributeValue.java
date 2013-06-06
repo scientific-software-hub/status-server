@@ -64,7 +64,7 @@ public class AttributeValue<T> {
         return attributeFullName;
     }
 
-    public String getAlias(){
+    public String getAlias() {
         return alias;
     }
 
@@ -91,7 +91,7 @@ public class AttributeValue<T> {
      *
      * @return
      */
-    public Iterable<String> getValues() {
-        return Arrays.asList(attributeFullName,alias,value.getClass().getName(),String.valueOf(value.get()),String.valueOf(readTimestamp.getValue()),String.valueOf(writeTimestamp.getValue()));
+    public Iterable<String> getStringValues() {
+        return Arrays.asList(attributeFullName, alias, value.get().getClass().getName(), String.valueOf(value.get()), String.valueOf(readTimestamp.getValue()), String.valueOf(writeTimestamp.getValue()));
     }
 }
