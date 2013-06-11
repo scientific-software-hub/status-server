@@ -20,6 +20,7 @@ public class FileSystemStorage implements Storage {
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private final File root;
 
+    //TODO replace with writer.append
     private final HeaderParser headerParser = new HeaderParser();
     private final BodyParser bodyParser = new BodyParser();
 
@@ -46,13 +47,12 @@ public class FileSystemStorage implements Storage {
      * @param dataName
      * @param header
      * @param body
-     * @throws StorageException
      */
     @Override
-    public void save(final String dataName, final Iterable<String> header, final Iterable<Iterable<String>> body) throws StorageException {
+    public void save(final String dataName, final Iterable<String> header, final Iterable<Iterable<String>> body) {
         exec.submit(new Callable<Void>() {
             @Override
-            public Void call() throws StorageException {
+            public Void call() throws IOException {
                 Writer writer = null;
                 try {
                     File file = new File(root, dataName);
@@ -68,8 +68,6 @@ public class FileSystemStorage implements Storage {
                         writer.append(values);
                     }
                     return null;
-                } catch (IOException e) {
-                    throw new StorageException(e);
                 } finally {
                     Closeables.closeQuietly(writer);
                 }
@@ -93,29 +91,23 @@ public class FileSystemStorage implements Storage {
             public Iterable<T> call() throws Exception {
                 BufferedReader rdr = null;
                 List<T> result = new ArrayList<T>();
-                try {
-                    rdr = new BufferedReader(new FileReader(new File(root, dataName)));
+                rdr = new BufferedReader(new FileReader(new File(root, dataName)));
 
 
-                    String line;
+                String line;
 
-                    //read header
-                    line = rdr.readLine();
-                    Iterable<String> header = headerParser.parse(line);
+                //read header
+                line = rdr.readLine();
+                Iterable<String> header = headerParser.parse(line);
 
-                    //read body
-                    while ((line = rdr.readLine()) != null) {
-                        Iterable<String> values = bodyParser.parse(line);
+                //read body
+                while ((line = rdr.readLine()) != null) {
+                    Iterable<String> values = bodyParser.parse(line);
 
-                        result.add(factory.createType(dataName, header, values));
-                    }
-
-                    return result;
-                } catch (FileNotFoundException e) {
-                    throw new StorageException(e);
-                } catch (IOException e) {
-                    throw new StorageException(e);
+                    result.add(factory.createType(dataName, header, values));
                 }
+
+                return result;
             }
         });
 

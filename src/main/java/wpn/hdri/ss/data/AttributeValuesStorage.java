@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * This class implements storage of the attribute values. The storage should provide very fast access to the latest value
  * as more frequently requested, relative fast access to last 1M values and persist all values.
  * <p/>
+ * Implementation is not intended to perform getAllValues fast as it is bounded by the underlying IO
+ * <p/>
  * Implementation uses {@link AtomicReference} to preserve the latest value, {@link ConcurrentNavigableMap} is used to store
  * 1M records and {@link Storage} is used for persistent values
  *
@@ -28,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AttributeValuesStorage<T> {
     //TODO read from configuration
     public static final long PERSIST_VALUES_THRESHOLD = 1000000;//1M
-    public static final long SAVE_TIMESTAMP_THRESHOLD = 500000;//0,5M
+    public static final long SAVE_TIMESTAMP_THRESHOLD =  500000;//0,5M
 
     private final AtomicLong valuesCounter = new AtomicLong();
 
