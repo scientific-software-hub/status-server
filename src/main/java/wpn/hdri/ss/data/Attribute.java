@@ -47,13 +47,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class Attribute<T> {
     private final AttributeName name;
 
-    protected final AttributeValuesStorage<T> storage = new AttributeValuesStorage<T>();
+    protected final AttributeValuesStorage<T> storage;
 
     //    protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
     private final Interpolation interpolation;
 
     public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
         this.name = new AttributeName(deviceName, name, alias);
+        //TODO get storage root from config
+        this.storage = new AttributeValuesStorage<T>(this.name.getFullName(), System.getProperty("user.dir"));
 
         this.interpolation = interpolation;
     }

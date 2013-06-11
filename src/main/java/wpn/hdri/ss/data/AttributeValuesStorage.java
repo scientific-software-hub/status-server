@@ -11,8 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -28,21 +26,39 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 //TODO integrate some IoC container Google-Guice seems to be a good candidate
 public class AttributeValuesStorage<T> {
-    public static final long PERSIST_VALUES_THRESHOLD = 100;//1M
-    public static final long SAVE_TIMESTAMP_THRESHOLD = 50;//0,5M
+    //TODO read from configuration
+    public static final long PERSIST_VALUES_THRESHOLD = 1000000;//1M
+    public static final long SAVE_TIMESTAMP_THRESHOLD = 500000;//0,5M
 
     private final AtomicLong valuesCounter = new AtomicLong();
 
     private final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> inMemValues = Maps.newConcurrentNavigableMap();
 
-    //TODO should be injected from Engine
-    private final ExecutorService exec = Executors.newSingleThreadExecutor();
-    //TODO persistent should be defined in the configuration
-    private final Storage persistent = new FileSystemStorage(System.getProperty("user.dir"));
+    private final Storage persistent;
 
     private final AtomicReference<AttributeValue<T>> lastValue = new AtomicReference<AttributeValue<T>>(null);
     //the following is used to determine when it is time to persist in-mem values
     private final AtomicReference<Timestamp> thresholdTimestamp = new AtomicReference<Timestamp>(null);
+
+    /**
+     * This is used as a data id when interacting with the persistent
+     */
+    private final String name;
+    private final long persistTimestampThreshold;
+    private final long updateTimestampThreshold;
+
+
+    public AttributeValuesStorage(String name, String persistentStorageRoot, long persistTimestampThreshold, long updateTimestampThreshold) {
+        this.name = name;
+        //TODO persistent type should be defined in the configuration
+        this.persistent = new FileSystemStorage(persistentStorageRoot, true);
+        this.persistTimestampThreshold = persistTimestampThreshold;
+        this.updateTimestampThreshold = updateTimestampThreshold;
+    }
+
+    public AttributeValuesStorage(String name, String persistentStorageRoot) {
+        this(name, persistentStorageRoot, PERSIST_VALUES_THRESHOLD, SAVE_TIMESTAMP_THRESHOLD);
+    }
 
     /**
      * Stores a new value in lastValue, previous value (if not null) moves to lastMillion, if lastMillion > 1M moves oldest 500K values to persistent
@@ -57,26 +73,23 @@ public class AttributeValuesStorage<T> {
 //                || value.getValue() == Value.NULL)
             return false;
 
+        //TODO this is a bug - when we add a value with the same readTimestamp counter is increased, but the value is not actually added
+        //TODO may affect only test, because it is very unlikely that in the reality we will ever add same timestamps
         long counter = valuesCounter.incrementAndGet();
 
         lastValue.set(value);
 
         inMemValues.putIfAbsent(value.getReadTimestamp(), value);
 
-        if (counter % PERSIST_VALUES_THRESHOLD == 0) {//persist old values every time counter hits 1M
+        if (counter % persistTimestampThreshold == 0) {//persist old values every time counter hits 1M
             //cut off head map - ~500K values persist them and erase
-            exec.submit(new Runnable() {
-                @Override
-                public void run() {
-                    Timestamp threshold = thresholdTimestamp.getAndSet(value.getReadTimestamp());
-                    ConcurrentNavigableMap<Timestamp, AttributeValue<T>> head = inMemValues.headMap(threshold);
-                    Collection<AttributeValue<T>> values = head.values();
-                    persist(values);
-                    //head is a view of the map so here underlying inMemValues map is also cleared
-                    head.clear();
-                }
-            });
-        } else if (counter % SAVE_TIMESTAMP_THRESHOLD == 0) {//save timestamp each 500K values
+            Timestamp threshold = thresholdTimestamp.getAndSet(value.getReadTimestamp());
+            ConcurrentNavigableMap<Timestamp, AttributeValue<T>> head = inMemValues.headMap(threshold);
+            Collection<AttributeValue<T>> values = head.values();
+            persist(values);
+            //head is a view of the map so here underlying inMemValues map is also cleared
+            head.clear();
+        } else if (counter % updateTimestampThreshold == 0) {//save timestamp each 500K values
             thresholdTimestamp.set(value.getReadTimestamp());
         }
 
@@ -90,11 +103,12 @@ public class AttributeValuesStorage<T> {
 
     public Iterable<AttributeValue<T>> getAllValues() {
         try {
+            Iterable<AttributeValue<T>> persisted = persistent.<AttributeValue<T>>load(
+                    name,
+                    new AttributeValueFactory<T>());
             return Iterables.<AttributeValue<T>>concat(
-                    inMemValues.values(),
-                    persistent.<AttributeValue<T>>load(
-                            lastValue.get().getAttributeFullName(),
-                            new AttributeValueFactory<T>()));
+                    persisted,
+                    inMemValues.values());
         } catch (StorageException e) {
             //TODO log
             return inMemValues.values();
@@ -144,7 +158,6 @@ public class AttributeValuesStorage<T> {
     }
 
     private void persist(Iterable<AttributeValue<T>> values) {
-        String name = lastValue.get().getReadTimestamp().toString();
         Iterable<String> header = AttributeValue.HEADER;
 
         List<Iterable<String>> body = Lists.newArrayList();

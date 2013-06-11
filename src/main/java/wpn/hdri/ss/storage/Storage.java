@@ -26,12 +26,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
-
+//TODO move into a dedicated project. The new project will serve as a single entry point for all storing tasks
+//TODO implement annotations
 package wpn.hdri.ss.storage;
 
-import java.util.Collection;
-
 /**
+ * This is a very rough approach for storing data. Basically it takes header (a list of Strings) and data (a list of list of Strings) and a data name
+ * Data name is a "table name".
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 27.04.12
  */

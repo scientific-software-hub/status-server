@@ -72,6 +72,24 @@ public class AttributeValue<T> {
         return value;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AttributeValue that = (AttributeValue) o;
+
+        if (readTimestamp != null ? !readTimestamp.equals(that.readTimestamp) : that.readTimestamp != null)
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return readTimestamp != null ? readTimestamp.hashCode() : 0;
+    }
+
     /**
      * from StatusServer
      */
