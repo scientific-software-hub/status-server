@@ -8,6 +8,7 @@ import wpn.hdri.ss.storage.Storage;
 import wpn.hdri.ss.storage.StorageException;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -118,13 +119,19 @@ public class AttributeValuesStorage<T> {
     }
 
     /**
-     * Returns all in memory stored values that are newer than timestamp
+     * Returns all in memory stored values that are newer than timestamp.
+     * If provided timestamp is greater than the last's inMem or inMem is empty returns lastValue
      *
      * @param timestamp
      * @return values that are stored in memory
      */
     public Iterable<AttributeValue<T>> getInMemoryValues(Timestamp timestamp) {
-        return inMemValues.tailMap(timestamp).values();
+        //inMem is empty or timestamp is greater than last inMem
+        if(inMemValues.lastEntry() == null || inMemValues.lastEntry().getValue().getReadTimestamp().compareTo(timestamp) == -1)
+            //TODO avoid collection creation
+            return lastValue.get() == null ? Collections.<AttributeValue<T>>emptyList() : Lists.newArrayList(lastValue.get());
+        else
+            return inMemValues.tailMap(timestamp).values();
     }
 
     public boolean isEmpty() {
@@ -152,11 +159,16 @@ public class AttributeValuesStorage<T> {
     public void clearInMemoryValues() {
         inMemValues.clear();
         //issue #20 - always preserve last value
-        inMemValues.put(lastValue.get().getReadTimestamp(), lastValue.get());
+//        inMemValues.put(lastValue.get().getReadTimestamp(), lastValue.get());
     }
 
     public void persistInMemoryValues() {
         persist(inMemValues.values());
+    }
+
+    public void persistAndClearInMemoryValues(){
+        persistInMemoryValues();
+        clearInMemoryValues();
     }
 
     private void persist(Iterable<AttributeValue<T>> values) {

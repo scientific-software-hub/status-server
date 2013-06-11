@@ -198,10 +198,9 @@ public abstract class Attribute<T> {
     }
 
     /**
-     * Erases all the data from this attribute
+     * Erases inMem data from this attribute simultaneously inMem data is persisted
      */
     public void clear() {
-//        storage.persistInMemoryValues();
-        storage.clearInMemoryValues();
+        storage.persistAndClearInMemoryValues();
     }
 }

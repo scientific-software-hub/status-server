@@ -317,7 +317,7 @@ public class AttributeTest {
         attribute.clear();
 
 
-        Double result = Iterables.getFirst(attribute.getAttributeValues(timestamp), null).getValue().get();
+        Double result = Iterables.getFirst(attribute.getAttributeValues(timestamp + 5), null).getValue().get();
 
         assertEquals(14., result);
     }
