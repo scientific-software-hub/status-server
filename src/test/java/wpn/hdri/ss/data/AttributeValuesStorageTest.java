@@ -106,4 +106,26 @@ public class AttributeValuesStorageTest {
             throw new RuntimeException(e);
         }
     }
+
+    @Test
+    public void testClear(){
+        AttributeValuesStorage<Double> instance = new AttributeValuesStorage<Double>(TEST_ATTR_FULL_NAME, TEST_ATTR_STORAGE_ROOT, 6, 3);
+
+        List<AttributeValue<Double>> expected = new ArrayList<AttributeValue<Double>>();
+        for (int i = 0; i < 14; i++) {
+            double rnd = Math.random();
+            AttributeValue<Double> value = new AttributeValue<Double>(TEST_ATTR_FULL_NAME, null, Value.getInstance(rnd), new Timestamp(TEST_TIMESTAMP + i * 1000), Timestamp.now());
+            instance.addValue(value);
+            expected.add(value);
+        }
+
+        //simulate Attribute#clear
+        instance.persistInMemoryValues();
+        instance.clearInMemoryValues();
+
+        //loads all values from persistent storage
+        Iterable<AttributeValue<Double>> result = instance.getAllValues();
+
+        assertTrue(Iterables.elementsEqual(expected, result));
+    }
 }

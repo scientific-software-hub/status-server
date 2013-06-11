@@ -60,12 +60,10 @@ public class FileSystemStorage implements Storage {
                     writer = new BufferedWriter(new FileWriter(file, true));
 
                     if (file.length() == 0)
-                        writer.append(headerParser.makeHeader(header));
+                        writeHeader(writer,header);
 
                     for (Iterable<String> data : body) {
-                        String values = bodyParser.makeBody(data);
-
-                        writer.append(values);
+                        writeBody(writer, data);
                     }
                     return null;
                 } finally {
@@ -73,6 +71,21 @@ public class FileSystemStorage implements Storage {
                 }
             }
         });
+    }
+
+    private void writeHeader(Writer out, Iterable<String> header) throws IOException{
+        out.append('#');
+        for(String headerItem : header){
+            out.append(headerItem).append(';');
+        }
+        out.append('\n');
+    }
+
+    private void writeBody(Writer out, Iterable<String> body) throws IOException{
+        for(String bodyItem : body){
+            out.append(bodyItem).append(';');
+        }
+        out.append('\n');
     }
 
     /**
@@ -121,35 +134,12 @@ public class FileSystemStorage implements Storage {
     }
 
     public static class HeaderParser {
-        public String makeHeader(Iterable<String> header) {
-            StringBuilder bld = new StringBuilder();
-
-            bld.append('#');
-            for (String val : header) {
-                bld.append(val).append(';');
-            }
-            bld.append('\n');
-
-            return bld.toString();
-        }
-
         public Iterable<String> parse(String line) {
             return Arrays.asList(line.split(";"));
         }
     }
 
     public static class BodyParser {
-        public String makeBody(Iterable<String> values) {
-            StringBuilder bld = new StringBuilder();
-
-            for (String val : values) {
-                bld.append(val).append(';');
-            }
-            bld.append('\n');
-
-            return bld.toString();
-        }
-
         public Iterable<String> parse(String line) {
             return Arrays.asList(line.split(";"));
         }
