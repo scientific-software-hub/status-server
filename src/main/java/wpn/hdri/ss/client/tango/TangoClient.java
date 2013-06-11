@@ -30,12 +30,12 @@
 package wpn.hdri.ss.client.tango;
 
 import org.apache.log4j.Logger;
-import wpn.hdri.ss.client.*;
+import wpn.hdri.ss.client.Client;
+import wpn.hdri.ss.client.ClientException;
+import wpn.hdri.ss.client.EventCallback;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.tango.data.format.SpectrumTangoDataFormat;
-import wpn.hdri.tango.data.format.TangoDataFormat;
 import wpn.hdri.tango.proxy.*;
-import wpn.hdri.tango.proxy.EventData;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
@@ -85,12 +85,10 @@ public class TangoClient extends Client {
 
     @Override
     public boolean isArrayAttribute(String attrName) throws ClientException {
-        try {
-            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
-            return SpectrumTangoDataFormat.class.isAssignableFrom(attributeInfo.getFormat().getClass());
-        } catch (TangoProxyException e) {
-            throw new ClientException("Can not execute query!",e);
-        }
+        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+        if (attributeInfo == null)
+            throw new ClientException("Can not execute query!", new NullPointerException("attributeInfo is null"));
+        return SpectrumTangoDataFormat.class.isAssignableFrom(attributeInfo.getFormat().getClass());
     }
 
     @Override
@@ -99,7 +97,7 @@ public class TangoClient extends Client {
             int eventId = proxy.subscribeEvent(attrName, TangoEvent.CHANGE, new TangoEventCallback<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    cbk.onEvent(new wpn.hdri.ss.client.EventData(data.getValue(),data.getTime()));
+                    cbk.onEvent(new wpn.hdri.ss.client.EventData(data.getValue(), data.getTime()));
                 }
 
                 @Override
@@ -124,12 +122,10 @@ public class TangoClient extends Client {
 
     @Override
     public Class<?> getAttributeClass(String attrName) throws ClientException {
-        try {
-            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
-            return attributeInfo.getClazz();
-        } catch (TangoProxyException devFailed) {
-            throw new ClientException("Exception in " + proxy.getName(), devFailed);
-        }
+        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+        if (attributeInfo == null)
+            throw new ClientException("Exception in " + proxy.getName(), new NullPointerException("attributeInfo is null"));
+        return attributeInfo.getClazz();
     }
 
     @Override
@@ -144,15 +140,14 @@ public class TangoClient extends Client {
 
     @Override
     public void printAttributeInfo(String name, Logger logger) {
-        try {
-            TangoAttributeInfoWrapper info = proxy.getAttributeInfo(name);
+        TangoAttributeInfoWrapper info = proxy.getAttributeInfo(name);
+        if (info == null)
+            logger.error("Can not print attribute info for " + name + ". Reason - info is null.");
+        else {
             logger.info("Information for attribute " + proxy.getName() + "/" + name);
             logger.info("Data format:" + info.getFormat().toString());
             logger.info("Data type:" + info.getType().toString());
             logger.info("Java data type match:" + info.getClazz().getSimpleName());
-
-        } catch (TangoProxyException e) {
-            logger.error("Can not print attribute info for " + name, e);
         }
     }
 }
