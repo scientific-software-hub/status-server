@@ -10,11 +10,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Stores values as semicolon separated text file.
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.04.13
  */
 @ThreadSafe
-public class FileSystemStorage implements Storage {
+public class CsvFileStorage implements Storage {
     //allow only one thread that accesses file
     private final File root;
 
@@ -25,7 +27,7 @@ public class FileSystemStorage implements Storage {
      * @param root
      * @param clearRoot if true will delete root on creation
      */
-    public FileSystemStorage(String root, boolean clearRoot) {
+    public CsvFileStorage(String root, boolean clearRoot) {
         this.root = new File(root, "data");
         if (!this.root.exists()) {
             this.root.mkdirs();
