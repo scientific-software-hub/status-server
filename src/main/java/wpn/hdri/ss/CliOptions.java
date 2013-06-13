@@ -38,4 +38,6 @@ import wpn.hdri.cli.CliOption;
 public class CliOptions {
     @CliOption(opt = "c", longOpt = "config", hasArg = true, description = "path to configuration xml")
     public String pathToConfiguration;
+    @CliOption(opt = "v", longOpt = "verbose", hasArg = false, description = "sets logger level to DEBUG")
+    public boolean verbose;
 }

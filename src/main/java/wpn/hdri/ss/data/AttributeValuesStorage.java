@@ -2,6 +2,7 @@ package wpn.hdri.ss.data;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.apache.log4j.Logger;
 import wpn.hdri.collection.Maps;
 import wpn.hdri.ss.storage.CsvFileStorage;
 import wpn.hdri.ss.storage.SingleThreadStorage;
@@ -40,7 +41,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * Concurrent read/clear - it is client's responsibility to guarantee that clear is not executed concurrently with RW
  * 1) read pretends and overlaps clear - undefined
  * 2) clear pretends and overlaps read - undefined
- * 3) sequential execution - undefined
  *
  * Current implementation deletes persisted values only during restart
  *
@@ -49,6 +49,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 //TODO integrate some IoC container Google-Guice seems to be a good candidate
 public class AttributeValuesStorage<T> {
+    public static final Logger LOG = Logger.getLogger(AttributeValuesStorage.class);
+
     //TODO read from configuration
     public static final long PERSIST_VALUES_THRESHOLD = 1000000;//1M
     public static final long SAVE_TIMESTAMP_THRESHOLD =  500000;//0,5M
@@ -99,12 +101,13 @@ public class AttributeValuesStorage<T> {
         //TODO this is a bug - when we add a value with the same readTimestamp counter is increased, but the value is not actually added
         //TODO may affect only test, because it is very unlikely that in the reality we will ever add same timestamps
         long counter = valuesCounter.incrementAndGet();
-
+        LOG.debug(counter + " collected values so far.");
         lastValue.set(value);
 
         inMemValues.put(value.getReadTimestamp(), value);
 
         if (counter % persistTimestampThreshold == 0) {//persist old values every time counter hits 1M
+            LOG.debug("persisting values...");
             //cut off head map - ~500K values persist them and erase
             Timestamp threshold = thresholdTimestamp.getAndSet(value.getReadTimestamp());
             ConcurrentNavigableMap<Timestamp, AttributeValue<T>> head = inMemValues.headMap(threshold);
@@ -112,6 +115,7 @@ public class AttributeValuesStorage<T> {
             persist(values);
             //head is a view of the map so here underlying inMemValues map is also cleared
             head.clear();
+            LOG.debug("done.");
         } else if (counter % updateTimestampThreshold == 0) {//save timestamp each 500K values
             thresholdTimestamp.set(value.getReadTimestamp());
         }
@@ -133,7 +137,7 @@ public class AttributeValuesStorage<T> {
                     persisted,
                     inMemValues.values());
         } catch (StorageException e) {
-            //TODO log
+            LOG.error("Attempt to load persisted values has failed.",e);
             return inMemValues.values();
         }
     }
@@ -202,7 +206,7 @@ public class AttributeValuesStorage<T> {
         try {
             persistent.save(name, header, body);
         } catch (StorageException e) {
-            //TODO log
+            LOG.error("Attempt to persist values has failed.",e);
             throw new RuntimeException(e);
         }
     }

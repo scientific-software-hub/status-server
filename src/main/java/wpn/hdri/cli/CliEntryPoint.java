@@ -94,9 +94,14 @@ public class CliEntryPoint<T> {
                 try {
                     fld.setAccessible(true);
                     String opt = cliOption.longOpt();
-                    String optionValue = cl.getOptionValue(cliOption.opt());
-                    logger.info(opt + "=" + optionValue);
-                    fld.set(optionsContainer, optionValue);
+                    if (cl.hasOption(opt))
+                        if (cliOption.hasArg()) {
+                            String optionValue = cl.getOptionValue(cliOption.opt());
+                            logger.info(opt + "=" + optionValue);
+                            fld.set(optionsContainer, optionValue);
+                        } else {
+                            fld.set(optionsContainer, true);
+                        }
                 } catch (IllegalAccessException e) {
                     logger.error(e.getMessage(), e);
                     throw new RuntimeException(e);

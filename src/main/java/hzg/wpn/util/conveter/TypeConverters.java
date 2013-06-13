@@ -1,7 +1,6 @@
 package hzg.wpn.util.conveter;
 
 import com.google.common.collect.Maps;
-import sun.plugin.com.TypeConverter;
 
 import java.util.Map;
 

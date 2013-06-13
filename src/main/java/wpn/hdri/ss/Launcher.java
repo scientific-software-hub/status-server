@@ -33,6 +33,7 @@ import StatusServer.StatusServer;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoDs.TangoConst;
 import fr.esrf.TangoDs.Util;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import wpn.hdri.cli.CliEntryPoint;
 import wpn.hdri.ss.client.ClientFactory;
@@ -78,6 +79,10 @@ public class Launcher {
             log.info("Initializing Tango server instance...");
             util.server_init();
             log.info("Done.");
+
+            if(cliOptions.verbose){
+                Logger.getRootLogger().setLevel(Level.DEBUG);
+            }
 
             StatusServer ss = StatusServer.getInstance();
 
