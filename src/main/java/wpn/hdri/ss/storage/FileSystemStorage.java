@@ -3,6 +3,7 @@ package wpn.hdri.ss.storage;
 import com.google.common.io.Closeables;
 import org.apache.commons.io.FileUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,15 +13,17 @@ import java.util.concurrent.*;
 /**
  * Each instance has its own singleThreadExecutorService that is used for file writing and reading operations.
  *
+ * Implementation guarantees sequential execution of its methods
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.04.13
  */
+@ThreadSafe
 public class FileSystemStorage implements Storage {
     //allow only one thread that accesses file
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private final File root;
 
-    //TODO replace with writer.append
     private final HeaderParser headerParser = new HeaderParser();
     private final BodyParser bodyParser = new BodyParser();
 
@@ -44,6 +47,8 @@ public class FileSystemStorage implements Storage {
     /**
      * Async write to the FileSystem
      *
+     * Implementation swallows any IOExceptions
+     *
      * @param dataName
      * @param header
      * @param body
@@ -65,10 +70,28 @@ public class FileSystemStorage implements Storage {
                     for (Iterable<String> data : body) {
                         writeBody(writer, data);
                     }
+
                     return null;
                 } finally {
                     Closeables.closeQuietly(writer);
                 }
+            }
+        });
+    }
+
+    /**
+     * Implementation swallows any IOExceptions
+     *
+     * @param dataName
+     */
+    @Override
+    public void delete(final String dataName) {
+        exec.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws IOException {
+                File file = new File(root, dataName);
+                FileUtils.forceDelete(file);
+                return null;
             }
         });
     }
@@ -104,6 +127,7 @@ public class FileSystemStorage implements Storage {
             public Iterable<T> call() throws Exception {
                 BufferedReader rdr = null;
                 List<T> result = new ArrayList<T>();
+                try{
                 rdr = new BufferedReader(new FileReader(new File(root, dataName)));
 
 
@@ -121,6 +145,9 @@ public class FileSystemStorage implements Storage {
                 }
 
                 return result;
+                } finally{
+                    Closeables.closeQuietly(rdr);
+                }
             }
         });
 

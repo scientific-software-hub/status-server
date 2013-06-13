@@ -23,6 +23,25 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p/>
  * Implementation uses {@link AtomicReference} to preserve the latest value, {@link ConcurrentNavigableMap} is used to store
  * 1M records and {@link Storage} is used for persistent values
+ * <p/>
+ * Implementation specification:
+ * Concurrent read/write -
+ * 1) read pretends and overlaps write
+ *        a) lastValue - reads either previous value or a new one
+ *        b) inMemValues - may or may not reflect new changes
+ *        c) allValues - undefined
+ * 2) write pretends and overlaps read
+ *        a) lastValue - reads either previous value or a new one
+ *        b) inMemValues - may or may not reflect new changes
+ *        c) allValues - undefined
+ * 3) sequential execution
+ *        no problems
+ * Concurrent read/clear - it is client's responsibility to guarantee that clear is not executed concurrently with RW
+ * 1) read pretends and overlaps clear - undefined
+ * 2) clear pretends and overlaps read - undefined
+ * 3) sequential execution - undefined
+ *
+ * Current implementation deletes persisted values only during restart
  *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.04.13
@@ -82,7 +101,7 @@ public class AttributeValuesStorage<T> {
 
         lastValue.set(value);
 
-        inMemValues.putIfAbsent(value.getReadTimestamp(), value);
+        inMemValues.put(value.getReadTimestamp(), value);
 
         if (counter % persistTimestampThreshold == 0) {//persist old values every time counter hits 1M
             //cut off head map - ~500K values persist them and erase

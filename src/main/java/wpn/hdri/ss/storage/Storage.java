@@ -41,4 +41,6 @@ public interface Storage {
     void save(String dataName, Iterable<String> header, Iterable<Iterable<String>> body) throws StorageException;
 
     <T> Iterable<T> load(String dataName, TypeFactory<T> factory) throws StorageException;
+
+    void delete(String dataName) throws StorageException;
 }

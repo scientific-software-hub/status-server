@@ -37,7 +37,7 @@ public class AttributeValuesStorageTest {
     }
 
     @Test
-    public void testConcurrentSaveLoad_SWSR(){
+    public void testConcurrentSaveLoad_SWSR() throws Exception{
         final AttributeValuesStorage<Double> instance = new AttributeValuesStorage<Double>(TEST_ATTR_FULL_NAME, TEST_ATTR_STORAGE_ROOT, 6, 3);
 
         ExecutorService exec = Executors.newFixedThreadPool(2);
@@ -54,10 +54,10 @@ public class AttributeValuesStorageTest {
                     double rnd = Math.random();
                     AttributeValue<Double> value = new AttributeValue<Double>(TEST_ATTR_FULL_NAME, null, Value.getInstance(rnd), new Timestamp(TEST_TIMESTAMP + i * 1000), Timestamp.now());
                     instance.addValue(value);
-                    if(i == 7){
+                    expected.add(value);
+                    if(i == 12){
                         startRead.countDown();
                     }
-                    expected.add(value);
                 }
 
                 try {
@@ -91,20 +91,13 @@ public class AttributeValuesStorageTest {
             }
         });
 
-        try {
             allDone.await();
             //at least 8 elements should be in the result
-            assertTrue(result.size() > 7);
+            assertTrue(result.size() >= 13);
             //compare first elements
             for(int i = 0, size = result.size();i<size;++i){
                 assertEquals(expected.get(i),result.get(i));
             }
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (BrokenBarrierException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Test
@@ -120,12 +113,16 @@ public class AttributeValuesStorageTest {
         }
 
         //simulate Attribute#clear
-        instance.persistInMemoryValues();
-        instance.clearInMemoryValues();
+        instance.persistAndClearInMemoryValues();
 
         //loads all values from persistent storage
         Iterable<AttributeValue<Double>> result = instance.getAllValues();
 
         assertTrue(Iterables.elementsEqual(expected, result));
+    }
+
+    @Test
+    public void testConcurrentClear(){
+        //TODO clear while writing
     }
 }
