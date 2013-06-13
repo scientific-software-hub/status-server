@@ -3,7 +3,6 @@ package wpn.hdri.ss.storage;
 import com.google.common.io.Closeables;
 import org.apache.commons.io.FileUtils;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +14,6 @@ import java.util.List;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.04.13
  */
-@ThreadSafe
 public class CsvFileStorage implements Storage {
     //allow only one thread that accesses file
     private final File root;

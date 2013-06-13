@@ -1,5 +1,6 @@
 package wpn.hdri.ss.storage;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.*;
 
 /**
@@ -8,6 +9,7 @@ import java.util.concurrent.*;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 13.06.13
  */
+@ThreadSafe
 public class SingleThreadStorage implements Storage{
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
 
