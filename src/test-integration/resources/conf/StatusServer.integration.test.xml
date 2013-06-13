@@ -29,23 +29,12 @@
   -->
 <StatusServer server-name="Test" instance-name="Test" use-aliases="false">
     <devices>
-        <!--<device name="production/json/0">
-            <attributes>
-                <attribute name="CRT_USER_NAME" method="poll" interpolation="last" delay="2000"/>
-            </attributes>
-        </device>
         <device name="sys/tg_test/1">
             <attributes>
                 <attribute name="long_scalar_w" method="event" interpolation="nearest" delay="0"/>
                 <attribute name="float_scalar" method="poll" interpolation="linear" precision="0.5" delay="2000"/>
                 <attribute name="short_scalar" method="poll" interpolation="linear" precision="0.125" delay="1500"/>
                 <attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="3000"/>
-            </attributes>
-        </device>-->
-        <device name="/TEST/SineServer/#SineGen3">
-            <attributes>
-                <attribute name="MessageText" method="poll" interpolation="last" delay="2000"/>
-                <attribute name="RandomBinary" method="event" interpolation="last" delay="0"/>
             </attributes>
         </device>
     </devices>
