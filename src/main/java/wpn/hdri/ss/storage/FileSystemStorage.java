@@ -8,20 +8,14 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.*;
 
 /**
- * Each instance has its own singleThreadExecutorService that is used for file writing and reading operations.
- *
- * Implementation guarantees sequential execution of its methods
- *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.04.13
  */
 @ThreadSafe
 public class FileSystemStorage implements Storage {
     //allow only one thread that accesses file
-    private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private final File root;
 
     private final HeaderParser headerParser = new HeaderParser();
@@ -46,7 +40,7 @@ public class FileSystemStorage implements Storage {
 
     /**
      * Async write to the FileSystem
-     *
+     * <p/>
      * Implementation swallows any IOExceptions
      *
      * @param dataName
@@ -54,29 +48,25 @@ public class FileSystemStorage implements Storage {
      * @param body
      */
     @Override
-    public void save(final String dataName, final Iterable<String> header, final Iterable<Iterable<String>> body) {
-        exec.submit(new Callable<Void>() {
-            @Override
-            public Void call() throws IOException {
-                Writer writer = null;
-                try {
-                    File file = new File(root, dataName);
-                    file.getParentFile().mkdirs();
-                    writer = new BufferedWriter(new FileWriter(file, true));
+    public void save(final String dataName, final Iterable<String> header, final Iterable<Iterable<String>> body) throws StorageException {
+        Writer writer = null;
+        try {
+            File file = new File(root, dataName);
+            file.getParentFile().mkdirs();
+            writer = new BufferedWriter(new FileWriter(file, true));
 
-                    if (file.length() == 0)
-                        writeHeader(writer,header);
+            if (file.length() == 0)
+                writeHeader(writer, header);
 
-                    for (Iterable<String> data : body) {
-                        writeBody(writer, data);
-                    }
-
-                    return null;
-                } finally {
-                    Closeables.closeQuietly(writer);
-                }
+            for (Iterable<String> data : body) {
+                writeBody(writer, data);
             }
-        });
+
+        } catch (IOException e) {
+            throw new StorageException(e);
+        } finally {
+            Closeables.closeQuietly(writer);
+        }
     }
 
     /**
@@ -85,27 +75,25 @@ public class FileSystemStorage implements Storage {
      * @param dataName
      */
     @Override
-    public void delete(final String dataName) {
-        exec.submit(new Callable<Void>() {
-            @Override
-            public Void call() throws IOException {
-                File file = new File(root, dataName);
-                FileUtils.forceDelete(file);
-                return null;
-            }
-        });
+    public void delete(final String dataName) throws StorageException {
+        try {
+            File file = new File(root, dataName);
+            FileUtils.forceDelete(file);
+        } catch (IOException e) {
+            throw new StorageException(e);
+        }
     }
 
-    private void writeHeader(Writer out, Iterable<String> header) throws IOException{
+    private void writeHeader(Writer out, Iterable<String> header) throws IOException {
         out.append('#');
-        for(String headerItem : header){
+        for (String headerItem : header) {
             out.append(headerItem).append(';');
         }
         out.append('\n');
     }
 
-    private void writeBody(Writer out, Iterable<String> body) throws IOException{
-        for(String bodyItem : body){
+    private void writeBody(Writer out, Iterable<String> body) throws IOException {
+        for (String bodyItem : body) {
             out.append(bodyItem).append(';');
         }
         out.append('\n');
@@ -122,41 +110,32 @@ public class FileSystemStorage implements Storage {
      */
     @Override
     public <T> Iterable<T> load(final String dataName, final TypeFactory<T> factory) throws StorageException {
-        Future<Iterable<T>> future = exec.submit(new Callable<Iterable<T>>() {
-            @Override
-            public Iterable<T> call() throws Exception {
-                BufferedReader rdr = null;
-                List<T> result = new ArrayList<T>();
-                try{
-                rdr = new BufferedReader(new FileReader(new File(root, dataName)));
-
-
-                String line;
-
-                //read header
-                line = rdr.readLine();
-                Iterable<String> header = headerParser.parse(line);
-
-                //read body
-                while ((line = rdr.readLine()) != null) {
-                    Iterable<String> values = bodyParser.parse(line);
-
-                    result.add(factory.createType(dataName, header, values));
-                }
-
-                return result;
-                } finally{
-                    Closeables.closeQuietly(rdr);
-                }
-            }
-        });
-
+        BufferedReader rdr = null;
+        List<T> result = new ArrayList<T>();
         try {
-            return future.get();
-        } catch (InterruptedException e) {
+            rdr = new BufferedReader(new FileReader(new File(root, dataName)));
+
+
+            String line;
+
+            //read header
+            line = rdr.readLine();
+            Iterable<String> header = headerParser.parse(line);
+
+            //read body
+            while ((line = rdr.readLine()) != null) {
+                Iterable<String> values = bodyParser.parse(line);
+
+                result.add(factory.createType(dataName, header, values));
+            }
+
+            return result;
+        } catch (FileNotFoundException e) {
             throw new StorageException(e);
-        } catch (ExecutionException e) {
+        } catch (IOException e) {
             throw new StorageException(e);
+        } finally {
+            Closeables.closeQuietly(rdr);
         }
     }
 

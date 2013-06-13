@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import wpn.hdri.collection.Maps;
 import wpn.hdri.ss.storage.FileSystemStorage;
+import wpn.hdri.ss.storage.SingleThreadStorage;
 import wpn.hdri.ss.storage.Storage;
 import wpn.hdri.ss.storage.StorageException;
 
@@ -73,7 +74,7 @@ public class AttributeValuesStorage<T> {
     public AttributeValuesStorage(String name, String persistentStorageRoot, long persistTimestampThreshold, long updateTimestampThreshold) {
         this.name = name;
         //TODO persistent type should be defined in the configuration
-        this.persistent = new FileSystemStorage(persistentStorageRoot, true);
+        this.persistent = new SingleThreadStorage(new FileSystemStorage(persistentStorageRoot, true));
         this.persistTimestampThreshold = persistTimestampThreshold;
         this.updateTimestampThreshold = updateTimestampThreshold;
     }
