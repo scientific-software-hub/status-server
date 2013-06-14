@@ -36,6 +36,7 @@ import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
+import wpn.hdri.ss.data.AttributeFactory;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.storage.Storage;
 
@@ -75,7 +76,7 @@ public class EngineTest {
             }
         });
 
-        attributesManager = new AttributesManager();
+        attributesManager = new AttributesManager(new AttributeFactory());
     }
 
     @Test

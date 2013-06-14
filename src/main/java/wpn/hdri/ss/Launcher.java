@@ -40,6 +40,7 @@ import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.ConfigurationException;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.data.AttributeFactory;
 import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.ClientsManager;
 import wpn.hdri.tango.util.TangoUtils;
@@ -87,7 +88,7 @@ public class Launcher {
             StatusServer ss = StatusServer.getInstance();
 
             ClientsManager clientsManager = new ClientsManager(new ClientFactory());
-            AttributesManager attributesManager = new AttributesManager();
+            AttributesManager attributesManager = new AttributesManager(new AttributeFactory());
 
             log.info("Post initializing Tango server instance...");
             ss.postInit_device(configuration, null, clientsManager, attributesManager);

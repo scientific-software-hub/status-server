@@ -34,7 +34,10 @@ import com.google.common.collect.Sets;
 import org.junit.Test;
 import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
-import wpn.hdri.ss.data.*;
+import wpn.hdri.ss.data.Attribute;
+import wpn.hdri.ss.data.AttributeFactory;
+import wpn.hdri.ss.data.Interpolation;
+import wpn.hdri.ss.data.Method;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -49,7 +52,7 @@ public class AttributesManagerTest {
 
     public static final String TEST_ATTR = "test-attr";
 
-    private final AttributesManager instance = new AttributesManager();
+    private final AttributesManager instance = new AttributesManager(new AttributeFactory());
     private final DeviceAttribute attr = new DeviceAttribute();
     {
         attr.setName(TEST_ATTR);
@@ -60,27 +63,6 @@ public class AttributesManagerTest {
         attr.setPrecision(BigDecimal.ZERO);
     }
     private final Device dev = new Device("Test", Lists.newArrayList(attr));
-
-    @Test
-    public void testCreateAttribute_primitive() throws Exception {
-        Attribute result = instance.createAttribute(attr, dev.getName(), float.class, false);
-
-        assertTrue(NumericAttribute.class == result.getClass());
-    }
-
-    @Test
-    public void testCreateAttribute_Numeric() throws Exception {
-        Attribute result = instance.createAttribute(attr, dev.getName(), Float.class, false);
-
-        assertTrue(NumericAttribute.class == result.getClass());
-    }
-
-    @Test
-    public void testCreateAttribute_NonNumeric() throws Exception {
-        Attribute result = instance.createAttribute(attr, dev.getName(), String.class, false);
-
-        assertTrue(NonNumericAttribute.class == result.getClass());
-    }
 
     @Test
     public void testAttributesGroup() {

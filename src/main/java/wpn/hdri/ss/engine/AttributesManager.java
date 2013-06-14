@@ -74,8 +74,14 @@ public final class AttributesManager {
 
     private final Map<String, String> badAttributes = new HashMap<String, String>();
 
+    private final AttributeFactory factory;
+
+    public AttributesManager(AttributeFactory factory) {
+        this.factory = factory;
+    }
+
     public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray) {
-        Attribute<?> attribute = createAttribute(attr, devName, attributeClass, isArray);
+        Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, attr.getInterpolation(), attr.getPrecision(), attributeClass, isArray);
         attributes.put(attribute, devClient);
         attributesByMethod.put(attr.getMethod(), attribute);
         attributesByFullName.put(attribute.getFullName(), attribute);
@@ -112,19 +118,6 @@ public final class AttributesManager {
 
     Collection<Attribute<?>> getAttributes() {
         return attributes.keySet();
-    }
-
-    public Attribute<?> createAttribute(DeviceAttribute attr, String devName, Class<?> type, boolean isArray) {
-        Interpolation interpolation = attr.getInterpolation();
-        if (isArray) {
-            return new ArrayAttribute(devName, attr.getName(), attr.getAlias());
-        } else
-            //consider char as numeric type
-            if (Number.class.isAssignableFrom(type) || (type.isPrimitive() && type != boolean.class)) {
-                return new NumericAttribute<Number>(devName, attr.getName(), attr.getAlias(), interpolation, attr.getPrecision());
-            } else {
-                return new NonNumericAttribute<Object>(devName, attr.getName(), attr.getAlias(), interpolation);
-            }
     }
 
     /**
