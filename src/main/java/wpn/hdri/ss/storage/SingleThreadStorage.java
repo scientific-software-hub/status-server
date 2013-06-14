@@ -11,7 +11,18 @@ import java.util.concurrent.*;
  */
 @ThreadSafe
 public class SingleThreadStorage implements Storage{
-    private final ExecutorService exec = Executors.newSingleThreadExecutor();
+    private final ExecutorService exec = Executors.newSingleThreadExecutor(new ThreadFactory(){
+
+        private final ThreadFactory defaultFactory = Executors.defaultThreadFactory();
+        
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread result = defaultFactory.newThread(r);
+            result.setDaemon(true);
+            return result;
+        }
+        
+    });
 
     private final Storage decorated;
 
@@ -32,11 +43,11 @@ public class SingleThreadStorage implements Storage{
     }
 
     @Override
-    public <T> Iterable<T> load(String dataName, TypeFactory<T> factory) throws StorageException {
+    public <T> Iterable<T> load(final String dataName, final TypeFactory<T> factory) throws StorageException {
         Future<Iterable<T>> future = exec.submit(new Callable<Iterable<T>>() {
             @Override
             public Iterable<T> call() throws Exception {
-                throw new UnsupportedOperationException("This method is not supported in " + this.getClass());
+                return decorated.load(dataName, factory);
             }
         });
 

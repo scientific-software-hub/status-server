@@ -38,6 +38,7 @@ import wpn.hdri.ss.data.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -215,9 +216,105 @@ public final class AttributesManager {
 
     /**
      * Designed to be thread confinement
+     * 
+     * Implementation is backed with custom Multimap implementation. This implementation stores reference in putAll.
      */
     private class AttributeValues {
-        private final Multimap<AttributeName, AttributeValue<?>> values = LinkedListMultimap.create();
+        private final Multimap<AttributeName, AttributeValue<?>> values = new Multimap<AttributeName, AttributeValue<?>>() {
+            private Map<AttributeName, Collection<AttributeValue<?>>> decorated = Maps.newHashMap();
+
+            @Override
+            public int size() {
+                return decorated.size();
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return decorated.isEmpty();
+            }
+
+            @Override
+            public boolean containsKey(Object key) {
+                return decorated.containsKey(key);
+            }
+
+            @Override
+            public boolean containsValue(Object value) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public boolean containsEntry(Object key, Object value) {
+                return decorated.containsKey(key) && decorated.get(key).contains(value);
+            }
+
+            @Override
+            public boolean put(AttributeName key, AttributeValue<?> value) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public boolean remove(Object key, Object value) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public boolean putAll(AttributeName key, Iterable<? extends AttributeValue<?>> values) {
+                decorated.put(key, (Collection<AttributeValue<?>>)values);
+                return true;
+            }
+
+            @Override
+            public boolean putAll(Multimap<? extends AttributeName, ? extends AttributeValue<?>> multimap) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Collection<AttributeValue<?>> replaceValues(AttributeName key, Iterable<? extends AttributeValue<?>> values) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Collection<AttributeValue<?>> removeAll(Object key) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void clear() {
+                decorated.clear();
+            }
+
+            @Override
+            public Collection<AttributeValue<?>> get(AttributeName key) {
+                return decorated.get(key);
+            }
+
+            @Override
+            public Set<AttributeName> keySet() {
+                return decorated.keySet();
+            }
+
+            @Override
+            public Multiset<AttributeName> keys() {
+                //TODO cache 
+                return HashMultiset.create(decorated.keySet());
+            }
+
+            @Override
+            public Collection<AttributeValue<?>> values() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Collection<Entry<AttributeName, AttributeValue<?>>> entries() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public Map<AttributeName, Collection<AttributeValue<?>>> asMap() {
+                return decorated;
+            }
+        };
 
         void clear() {
             values.clear();

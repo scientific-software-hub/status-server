@@ -74,8 +74,7 @@ public class AttributeFilters {
     }
 
     private static AttributeFilters getInstance() {
-        AttributeFilters instance = INSTANCE_LOCAL.get();
-        return instance;
+        return INSTANCE_LOCAL.get();
     }
 
     /**

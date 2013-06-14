@@ -28,10 +28,10 @@ import static org.mockito.Mockito.*;
 public class ITEngineStressTest {
     private static final String CONFIGURATION = "target/test-classes/conf/StatusServer.integration.test.xml";
 
-    public static final int _1M = 1000000;
+    public static final int _1M = 999999 +2;//force persistent file creation
     public static final int _100K = 100000;
 
-    private final Logger mockLogger = spy(new Logger(ITStatusServerStressTest.class.getSimpleName()) {
+    private final Logger mockLogger = spy(new Logger(ITEngineStressTest.class.getSimpleName()) {
         @Override
         public void info(Object message) {
             System.out.println(message);
@@ -164,5 +164,13 @@ public class ITEngineStressTest {
         System.out.println("Average time in getLatestValues (seconds) = " + TimeUnit.SECONDS.convert(average, TimeUnit.NANOSECONDS));
 
         assertTrue(average < _100K);
+    }
+
+    public static void main(String... args) throws Exception{
+        ITEngineStressTest testSuite = new ITEngineStressTest();
+
+        testSuite.before();
+
+        testSuite.testGetSnapshot();
     }
 }
