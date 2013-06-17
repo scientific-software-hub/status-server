@@ -1,8 +1,5 @@
 package wpn.hdri.ss.engine;
 
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,20 +10,20 @@ import java.util.concurrent.ScheduledFuture;
  * @since 29.11.12
  */
 public class ActivityContext {
-    private final List<ReadAttributeTask> pollTasks = new ArrayList<ReadAttributeTask>();
-    private final List<ReadAttributeTask> eventTasks = new ArrayList<ReadAttributeTask>();
-    private final List<ReadAttributeTask> subscribedTasks = new ArrayList<ReadAttributeTask>();
+    private final List<PollingReadAttributeTask> pollTasks = new ArrayList<PollingReadAttributeTask>();
+    private final List<EventReadAttributeTask> eventTasks = new ArrayList<EventReadAttributeTask>();
+    private final List<EventReadAttributeTask> subscribedTasks = new ArrayList<EventReadAttributeTask>();
     private final Collection<ScheduledFuture<?>> runningTasks = new ArrayList<ScheduledFuture<?>>();
 
-    public void addPollTask(ReadAttributeTask task){
+    public void addPollTask(PollingReadAttributeTask task){
         pollTasks.add(task);
     }
 
-    public void addEventTask(ReadAttributeTask task){
+    public void addEventTask(EventReadAttributeTask task){
         eventTasks.add(task);
     }
 
-    public void addSubscribedTask(ReadAttributeTask task){
+    public void addSubscribedTask(EventReadAttributeTask task){
         subscribedTasks.add(task);
     }
 
@@ -34,21 +31,15 @@ public class ActivityContext {
         runningTasks.add(task);
     }
 
-    public List<ReadAttributeTask> getAllTasks(){
-        List<ReadAttributeTask> result = new ArrayList<ReadAttributeTask>(pollTasks);
-        result.addAll(eventTasks);
-        return result;
-    }
-
-    public List<ReadAttributeTask> getPollTasks() {
+    public List<PollingReadAttributeTask> getPollTasks() {
         return pollTasks;
     }
 
-    public List<ReadAttributeTask> getEventTasks() {
+    public List<EventReadAttributeTask> getEventTasks() {
         return eventTasks;
     }
 
-    public List<ReadAttributeTask> getSubscribedTasks(){
+    public List<EventReadAttributeTask> getSubscribedTasks(){
         return subscribedTasks;
     }
 

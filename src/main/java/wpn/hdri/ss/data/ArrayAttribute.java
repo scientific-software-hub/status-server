@@ -12,14 +12,14 @@ public class ArrayAttribute extends Attribute<Object> {
     }
 
     @Override
-    public void addValue(Timestamp readTimestamp, Value<? super Object> value, Timestamp writeTimestamp) {
+    public void addValue(Timestamp readTimestamp, Value<? super Object> value, Timestamp writeTimestamp, boolean append) {
         AttributeValue<Object> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
 
         AttributeValue<Object> lastValue = storage.getLastValue();
         if (lastValue == null) {
-            storage.addValue(attributeValue);
+            storage.addValue(attributeValue, append);
         } else if (!ArrayUtils.isEquals(lastValue.getValue().get(), value.get())) {
-            storage.addValue(attributeValue);
+            storage.addValue(attributeValue, append);
         }
     }
 }

@@ -111,8 +111,7 @@ public class StatusServer extends DeviceImpl {
     public void postInit_device(StatusServerConfiguration configuration, StorageFactory storage, ClientsManager clientsManager, AttributesManager attributesManager) throws DevFailed {
         StatusServerAttribute.USE_ALIAS.<Boolean>toTangoAttribute().setCurrentValue(configuration.isUseAliases());
 
-        this.engine = new Engine(configuration, storage, clientsManager, attributesManager /*DEFAULT LOGGER*/, utilizedCpus);
-        this.engine.initialize();
+        this.engine = new Engine(clientsManager, attributesManager /*DEFAULT LOGGER*/, utilizedCpus);
 
         for (final wpn.hdri.ss.configuration.StatusServerAttribute attr : configuration.getStatusServerAttributes()) {
 //            TangoDataType<?> type = TangoDataTypes.forString(attr.getType());

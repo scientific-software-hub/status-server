@@ -91,18 +91,20 @@ public class AttributeValuesStorage<T> {
      * //     * Stores the value only if it is not null and differs from the previous
      *
      * @param value
+     * @param append indicates whether value will be added to inMem and storage
      * @return true in case the value was stored, false - otherwise
      */
-    public boolean addValue(final AttributeValue<T> value) {
+    public boolean addValue(final AttributeValue<T> value, boolean append) {
         if (lastValue.get() != null && value.getValue().equals(lastValue.get().getValue()))
 //                || value.getValue() == Value.NULL)
             return false;
 
-        //TODO this is a bug - when we add a value with the same readTimestamp counter is increased, but the value is not actually added
-        //TODO may affect only test, because it is very unlikely that in the reality we will ever add same timestamps
+        lastValue.set(value);
+
+        if(!append) return true;
+
         long counter = valuesCounter.incrementAndGet();
         LOG.debug(counter + " collected values so far.");
-        lastValue.set(value);
 
         inMemValues.put(value.getReadTimestamp(), value);
 

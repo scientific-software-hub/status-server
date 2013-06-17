@@ -60,7 +60,7 @@ public class ReadAttributeTaskTest {
 
         ScheduledExecutorService singleThreadExecutor = Executors.newScheduledThreadPool(1);
 
-        ReadAttributeTask command = new ReadAttributeTask(mockAttribute, mockClient, 0, mockLogger);
+        PollingReadAttributeTask command = new PollingReadAttributeTask(mockAttribute, mockClient, 0, true, mockLogger);
         ScheduledFuture<?> task = singleThreadExecutor.scheduleAtFixedRate(command, 0, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
 
         Thread.sleep(50);

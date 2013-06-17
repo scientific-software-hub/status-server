@@ -8,12 +8,10 @@ import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.data.*;
 import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.ClientsManager;
 import wpn.hdri.ss.engine.Engine;
-import wpn.hdri.ss.storage.StorageFactory;
 
 import java.math.BigDecimal;
 import java.util.concurrent.TimeUnit;
@@ -85,7 +83,7 @@ public class ITEngineStressTest {
         });
 
 
-        engine = new Engine(configuration,new StorageFactory(), clientsManager, attributesManager, mockLogger, 2);
+        engine = new Engine(clientsManager, attributesManager, 2);
     }
 
     @Test

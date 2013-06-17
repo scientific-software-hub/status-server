@@ -3,8 +3,6 @@ package wpn.hdri.ss.engine;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
-import wpn.hdri.ss.client.EventCallback;
-import wpn.hdri.ss.client.EventData;
 
 import java.util.Collection;
 import java.util.Random;
@@ -32,48 +30,24 @@ public enum Activity {
 
             Collection<ScheduledFuture<?>> runningTasks = ctx.getRunningTasks();
 
-            for (final ReadAttributeTask task : ctx.getPollTasks()) {
+            for (final PollingReadAttributeTask task : ctx.getPollTasks()) {
                 final Client client = task.getDevClient();
 
                 logger.info("Scheduling light polling task for " + task.getAttribute().getFullName());
                 runningTasks.add(
                         scheduler.scheduleAtFixedRate(
-                                new Runnable() {
-                                    private final ReadAttributeTask innerTask = new ReadAttributeTask(task.getAttribute(), client, 1000L, logger);
-
-                                    @Override
-                                    public void run() {
-                                        if (innerTask.getAttribute().getAttributeValue() != null) {
-                                            innerTask.getAttribute().clear();
-                                        }
-                                        innerTask.run();
-                                    }
-                                }, rnd.nextInt((int) task.getDelay()), settings != null ? settings.getDelay() : task.getDelay(), TimeUnit.MILLISECONDS));
+                                new PollingReadAttributeTask(task.getAttribute(), client, 1000L, false,logger),
+                                rnd.nextInt((int)task.getDelay()),settings == null ? task.getDelay() : settings.getDelay(),TimeUnit.MILLISECONDS));
 
             }
 
-            for (final ReadAttributeTask task : ctx.getEventTasks()) {
+            for (final EventReadAttributeTask task : ctx.getEventTasks()) {
                 try {
                     logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
-                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), new EventCallback<Object>() {
-                        private final ReadAttributeTask innerTask = task;
-
-                        @Override
-                        public void onEvent(EventData<Object> data) {
-                            if (innerTask.getAttribute().getAttributeValue() != null) {
-                                innerTask.getAttribute().clear();
-                            }
-                            task.onEvent(data);
-                        }
-
-                        @Override
-                        public void onError(Throwable cause) {
-                            task.onError(cause);
-                        }
-                    });
+                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), new EventReadAttributeTask(task.getAttribute(),task.getDevClient(),false,logger));
                     ctx.addSubscribedTask(task);
                 } catch (ClientException e) {
-                    logger.error("Event subscription failed.", e);
+                    logger.warn("Event subscription failed.", e);
                 }
             }
         }
@@ -85,22 +59,22 @@ public enum Activity {
             subscribeEventTasks(ctx.getEventTasks(), ctx.getSubscribedTasks(), logger);
         }
 
-        private void schedulePollTasks(Collection<ReadAttributeTask> tasks, Collection<ScheduledFuture<?>> runningTasks, ScheduledExecutorService scheduler, Logger logger) {
-            for (final ReadAttributeTask task : tasks) {
+        private void schedulePollTasks(Collection<PollingReadAttributeTask> tasks, Collection<ScheduledFuture<?>> runningTasks, ScheduledExecutorService scheduler, Logger logger) {
+            for (final PollingReadAttributeTask task : tasks) {
                 logger.info("Scheduling read task for " + task.getAttribute().getFullName());
                 runningTasks.add(scheduler.scheduleWithFixedDelay(task, rnd.nextInt((int) task.getDelay()), task.getDelay(), TimeUnit.MILLISECONDS));
             }
         }
 
-        private void subscribeEventTasks(Collection<ReadAttributeTask> tasks, Collection<ReadAttributeTask> subscribedTasks, Logger logger) {
-            for (ReadAttributeTask task : tasks) {
+        private void subscribeEventTasks(Collection<EventReadAttributeTask> tasks, Collection<EventReadAttributeTask> subscribedTasks, Logger logger) {
+            for (EventReadAttributeTask task : tasks) {
                 try {
                     logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
 
                     task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), task);
                     subscribedTasks.add(task);
                 } catch (ClientException e) {
-                    logger.error("Event subscription failed.", e);
+                    logger.warn("Event subscription failed.", e);
                 }
             }
         }
@@ -120,13 +94,13 @@ public enum Activity {
             tasks.clear();
         }
 
-        private void unsubscribeEventTasks(Collection<ReadAttributeTask> tasks, Logger logger) {
-            for (ReadAttributeTask task : tasks) {
+        private void unsubscribeEventTasks(Collection<EventReadAttributeTask> tasks, Logger logger) {
+            for (EventReadAttributeTask task : tasks) {
                 try {
                     logger.info("Unsubscribing from " + task.getAttribute().getFullName());
                     task.getDevClient().unsubscribeEvent(task.getAttribute().getName().getName());
                 } catch (ClientException e) {
-                    logger.error("Event unsubscription failed.", e);
+                    logger.warn("Event unsubscription failed.", e);
                 }
             }
             tasks.clear();

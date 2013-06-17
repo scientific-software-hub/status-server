@@ -32,21 +32,10 @@ package wpn.hdri.ss.engine;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import org.apache.log4j.Logger;
-import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.client.ClientException;
-import wpn.hdri.ss.configuration.Device;
-import wpn.hdri.ss.configuration.DeviceAttribute;
-import wpn.hdri.ss.configuration.StatusServerAttribute;
-import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.*;
-import wpn.hdri.ss.storage.StorageFactory;
-import wpn.hdri.tango.data.type.TangoDataType;
-import wpn.hdri.tango.data.type.TangoDataTypes;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -66,7 +55,7 @@ public class Engine {
     /**
      * By default engine's logger stores log in {APP_ROOT}/logs/engine.out
      */
-    public static final Logger DEFAULT_LOGGER = Logger.getLogger(Engine.class);
+    public static final Logger LOGGER = Logger.getLogger(Engine.class);
     /**
      * This one is used as a multiplicator for Math.random in {@link this#scheduleTasks(java.util.Collection, int)}
      */
@@ -76,17 +65,11 @@ public class Engine {
     private final //TODO use guava concurrency
             ScheduledExecutorService scheduler;
 
-    private final StatusServerConfiguration configuration;
-    private final StorageFactory storage;
     private final ClientsManager clientsManager;
     private final AttributesManager attributesManager;
 
     private volatile Activity crtActivity = Activity.IDLE;
     private final ActivityContext activityCtx = new ActivityContext();
-
-    private final Logger logger;
-
-    private final EngineInitializer initializer;
 
     /**
      * Used to determine initial delay for the submitted tasks
@@ -95,42 +78,15 @@ public class Engine {
 
 
     /**
-     * @param configuration
-     * @param storage
      * @param clientsManager
      * @param attributesManager
-     * @param logger
      * @param cpus
      */
-    public Engine(StatusServerConfiguration configuration, StorageFactory storage, ClientsManager clientsManager, AttributesManager attributesManager, Logger logger, int cpus) {
-        this.configuration = configuration;
-        this.storage = storage;
+    public Engine(ClientsManager clientsManager, AttributesManager attributesManager, int cpus) {
         this.clientsManager = clientsManager;
         this.attributesManager = attributesManager;
-        this.logger = logger;
 
-        this.initializer = new EngineInitializer();
         this.scheduler = Executors.newScheduledThreadPool(cpus);
-    }
-
-    /**
-     * Creates new {@link Engine} instance using {@link this#DEFAULT_LOGGER}
-     *
-     * @param configuration
-     * @param storage
-     * @param clientsManager
-     * @param attributesManager
-     * @param cpus
-     */
-    public Engine(StatusServerConfiguration configuration, StorageFactory storage, ClientsManager clientsManager, AttributesManager attributesManager, int cpus) {
-        this(configuration, storage, clientsManager, attributesManager, DEFAULT_LOGGER, cpus);
-    }
-
-    public void initialize() {
-        logger.info(new SimpleDateFormat("dd MMM yy HH:mm").format(new Date()) + " Engine initialization process started.");
-        initializer.initialize();
-
-        logger.info("Finish engine initialization process.");
     }
 
     /**
@@ -170,9 +126,9 @@ public class Engine {
      * Cancels all currently running tasks and shutdowns all background threads.
      */
     public void shutdown() {
-        logger.info("Shutting down engine...");
+        LOGGER.info("Shutting down engine...");
         List<Runnable> awaitingTasks = scheduler.shutdownNow();
-        logger.info(awaitingTasks.size() + " awaiting tasks cancelled.");
+        LOGGER.info(awaitingTasks.size() + " awaiting tasks cancelled.");
     }
 
     /**
@@ -191,10 +147,10 @@ public class Engine {
      */
     synchronized void start(int taskInitialDelay) {
         Preconditions.checkState(isNotRunning(), "Can not start collectData while current activity is not IDLE");
-        logger.info("Starting...");
+        LOGGER.info("Starting...");
 
         crtActivity = Activity.HEAVY_DUTY;
-        crtActivity.start(scheduler, activityCtx, null, logger);
+        crtActivity.start(scheduler, activityCtx, null, LOGGER);
     }
 
     /**
@@ -203,10 +159,10 @@ public class Engine {
      * @throws IllegalStateException if engine is not running
      */
     public synchronized void stop() {
-        logger.info("Stopping...");
+        LOGGER.info("Stopping...");
 
         crtActivity = Activity.IDLE;
-        crtActivity.start(scheduler, activityCtx, null, logger);
+        crtActivity.start(scheduler, activityCtx, null, LOGGER);
     }
 
     public String getCurrentActivity() {
@@ -222,7 +178,7 @@ public class Engine {
         Preconditions.checkState(isNotRunning(), "Can not start lightPolling while current activity is not IDLE");
 
         crtActivity = Activity.LIGHT_POLLING;
-        crtActivity.start(scheduler, activityCtx, null, logger);
+        crtActivity.start(scheduler, activityCtx, null, LOGGER);
     }
 
     /**
@@ -236,7 +192,7 @@ public class Engine {
         ActivitySettings settings = new ActivitySettings(delay, MAX_INITIAL_DELAY);
 
         crtActivity = Activity.LIGHT_POLLING;
-        crtActivity.start(scheduler, activityCtx, settings, logger);
+        crtActivity.start(scheduler, activityCtx, settings, LOGGER);
     }
 
     /**
@@ -244,7 +200,7 @@ public class Engine {
      */
     public synchronized void clear() {
         Preconditions.checkState(isNotRunning(), "Can not eraseData while current activity is not IDLE");
-        logger.info("Erase all data.");
+        LOGGER.info("Erase all data.");
         attributesManager.clear();
     }
 
@@ -263,93 +219,18 @@ public class Engine {
 
     public <T> void writeAttributeValue(String attrName, T data, Timestamp timestamp) {
         Attribute<T> attr = (Attribute<T>) attributesManager.getAttribute(attrName);
-        attr.addValue(timestamp, Value.<T>getInstance(data), Timestamp.now());
+        attr.addValue(timestamp, Value.<T>getInstance(data), Timestamp.now(), true);
     }
 
-    /**
-     * Encapsulates initialization logic of this engine.
-     */
-    private class EngineInitializer {
-        private void initialize() {
-            initializeStatusServerAttributes();
-
-            initializeClients();
-
-            initializeAttributes();
-
-            initializeReadAttributeTasks();
+    public void submitPollingTasks(List<PollingReadAttributeTask> pollingTasks) {
+        for(PollingReadAttributeTask task : pollingTasks){
+            activityCtx.addPollTask(task);
         }
+    }
 
-        private void initializeStatusServerAttributes() {
-            for (StatusServerAttribute attr : configuration.getStatusServerAttributes()) {
-                logger.info("Initializing embedded attribute " + attr.getName());
-                TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
-                attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false);
-                logger.info("Initialization succeed.");
-            }
-        }
-
-        private void initializeClients() {
-            for (Device dev : configuration.getDevices()) {
-                String devName = dev.getName();
-                try {
-                    logger.info("Initializing client " + devName);
-                    clientsManager.initializeClient(devName);
-                } catch (ClientInitializationException e) {
-                    logger.error("Client initialization failed.", e);
-                    clientsManager.reportBadClient(devName, e.getMessage());
-                }
-            }
-        }
-
-        private void initializeAttributes() {
-            for (Device dev : configuration.getDevices()) {
-                String devName = dev.getName();
-
-                final Client devClient = clientsManager.getClient(devName);
-
-                for (DeviceAttribute attr : dev.getAttributes()) {
-                    final String fullName = devName + "/" + attr.getName();
-                    logger.info("Initializing attribute " + fullName);
-                    boolean isAttrOk = devClient.checkAttribute(attr.getName());
-                    if (!isAttrOk) {
-                        logger.error("DevClient reports bad attribute: " + fullName);
-                        attributesManager.reportBadAttribute(fullName, "Attribute initialization failed.");
-                        continue;
-                    }
-                    devClient.printAttributeInfo(attr.getName(), logger);
-                    try {
-                        Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
-                        boolean isArray = devClient.isArrayAttribute(attr.getName());
-                        attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray);
-                        logger.info("Initialization succeed.");
-                    } catch (ClientException e) {
-                        logger.error("Attribute initialization failed.", e);
-                        attributesManager.reportBadAttribute(fullName, e.getMessage());
-                    }
-                }
-            }
-        }
-
-        private void initializeReadAttributeTasks() {
-            initializePollTasks();
-
-            initializeEventTasks();
-        }
-
-        private void initializeEventTasks() {
-            for (Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.EVENT)) {
-                final Client devClient = clientsManager.getClient(attribute.getName().getDeviceName());
-                activityCtx.addEventTask(new ReadAttributeTask(attribute, devClient, 0L, logger));
-            }
-        }
-
-        private void initializePollTasks() {
-            for (final Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.POLL)) {
-                DeviceAttribute attr = configuration.getDeviceAttribute(attribute.getName().getDeviceName(), attribute.getName().getName());
-                final Client devClient = clientsManager.getClient(attribute.getName().getDeviceName());
-                activityCtx.addPollTask(new ReadAttributeTask(attribute, devClient, attr.getDelay(), logger));
-            }
+    public void submitEventTasks(List<EventReadAttributeTask> eventTasks) {
+        for(EventReadAttributeTask task : eventTasks){
+            activityCtx.addEventTask(task);
         }
     }
 }

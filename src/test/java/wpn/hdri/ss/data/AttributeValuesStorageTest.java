@@ -27,7 +27,7 @@ public class AttributeValuesStorageTest {
         for (int i = 0; i < 14; i++) {
             double rnd = Math.random();
             AttributeValue<Double> value = new AttributeValue<Double>(TEST_ATTR_FULL_NAME, null, Value.getInstance(rnd), new Timestamp(TEST_TIMESTAMP + i * 1000), Timestamp.now());
-            instance.addValue(value);
+            instance.addValue(value, true);
             expected.add(value);
         }
 
@@ -53,7 +53,7 @@ public class AttributeValuesStorageTest {
                 for (int i = 0; i < 14; i++) {
                     double rnd = Math.random();
                     AttributeValue<Double> value = new AttributeValue<Double>(TEST_ATTR_FULL_NAME, null, Value.getInstance(rnd), new Timestamp(TEST_TIMESTAMP + i * 1000), Timestamp.now());
-                    instance.addValue(value);
+                    instance.addValue(value, true);
                     expected.add(value);
                     if(i == 12){
                         startRead.countDown();
@@ -108,7 +108,7 @@ public class AttributeValuesStorageTest {
         for (int i = 0; i < 14; i++) {
             double rnd = Math.random();
             AttributeValue<Double> value = new AttributeValue<Double>(TEST_ATTR_FULL_NAME, null, Value.getInstance(rnd), new Timestamp(TEST_TIMESTAMP + i * 1000), Timestamp.now());
-            instance.addValue(value);
+            instance.addValue(value, true);
             expected.add(value);
         }
 

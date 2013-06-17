@@ -29,8 +29,6 @@
 
 package wpn.hdri.ss.data;
 
-import java.util.Map;
-
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 02.05.12
@@ -42,10 +40,10 @@ public final class NonNumericAttribute<T> extends Attribute<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp) {
+    public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append) {
         AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
 
-        storage.addValue(attributeValue);
+        storage.addValue(attributeValue, append);
     }
 
     @Override

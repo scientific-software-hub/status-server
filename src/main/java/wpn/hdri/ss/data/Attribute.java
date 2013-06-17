@@ -66,9 +66,10 @@ public abstract class Attribute<T> {
      * @param addTimestamp
      * @param value
      * @param readTimestamp
+     * @param append
      */
-    public void addValue(long addTimestamp, Value<? super T> value, long readTimestamp) {
-        addValue(new Timestamp(addTimestamp), value, new Timestamp(readTimestamp));
+    public void addValue(long addTimestamp, Value<? super T> value, long readTimestamp, boolean append) {
+        addValue(new Timestamp(addTimestamp), value, new Timestamp(readTimestamp), append);
     }
 
     /**
@@ -78,8 +79,9 @@ public abstract class Attribute<T> {
      * @param readTimestamp  when the value was read by StatusServer
      * @param value          value
      * @param writeTimestamp when the value was written on the remote server
+     * @param append indicates whether value will be added to inMem and storage
      */
-    public abstract void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp);
+    public abstract void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append);
 
     /**
      * Returns the latest stored value.

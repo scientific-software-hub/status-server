@@ -90,10 +90,11 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
      * @param readTimestamp  when the value was read by StatusServer
      * @param value          the value
      * @param writeTimestamp when the value was written on the remote server
+     * @param append
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp) {
+    public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append) {
         AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
 
         //in general prefer new BigDecimal(String) over new BigDecimal(double). See Effective Java Item 31
@@ -110,7 +111,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
 
         Map.Entry<Timestamp, BigDecimal> lastNumericEntry = numericValues.floorEntry(readTimestamp);
         if (lastNumericEntry == null) {
-            if (storage.addValue(attributeValue))
+            if (storage.addValue(attributeValue, append))
                 numericValues.putIfAbsent(readTimestamp, decimal);
             return;
         }
@@ -119,7 +120,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
 
         // |x - y| > precision
         if (decimal.subtract(lastDecimal).abs().compareTo(precision) > 0) {
-            if (storage.addValue(attributeValue))
+            if (storage.addValue(attributeValue, append))
                 numericValues.putIfAbsent(readTimestamp, decimal);
         }
     }

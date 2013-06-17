@@ -57,9 +57,9 @@ public class AttributeTest {
     public void testGetValue() throws Exception {
         Attribute<Long> attr = new NumericAttribute<Long>(deviceName, name, Interpolation.LAST);
 
-        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp);
+        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp, true);
 
-        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp);
+        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp, true);
 
         long result = attr.getAttributeValue(timestamp + 5).getValue().get();
 
@@ -70,9 +70,9 @@ public class AttributeTest {
     public void testGetValue_Last() throws Exception {
         Attribute<Long> attr = new NumericAttribute<Long>(deviceName, name, Interpolation.LAST);
 
-        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp);
+        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp, true);
 
-        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp);
+        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp, true);
 
         long result = attr.getAttributeValue().getValue().get();
 
@@ -83,9 +83,9 @@ public class AttributeTest {
     public void testGetValues() throws Exception {
         Attribute<Long> attr = new NumericAttribute<Long>(deviceName, name, Interpolation.LAST);
 
-        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp);
+        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp, true);
 
-        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp);
+        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp, true);
 
         int attributeSize = Iterables.toArray(attr.getAttributeValues(), AttributeValue.class).length;
 
@@ -96,9 +96,9 @@ public class AttributeTest {
     public void testGetValues_Bounded() throws Exception {
         Attribute<Long> attr = new NumericAttribute<Long>(deviceName, name, Interpolation.LAST);
 
-        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp);
+        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp, true);
 
-        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp);
+        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp, true);
 
         int attributeSize = Iterables.toArray(attr.getAttributeValues(timestamp + 5), AttributeValue.class).length;
 
@@ -109,9 +109,9 @@ public class AttributeTest {
     public void testGetValue_LastNearest() throws Exception {
         Attribute<Long> attr = new NumericAttribute<Long>(deviceName, name, Interpolation.LAST);
 
-        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp);
+        attr.addValue(timestamp, Value.<Long>getInstance(10000L), timestamp, true);
 
-        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp);
+        attr.addValue(timestamp + 10, Value.<Long>getInstance(10001L), timestamp, true);
 
         long result = attr.getAttributeValue(timestamp + 15).getValue().get();
 
@@ -122,9 +122,9 @@ public class AttributeTest {
     public void testGetValue_Linear() throws Exception {
         Attribute<Double> attr = new NumericAttribute<Double>(deviceName, name, Interpolation.LINEAR);
 
-        attr.addValue(timestamp, Value.<Double>getInstance(12.), timestamp);
+        attr.addValue(timestamp, Value.<Double>getInstance(12.), timestamp, true);
 
-        attr.addValue(timestamp + 10, Value.<Double>getInstance(24.), timestamp + 10);
+        attr.addValue(timestamp + 10, Value.<Double>getInstance(24.), timestamp + 10, true);
 
         double result = attr.getAttributeValue(timestamp + 5).getValue().get();
 
@@ -135,8 +135,8 @@ public class AttributeTest {
     public void testGetValue_Linear_missedRightValue() {
         Attribute<Long> attribute = new NumericAttribute<Long>(deviceName, name, Interpolation.LINEAR);
 
-        attribute.addValue(timestamp, Value.getInstance(1000L), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance(1000L), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(1000L), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance(1000L), timestamp, true);
 
         long result = attribute.getAttributeValue(timestamp + 20).getValue().get();
 
@@ -147,9 +147,9 @@ public class AttributeTest {
     public void testPrecision_SameValue() {
         Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE);
 
-        attribute.addValue(timestamp, Value.getInstance(20.3), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance(20.1), timestamp);
-        attribute.addValue(timestamp + 20, Value.getInstance(20.5), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(20.3), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance(20.1), timestamp, true);
+        attribute.addValue(timestamp + 20, Value.getInstance(20.5), timestamp, true);
 
         double result = attribute.getAttributeValue().getValue().get();
 
@@ -160,9 +160,9 @@ public class AttributeTest {
     public void testPrecision_SameValue_morePrecision() {
         Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, new BigDecimal("0.001"));
 
-        attribute.addValue(timestamp, Value.getInstance(0.2441406), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance(0.2453613), timestamp);
-        attribute.addValue(timestamp + 15, Value.getInstance(0.2454613), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(0.2441406), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance(0.2453613), timestamp, true);
+        attribute.addValue(timestamp + 15, Value.getInstance(0.2454613), timestamp, true);
 
         double result = attribute.getAttributeValue().getValue().get();
 
@@ -175,8 +175,8 @@ public class AttributeTest {
     public void testSameValue_Numeric() {
         Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE);
 
-        attribute.addValue(timestamp, Value.getInstance(20.3), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance(20.3), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(20.3), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance(20.3), timestamp, true);
 
         double result = attribute.getAttributeValue().getValue().get();
 
@@ -190,8 +190,8 @@ public class AttributeTest {
     public void testPrecision_SameValueDifferentTime() {
         Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST);
 
-        attribute.addValue(timestamp, Value.getInstance("Rabbit"), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance("Rabbit"), timestamp);
+        attribute.addValue(timestamp, Value.getInstance("Rabbit"), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance("Rabbit"), timestamp, true);
 
         String result = attribute.getAttributeValue().getValue().get();
 
@@ -205,9 +205,9 @@ public class AttributeTest {
     public void testPrecision_DifferentValue() {
         Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE);
 
-        attribute.addValue(timestamp, Value.getInstance(20.3), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance(20.7), timestamp);
-        attribute.addValue(timestamp + 20, Value.getInstance(21.4), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(20.3), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance(20.7), timestamp, true);
+        attribute.addValue(timestamp + 20, Value.getInstance(21.4), timestamp, true);
 
         double result = attribute.getAttributeValue().getValue().get();
 
@@ -218,8 +218,8 @@ public class AttributeTest {
     public void testAddNull_Numeric() {
         Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, Interpolation.LAST);
 
-        attribute.addValue(timestamp, Value.getInstance(12.), timestamp);
-        attribute.addValue(timestamp + 10, Value.NULL, timestamp);
+        attribute.addValue(timestamp, Value.getInstance(12.), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.NULL, timestamp, true);
 
         Double result = attribute.getAttributeValue().getValue().get();
 //        assertNull(result);
@@ -230,8 +230,8 @@ public class AttributeTest {
     public void testAddNull_NonNumeric() {
         Attribute<Boolean> attribute = new NonNumericAttribute<Boolean>(deviceName, name, "bool", Interpolation.LAST);
 
-        attribute.addValue(timestamp, Value.getInstance(false), timestamp);
-        attribute.addValue(timestamp + 10, Value.NULL, timestamp);
+        attribute.addValue(timestamp, Value.getInstance(false), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.NULL, timestamp, true);
 
         Boolean result = attribute.getAttributeValue().getValue().get();
         assertNull(result);
@@ -241,9 +241,9 @@ public class AttributeTest {
     public void testGetTailValues() {
         Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST);
 
-        attribute.addValue(timestamp, Value.getInstance("Hello"), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance("World"), timestamp);
-        attribute.addValue(timestamp + 20, Value.getInstance("!!!"), timestamp);
+        attribute.addValue(timestamp, Value.getInstance("Hello"), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance("World"), timestamp, true);
+        attribute.addValue(timestamp + 20, Value.getInstance("!!!"), timestamp, true);
 
         Iterable<AttributeValue<String>> result = attribute.getAttributeValues(timestamp + 5);
 
@@ -263,9 +263,9 @@ public class AttributeTest {
     public void testArrayAttribute() {
         ArrayAttribute attribute = new ArrayAttribute(deviceName, name, "string");
 
-        attribute.addValue(timestamp, Value.getInstance((Object) new double[]{0.D, 0.1D, 0.2D}), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance((Object) new double[]{0.1D, 0.2D, 0.3D}), timestamp);
-        attribute.addValue(timestamp + 20, Value.getInstance((Object) new double[]{0.2D, 0.3D, 0.4D}), timestamp);
+        attribute.addValue(timestamp, Value.getInstance((Object) new double[]{0.D, 0.1D, 0.2D}), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance((Object) new double[]{0.1D, 0.2D, 0.3D}), timestamp, true);
+        attribute.addValue(timestamp + 20, Value.getInstance((Object) new double[]{0.2D, 0.3D, 0.4D}), timestamp, true);
 
         AttributeValue<Object> value = attribute.getAttributeValue(timestamp + 15);
 
@@ -279,7 +279,7 @@ public class AttributeTest {
         Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST);
 
 //        attribute.addValue(timestamp, null, timestamp);
-        attribute.addValue(timestamp, Value.getInstance(null), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(null), timestamp, true);
 
         String result = attribute.getAttributeValue().getValue().get();
 
@@ -293,8 +293,8 @@ public class AttributeTest {
     public void testStoreErase_Last() {
         Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, Interpolation.LAST);
 
-        attribute.addValue(timestamp, Value.getInstance(12.), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance(14.), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(12.), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance(14.), timestamp, true);
 
         attribute.clear();
 
@@ -311,8 +311,8 @@ public class AttributeTest {
     public void testStoreErase_All() {
         Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, Interpolation.LAST);
 
-        attribute.addValue(timestamp, Value.getInstance(12.), timestamp);
-        attribute.addValue(timestamp + 10, Value.getInstance(14.), timestamp);
+        attribute.addValue(timestamp, Value.getInstance(12.), timestamp, true);
+        attribute.addValue(timestamp + 10, Value.getInstance(14.), timestamp, true);
 
         attribute.clear();
 

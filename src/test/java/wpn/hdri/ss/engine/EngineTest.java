@@ -99,9 +99,7 @@ public class EngineTest {
             }
         });
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
-
-        engine.initialize();
+        Engine engine = new Engine(clientsManager, attributesManager, 2);
 
         engine.start(1);
         Thread.sleep(10);
@@ -116,9 +114,7 @@ public class EngineTest {
     public void testBadClient() throws Exception {
         ClientsManager clientsManager = new ClientsManager(new ClientFactory());
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
-
-        engine.initialize();
+        Engine engine = new Engine(clientsManager, attributesManager, 2);
 
         //BadClient does not have bad attributes - all attributes are good, but they all have String value "Bad value"
         //therefore initialization will succeed.
@@ -131,9 +127,7 @@ public class EngineTest {
     public void testBadAttribute() throws Exception {
         ClientsManager clientsManager = new ClientsManager(new ClientFactory());
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
-
-        engine.initialize();
+        Engine engine = new Engine(clientsManager, attributesManager, 2);
 
         engine.start(1);
         Thread.sleep(10);
@@ -166,9 +160,7 @@ public class EngineTest {
             }
         });
 
-        Engine engine = new Engine(conf.fromXml(xmlConfig), null, clientsManager, attributesManager, mockLogger, 2);
-
-        engine.initialize();
+        Engine engine = new Engine(clientsManager, attributesManager, 2);
 
         engine.start(1);
         Thread.sleep(7000);
