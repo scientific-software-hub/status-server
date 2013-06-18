@@ -88,11 +88,12 @@
             <artifactId>simple-xml</artifactId>
             <version>2.6.2</version>
         </dependency>
-        <!--<dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.6.1</version>
-        </dependency>-->
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>desy.tine</groupId>
             <artifactId>tine</artifactId>

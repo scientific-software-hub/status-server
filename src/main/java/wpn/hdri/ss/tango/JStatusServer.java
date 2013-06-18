@@ -1,11 +1,13 @@
 package wpn.hdri.ss.tango;
 
-//import org.tango.DeviceState;
+import com.google.common.collect.Maps;
 import org.tango.DeviceState;
 import org.tango.server.ServerManager;
 import org.tango.server.annotation.*;
+import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.engine.Engine;
 
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -16,23 +18,67 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Device
 public class JStatusServer {
-    private final AtomicLong clientId = new AtomicLong(1);
+    private static interface Status {
+        String IDLE = "IDLE";
+        String LIGHT_POLLING = "LIGHT_POLLING";
+        String LIGHT_POLLING_AT_FIXED_RATE = "LIGHT_POLLING_AT_FIXED_RATE";
+        String HEAVY_DUTY = "HEAVY_DUTY";
+    }
+
+    private final AtomicLong clientId = new AtomicLong(0);
+    /**
+     * This field tracks timestamps of the clients and is used in getXXXUpdates methods
+     */
+    private final ConcurrentMap<Long,Timestamp> timestamps = Maps.newConcurrentMap();
+
 
     private Engine engine;
+
+    public JStatusServer() {
+        System.out.println("Create instance");
+    }
 
     @State
     private DeviceState state = DeviceState.OFF;
 
+    public DeviceState getState() {
+        return state;
+    }
+
+    public void setState(DeviceState state) {
+        this.state = state;
+    }
+
+    @org.tango.server.annotation.Status
+    private String status = Status.IDLE;
+
+    public void setStatus(String v){
+        this.status = v;
+    }
+
+    public String getStatus(){
+        return this.status;
+    }
+
     @Init
+    @StateMachine(endState = DeviceState.ON)
     public void init() throws Exception{
         //TODO init engine
 
-        setState(DeviceState.ON);
     }
 
     //TODO attributes
+    //TODO make useAliases client specific
     @Attribute
-    private boolean isUseAliases = false;
+    private boolean useAliases = false;
+
+    public void setUseAliases(boolean v){
+        this.useAliases = v;
+    }
+
+    public boolean isUseAliases(){
+        return this.useAliases;
+    }
 
     @Attribute
     private String crtActivity;
@@ -51,6 +97,11 @@ public class JStatusServer {
     @Attribute
     private String dataEncoded;
 
+    public String getDataEncoded(){
+        //TODO
+        return "";
+    }
+
     //TODO commands
     @Command
     public void eraseData(){
@@ -58,32 +109,36 @@ public class JStatusServer {
     }
 
     @Command
+    @StateMachine(endState = DeviceState.RUNNING)
     public void startLightPolling(){
         engine.startLightPolling();
-        setState(DeviceState.RUNNING);
+        setStatus(Status.LIGHT_POLLING);
     }
 
     @Command(inTypeDesc = "light polling rate in millis")
+    @StateMachine(endState = DeviceState.RUNNING)
     public void startLightPollingAtFixedRate(long rate){
         engine.startLightPollingAtFixedRate(rate);
-        setState(DeviceState.RUNNING);
+        setStatus(Status.LIGHT_POLLING_AT_FIXED_RATE);
     }
 
     @Command
+    @StateMachine(endState = DeviceState.RUNNING)
     public void startCollectData(){
         engine.start();
-        setState(DeviceState.RUNNING);
+        setStatus(Status.HEAVY_DUTY);
     }
 
     @Command
+    @StateMachine(endState = DeviceState.ON)
     public void stopCollectData(){
         engine.stop();
-        setState(DeviceState.ON);
+        setStatus(Status.IDLE);
     }
 
     @Command(outTypeDesc = "client id is used in getXXXUpdates methods")
     public long registerClient(){
-        return clientId.getAndIncrement();
+        return clientId.incrementAndGet();
     }
 
     @Command
@@ -134,13 +189,5 @@ public class JStatusServer {
 
     public static void main(String... args) throws Exception{
         ServerManager.getInstance().start(args, JStatusServer.class);
-    }
-
-    public DeviceState getState() {
-        return state;
-    }
-
-    public void setState(DeviceState state) {
-        this.state = state;
     }
 }
