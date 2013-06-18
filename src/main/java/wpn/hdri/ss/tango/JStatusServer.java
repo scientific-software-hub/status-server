@@ -85,10 +85,9 @@ public class JStatusServer {
     }
 
     //TODO attributes
+    private final AtomicLong clientId = new AtomicLong(0);
     @Attribute
     @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
-    private final AtomicLong clientId = new AtomicLong(0);
-
     public long getClientId(){
         return clientId.incrementAndGet();
     }
