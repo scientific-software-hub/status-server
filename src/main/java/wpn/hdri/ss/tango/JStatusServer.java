@@ -37,7 +37,6 @@ public class JStatusServer {
         String HEAVY_DUTY = "HEAVY_DUTY";
     }
 
-    private final AtomicLong clientId = new AtomicLong(0);
     /**
      * This field tracks timestamps of the clients and is used in getXXXUpdates methods
      */
@@ -86,6 +85,14 @@ public class JStatusServer {
     }
 
     //TODO attributes
+    @Attribute
+    @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
+    private final AtomicLong clientId = new AtomicLong(0);
+
+    public long getClientId(){
+        return clientId.incrementAndGet();
+    }
+
     //TODO make useAliases client specific
     @Attribute
     private boolean useAliases = false;
@@ -152,11 +159,6 @@ public class JStatusServer {
     public void stopCollectData(){
         engine.stop();
         setStatus(Status.IDLE);
-    }
-
-    @Command(outTypeDesc = "client id is used in getXXXUpdates methods")
-    public long registerClient(){
-        return clientId.incrementAndGet();
     }
 
     @Command
