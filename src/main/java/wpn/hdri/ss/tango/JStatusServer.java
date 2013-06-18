@@ -120,8 +120,12 @@ public class JStatusServer {
     }
 
     @Attribute
-    private String dataEncoded;
+    public String[] getData(){
+        //TODO
+        return new String[0];
+    }
 
+    @Attribute
     public String getDataEncoded(){
         //TODO
         return "";
@@ -163,12 +167,6 @@ public class JStatusServer {
 
     @Command
     public String[] getDataUpdates(long clientId){
-        return new String[0];
-    }
-
-    //TODO transform to Attribute
-    @Command
-    public String[] getData(){
         return new String[0];
     }
 
