@@ -29,7 +29,7 @@
 
 package wpn.hdri.ss;
 
-import wpn.hdri.cli.CliOption;
+import hzg.wpn.cli.CliOption;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

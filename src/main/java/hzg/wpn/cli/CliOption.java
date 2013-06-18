@@ -27,7 +27,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-package wpn.hdri.cli;
+package hzg.wpn.cli;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
