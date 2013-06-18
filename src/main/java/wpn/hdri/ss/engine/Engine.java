@@ -90,6 +90,13 @@ public class Engine {
         this.scheduler = Executors.newScheduledThreadPool(cpus);
     }
 
+    public Engine(EngineInitializationContext ctx,int cpus){
+        this(ctx.clientsManager,ctx.attributesManager,cpus);
+        submitPollingTasks(ctx.pollingTasks);
+        submitEventTasks(ctx.eventTasks);
+    }
+
+
     /**
      * Returns all attributes values which were written after a timestamp
      *

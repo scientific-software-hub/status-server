@@ -24,6 +24,7 @@ import wpn.hdri.ss.data.AttributesView;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.Engine;
+import wpn.hdri.ss.engine.EngineInitializationContext;
 import wpn.hdri.ss.engine.EngineInitializer;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
@@ -107,11 +108,13 @@ public class JStatusServer {
 
         StatusServerProperties properties = new PropertiesParser<StatusServerProperties>(StatusServerProperties.class).parseProperties();
 
-        EngineInitializer initializer = new EngineInitializer(configuration,properties);
+        EngineInitializer initializer = new EngineInitializer(configuration);
 
         initializeDynamicAttributes(configuration.getStatusServerAttributes(),dynamicManagement);
 
-        this.engine = initializer.initialize();
+        EngineInitializationContext ctx = initializer.initialize();
+
+        this.engine = new Engine(ctx,properties.engineCpus);
     }
 
     private void initializeDynamicAttributes(List<StatusServerAttribute> statusServerAttributes, DynamicManager dynamicManagement) throws DevFailed{

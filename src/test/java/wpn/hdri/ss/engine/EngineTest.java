@@ -99,7 +99,12 @@ public class EngineTest {
             }
         });
 
-        Engine engine = new Engine(clientsManager, attributesManager, 2);
+        EngineInitializer initializer = new EngineInitializer(conf.fromXml(xmlConfig));
+        EngineInitializationContext ctx = initializer.initialize();
+
+        Engine engine = new Engine(clientsManager, ctx.attributesManager, 2);
+        engine.submitPollingTasks(ctx.pollingTasks);
+        engine.submitEventTasks(ctx.eventTasks);
 
         engine.start(1);
         Thread.sleep(10);
@@ -108,35 +113,6 @@ public class EngineTest {
         //TODO rewrite this test as we can not rely on logger any more (it was disabled due to performance issues)
         //verify(mockLogger, atLeastOnce()).info("Read attribute Test.Device/Test.Attribute: some value");
         engine.shutdown();
-    }
-
-    @Test
-    public void testBadClient() throws Exception {
-        ClientsManager clientsManager = new ClientsManager(new ClientFactory());
-
-        Engine engine = new Engine(clientsManager, attributesManager, 2);
-
-        //BadClient does not have bad attributes - all attributes are good, but they all have String value "Bad value"
-        //therefore initialization will succeed.
-        //see BadClient impl.
-        verify(mockLogger, atLeastOnce()).info("Initialization succeed.");
-    }
-
-    //TODO what does this test actually do?!
-    @Test
-    public void testBadAttribute() throws Exception {
-        ClientsManager clientsManager = new ClientsManager(new ClientFactory());
-
-        Engine engine = new Engine(clientsManager, attributesManager, 2);
-
-        engine.start(1);
-        Thread.sleep(10);
-        engine.stop();
-
-        engine.shutdown();
-
-        verify(mockLogger, atLeastOnce()).info("Scheduling read task for Test.Device/Test.Attribute");
-        verify(mockLogger, atLeastOnce()).info("Subscribing for changes from Test.Device/Test.Attribute.1");
     }
 
     @Test

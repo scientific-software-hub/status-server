@@ -1,7 +1,6 @@
 package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
-import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
@@ -28,15 +27,12 @@ public class EngineInitializer {
     public static final Logger LOGGER = Logger.getLogger(EngineInitializer.class);
 
     private final StatusServerConfiguration configuration;
-    //TODO replace with type safe class
-    private final StatusServerProperties properties;
 
-    public EngineInitializer(StatusServerConfiguration configuration, StatusServerProperties properties) {
+    public EngineInitializer(StatusServerConfiguration configuration) {
         this.configuration = configuration;
-        this.properties = properties;
     }
 
-    public Engine initialize() {
+    public EngineInitializationContext initialize() {
         LOGGER.info(new SimpleDateFormat("dd MMM yy HH:mm").format(new Date()) + " Engine initialization process started.");
         //TODO pass to AttributesManager
         StorageFactory storageFactory = new StorageFactory(/*TODO type*/);
@@ -48,14 +44,11 @@ public class EngineInitializer {
         List<PollingReadAttributeTask> pollingTasks =  initializePollTasks(clientsManager,attributesManager);
         List<EventReadAttributeTask> eventTasks   = initializeEventTasks(clientsManager,attributesManager);
 
-        Engine engine = new Engine(clientsManager, attributesManager, properties.engineCpus);
-        engine.submitPollingTasks(pollingTasks);
-        engine.submitEventTasks(eventTasks);
         LOGGER.info("Finish engine initialization process.");
-        return engine;
+        return new EngineInitializationContext(clientsManager,attributesManager,pollingTasks,eventTasks);
     }
 
-    private ClientsManager initializeClients() {
+    public ClientsManager initializeClients() {
         ClientsManager clientsManager = new ClientsManager(new ClientFactory());
         for (Device dev : configuration.getDevices()) {
             String devName = dev.getName();
@@ -71,7 +64,7 @@ public class EngineInitializer {
         return clientsManager;
     }
 
-    private AttributesManager initializeAttributes(ClientsManager clientsManager) {
+    public AttributesManager initializeAttributes(ClientsManager clientsManager) {
         AttributesManager attributesManager = new AttributesManager(new AttributeFactory());
         for (Device dev : configuration.getDevices()) {
             String devName = dev.getName();
@@ -110,7 +103,7 @@ public class EngineInitializer {
         return attributesManager;
     }
 
-    private List<EventReadAttributeTask> initializeEventTasks(ClientsManager clientsManager, AttributesManager attributesManager) {
+    public List<EventReadAttributeTask> initializeEventTasks(ClientsManager clientsManager, AttributesManager attributesManager) {
         List<EventReadAttributeTask> result = new ArrayList<EventReadAttributeTask>();
         for (Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.EVENT)) {
             final Client devClient = clientsManager.getClient(attribute.getName().getDeviceName());
@@ -119,7 +112,7 @@ public class EngineInitializer {
         return result;
     }
 
-    private List<PollingReadAttributeTask> initializePollTasks(ClientsManager clientsManager, AttributesManager attributesManager) {
+    public List<PollingReadAttributeTask> initializePollTasks(ClientsManager clientsManager, AttributesManager attributesManager) {
         List<PollingReadAttributeTask> result = new ArrayList<PollingReadAttributeTask>();
         for (final Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.POLL)) {
             DeviceAttribute attr = configuration.getDeviceAttribute(attribute.getName().getDeviceName(), attribute.getName().getName());
