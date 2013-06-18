@@ -2,6 +2,7 @@ package wpn.hdri.ss.tango;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import hzg.wpn.properties.PropertiesParser;
 import org.tango.DeviceState;
 import org.tango.server.ServerManager;
@@ -9,10 +10,15 @@ import org.tango.server.annotation.*;
 import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.data.AttributeName;
+import wpn.hdri.ss.data.AttributeValue;
+import wpn.hdri.ss.data.AttributesView;
 import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.engine.EngineInitializer;
 
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -135,6 +141,7 @@ public class JStatusServer {
     @Command
     @StateMachine(endState = DeviceState.RUNNING)
     public void startLightPolling(){
+        stopCollectData();
         engine.startLightPolling();
         setStatus(Status.LIGHT_POLLING);
     }
@@ -142,6 +149,7 @@ public class JStatusServer {
     @Command(inTypeDesc = "light polling rate in millis")
     @StateMachine(endState = DeviceState.RUNNING)
     public void startLightPollingAtFixedRate(long rate){
+        stopCollectData();
         engine.startLightPollingAtFixedRate(rate);
         setStatus(Status.LIGHT_POLLING_AT_FIXED_RATE);
     }
@@ -149,6 +157,7 @@ public class JStatusServer {
     @Command
     @StateMachine(endState = DeviceState.RUNNING)
     public void startCollectData(){
+        stopCollectData();
         engine.start();
         setStatus(Status.HEAVY_DUTY);
     }
@@ -172,27 +181,52 @@ public class JStatusServer {
 
     @Command
     public String[] getLatestSnapshot(){
-        return new String[0];
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
+
+        AttributesView view = new AttributesView(values, isUseAliases());
+
+        String[] output = view.toStringArray();
+        return output;
     }
 
     @Command
-    public String[] getLatestSnapshotByGroup(){
-        return new String[0];
+    public String[] getLatestSnapshotByGroup(String groupName){
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(groupName));
+
+        AttributesView view = new AttributesView(values, isUseAliases());
+
+        String[] output = view.toStringArray();
+        return output;
     }
 
     @Command
-    public String[] getSnapshot(long timestamp){
-        return new String[0];
+    public String[] getSnapshot(long value){
+        Timestamp timestamp = new Timestamp(value);
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.none());
+
+        AttributesView view = new AttributesView(values, isUseAliases());
+
+        String[] output = view.toStringArray();
+        return output;
     }
 
     @Command
-    public String[] getSnapshotByGroup(long timestamp){
-        return new String[0];
+    public String[] getSnapshotByGroup(String[] data_in){
+        long value = Long.parseLong(data_in[0]);
+        String groupName = data_in[1];
+
+        Timestamp timestamp = new Timestamp(value);
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.byGroup(groupName));
+
+        AttributesView view = new AttributesView(values, isUseAliases());
+
+        String[] output = view.toStringArray();
+        return output;
     }
 
-    @Command
+    @Command(inTypeDesc = "String array where first element is a group name and last elements are attribute full names.")
     public void createAttributesGroup(String[] args){
-
+        engine.createAttributesGroup(args[0], Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
     }
 
     @Delete

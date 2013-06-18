@@ -209,6 +209,7 @@ public class Engine {
     }
 
     public void createAttributesGroup(String groupName, Collection<String> attrFullNames) {
+        //TODO replace full names with AttributeName objects
         attributesManager.createAttributesGroup(groupName, attrFullNames);
     }
 
