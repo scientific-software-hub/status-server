@@ -106,15 +106,11 @@ public class JStatusServer {
     }
 
     @Attribute
-    private String crtActivity;
-
     public String getCrtActivity(){
         return engine.getCurrentActivity();
     }
 
     @Attribute
-    private long crtTimestamp;
-
     public long getCrtTimestamp(){
         return System.currentTimeMillis();
     }
