@@ -34,6 +34,7 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoDs.TangoConst;
 import fr.esrf.TangoDs.Util;
 import hzg.wpn.cli.CliEntryPoint;
+import hzg.wpn.properties.PropertiesParser;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.ClientFactory;
@@ -60,12 +61,18 @@ public class Launcher {
 
     public static void main(String[] args) {
         try {
-            log.info("Setting System settings...");
-            setSystemProperties();
-            log.info("Done.");
-
             log.info("Parsing cli arguments...");
             CliOptions cliOptions = parseCl(args);
+            log.info("Done.");
+
+            log.info("Parsing properties...");
+            SsProperties properties = parseProperties();
+            log.info("Done.");
+
+            log.info("Max thread pool value for Engine: " + properties.engineCpus);
+
+            log.info("Setting System settings...");
+            setSystemProperties(properties.jacorbCpus);
             log.info("Done.");
 
             log.info("Parsing configuration...");
@@ -106,12 +113,14 @@ public class Launcher {
         }
     }
 
-    private static void setSystemProperties() {
-        int cpus = Runtime.getRuntime().availableProcessors();
-        String strCpus = Integer.toString(cpus);
-        log.info("Total cpus will be utilized by Engine: " + strCpus);
-        System.setProperty(CPUS_PROPERTY, strCpus);
+    private static SsProperties parseProperties() {
+        PropertiesParser<SsProperties> parser = new PropertiesParser<SsProperties>(SsProperties.class);
+        SsProperties properties = parser.parseProperties();
+        return properties;
+    }
 
+    private static void setSystemProperties(int cpus) {
+        String strCpus = Integer.toString(cpus);
         //jacORB tuning
         log.info("Tuning jacORB thread pool:");
         log.info("jacorb.poa.thread_pool_min=1");
