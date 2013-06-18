@@ -34,6 +34,7 @@ import com.google.common.collect.Multimap;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.data.*;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
 import java.util.List;
@@ -96,7 +97,7 @@ public class Engine {
      * @param filter
      * @return a multimap: attribute full name -> attribute values
      */
-    public Multimap<AttributeName, AttributeValue<?>> getAllAttributeValues(Timestamp timestamp, AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> getAllAttributeValues(@Nullable Timestamp timestamp, AttributeFilter filter) {
         if (timestamp == null) {
             timestamp = Timestamp.DEEP_PAST;
         }

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import hzg.wpn.properties.PropertiesParser;
+import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
 import org.tango.server.ServerManager;
 import org.tango.server.annotation.*;
@@ -18,9 +19,10 @@ import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.engine.EngineInitializer;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * StatusServer Tango implementation based on the new JTangoServer library
@@ -46,7 +48,7 @@ public class JStatusServer {
     /**
      * This field tracks timestamps of the clients and is used in getXXXUpdates methods
      */
-    private final ConcurrentMap<Long,Timestamp> timestamps = Maps.newConcurrentMap();
+    private final ConcurrentMap<Integer,Timestamp> timestamps = Maps.newConcurrentMap();
 
 
     private Engine engine;
@@ -87,14 +89,16 @@ public class JStatusServer {
 
         EngineInitializer initializer = new EngineInitializer(configuration,properties);
 
+        //TODO initialize dynamic
+
         this.engine = initializer.initialize();
     }
 
     //TODO attributes
-    private final AtomicLong clientId = new AtomicLong(0);
+    private final AtomicInteger clientId = new AtomicInteger(0);
     @Attribute
     @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
-    public long getClientId(){
+    public int getClientId(){
         return clientId.incrementAndGet();
     }
 
@@ -122,14 +126,22 @@ public class JStatusServer {
 
     @Attribute
     public String[] getData(){
-        //TODO
-        return new String[0];
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, AttributeFilters.none());
+
+        AttributesView view = new AttributesView(attributes, isUseAliases());
+
+        return view.toStringArray();
     }
 
     @Attribute
-    public String getDataEncoded(){
-        //TODO
-        return "";
+    public String getDataEncoded() throws IOException{
+        Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(null, AttributeFilters.none());
+
+        AttributesView view = new AttributesView(data, isUseAliases());
+
+        String result = view.toJsonString();
+
+        return new String(Compressor.encodeAndCompress(result.getBytes()));
     }
 
     //TODO commands
@@ -170,13 +182,27 @@ public class JStatusServer {
     }
 
     @Command
-    public String[] getDataUpdates(long clientId){
-        return new String[0];
+    public String[] getDataUpdates(int clientId){
+        final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
+
+        AttributesView view = new AttributesView(attributes, isUseAliases());
+
+        return view.toStringArray();
     }
 
     @Command
-    public String getDataUpdatesEncoded(){
-        return "";
+    public String getDataUpdatesEncoded(int clientId) throws IOException{
+        final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
+        Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
+
+        AttributesView view = new AttributesView(data, isUseAliases());
+
+        String result = view.toJsonString();
+
+        return new String(Compressor.encodeAndCompress(result.getBytes()));
     }
 
     @Command
