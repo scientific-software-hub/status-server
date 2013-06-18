@@ -3,13 +3,20 @@ package wpn.hdri.ss.tango;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import fr.esrf.Tango.AttrWriteType;
+import fr.esrf.Tango.DevFailed;
 import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
 import org.tango.server.ServerManager;
+import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
+import org.tango.server.attribute.AttributeConfiguration;
+import org.tango.server.attribute.IAttributeBehavior;
+import org.tango.server.dynamic.DynamicManager;
 import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
+import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.AttributeName;
 import wpn.hdri.ss.data.AttributeValue;
@@ -18,11 +25,15 @@ import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.engine.EngineInitializer;
+import wpn.hdri.tango.data.type.TangoDataType;
+import wpn.hdri.tango.data.type.TangoDataTypes;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * StatusServer Tango implementation based on the new JTangoServer library
@@ -57,6 +68,7 @@ public class JStatusServer {
         System.out.println("Create instance");
     }
 
+    // ==== Tango API specific
     @State
     private DeviceState state = DeviceState.OFF;
 
@@ -79,6 +91,14 @@ public class JStatusServer {
         return this.status;
     }
 
+    @DynamicManagement
+    private DynamicManager dynamicManagement;
+
+    public void setDynamicManagement(DynamicManager dynamicManagement) {
+        this.dynamicManagement = dynamicManagement;
+    }
+    // ====================
+
     @Init
     @StateMachine(endState = DeviceState.ON)
     public void init() throws Exception {
@@ -89,9 +109,47 @@ public class JStatusServer {
 
         EngineInitializer initializer = new EngineInitializer(configuration,properties);
 
-        //TODO initialize dynamic
+        initializeDynamicAttributes(configuration.getStatusServerAttributes(),dynamicManagement);
 
         this.engine = initializer.initialize();
+    }
+
+    private void initializeDynamicAttributes(List<StatusServerAttribute> statusServerAttributes, DynamicManager dynamicManagement) throws DevFailed{
+        for(final StatusServerAttribute attribute : statusServerAttributes){
+            dynamicManagement.addAttribute(new IAttributeBehavior() {
+                private final StatusServerAttribute wrapped = attribute;
+                private final AtomicReference<org.tango.server.attribute.AttributeValue> value =
+                        new AtomicReference<org.tango.server.attribute.AttributeValue>();
+
+                @Override
+                public AttributeConfiguration getConfiguration() throws DevFailed {
+                    AttributeConfiguration configuration = new AttributeConfiguration();
+                    configuration.setName(wrapped.getName());
+                    TangoDataType<?> dataType = TangoDataTypes.forString(wrapped.getType());
+//                    configuration.setTangoType(dataType.getAlias(), AttrDataFormat.FMT_UNKNOWN);
+                    configuration.setType(dataType.getDataType());
+                    configuration.setWritable(AttrWriteType.READ_WRITE);
+                    return configuration;
+                }
+
+                @Override
+                public org.tango.server.attribute.AttributeValue getValue() throws DevFailed {
+                    return value.get();
+                }
+
+                @Override
+                public void setValue(org.tango.server.attribute.AttributeValue value) throws DevFailed {
+                    this.value.set(value);
+                    //fix NPE by adding "/" in the beginning. See AttributeName#getFullName
+                    engine.writeAttributeValue("/" + wrapped.getName(),this.value.get().getValue(),new Timestamp(value.getTime()));
+                }
+
+                @Override
+                public StateMachineBehavior getStateMachine() throws DevFailed {
+                    return new StateMachineBehavior();
+                }
+            });
+        }
     }
 
     //TODO attributes
@@ -182,7 +240,7 @@ public class JStatusServer {
     }
 
     @Command
-    public String[] getDataUpdates(int clientId){
+    public String[] getUpdates(int clientId){
         final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
@@ -193,7 +251,7 @@ public class JStatusServer {
     }
 
     @Command
-    public String getDataUpdatesEncoded(int clientId) throws IOException{
+    public String getUpdatesEncoded(int clientId) throws IOException{
         final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
         Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());

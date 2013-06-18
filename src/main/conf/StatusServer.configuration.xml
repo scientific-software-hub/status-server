@@ -32,7 +32,8 @@
 <StatusServer server-name="StatusServer" instance-name="development" use-aliases="true">
     <!-- these attributes can be used for writing data directly to StatusServer -->
     <attributes>
-        <attribute name="some_attr" alias="attr" type="DevString"/>
+        <attribute name="string_attr" alias="string" type="DevString"/>
+        <attribute name="double_attr" alias="dbl" type="DevDouble"/>
     </attributes>
     <devices>
         <!-- tango or tine full device name-->
