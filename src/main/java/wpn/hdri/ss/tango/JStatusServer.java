@@ -1,11 +1,17 @@
 package wpn.hdri.ss.tango;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import hzg.wpn.properties.PropertiesParser;
 import org.tango.DeviceState;
 import org.tango.server.ServerManager;
 import org.tango.server.annotation.*;
+import wpn.hdri.ss.StatusServerProperties;
+import wpn.hdri.ss.configuration.ConfigurationBuilder;
+import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.engine.Engine;
+import wpn.hdri.ss.engine.EngineInitializer;
 
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,6 +24,12 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Device
 public class JStatusServer {
+    private static String XML_CONFIG_PATH;
+
+    public static void setXmlConfigPath(String v){
+        XML_CONFIG_PATH = v;
+    }
+
     private static interface Status {
         String IDLE = "IDLE";
         String LIGHT_POLLING = "LIGHT_POLLING";
@@ -62,9 +74,15 @@ public class JStatusServer {
 
     @Init
     @StateMachine(endState = DeviceState.ON)
-    public void init() throws Exception{
-        //TODO init engine
+    public void init() throws Exception {
+        Preconditions.checkNotNull(XML_CONFIG_PATH,"Path to xml configuration is not set.");
+        StatusServerConfiguration configuration = new ConfigurationBuilder().fromXml(XML_CONFIG_PATH);
 
+        StatusServerProperties properties = new PropertiesParser<StatusServerProperties>(StatusServerProperties.class).parseProperties();
+
+        EngineInitializer initializer = new EngineInitializer(configuration,properties);
+
+        this.engine = initializer.initialize();
     }
 
     //TODO attributes
@@ -183,6 +201,7 @@ public class JStatusServer {
     }
 
     @Delete
+    @StateMachine(endState = DeviceState.OFF)
     public void delete(){
         engine.shutdown();
     }

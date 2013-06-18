@@ -57,6 +57,15 @@ public final class StatusServerConfiguration {
     @ElementList(name = "attributes")
     private final List<StatusServerAttribute> attributes;
 
+    /**
+     * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.
+     *
+     * @param serverName
+     * @param instanceName
+     * @param useAliases
+     * @param devices
+     * @param attributes
+     */
     public StatusServerConfiguration(
             @Attribute(name = "server-name") String serverName,
             @Attribute(name = "instance-name") String instanceName,

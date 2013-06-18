@@ -29,22 +29,14 @@
 
 package wpn.hdri.ss;
 
-import StatusServer.StatusServer;
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoDs.TangoConst;
-import fr.esrf.TangoDs.Util;
 import hzg.wpn.cli.CliEntryPoint;
 import hzg.wpn.properties.PropertiesParser;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import wpn.hdri.ss.client.ClientFactory;
+import org.tango.server.ServerManager;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
-import wpn.hdri.ss.configuration.ConfigurationException;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.data.AttributeFactory;
-import wpn.hdri.ss.engine.AttributesManager;
-import wpn.hdri.ss.engine.ClientsManager;
-import wpn.hdri.tango.util.TangoUtils;
+import wpn.hdri.ss.tango.JStatusServer;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -59,14 +51,13 @@ public class Launcher {
     public static final String CPUS_PROPERTY = "hzg.wpn.ss.engine.available_cpus";
 
 
-    public static void main(String[] args) {
-        try {
+    public static void main(String[] args) throws Exception{
             log.info("Parsing cli arguments...");
             CliOptions cliOptions = parseCl(args);
             log.info("Done.");
 
             log.info("Parsing properties...");
-            SsProperties properties = parseProperties();
+            StatusServerProperties properties = parseProperties();
             log.info("Done.");
 
             log.info("Max thread pool value for Engine: " + properties.engineCpus);
@@ -79,43 +70,21 @@ public class Launcher {
             StatusServerConfiguration configuration = new ConfigurationBuilder().fromXml(cliOptions.pathToConfiguration);
             log.info("Done.");
 
-            log.info("Initializing Tango framework...");
-            Util util = Util.init(new String[]{configuration.getInstanceName()}, configuration.getServerName());
-            Util.set_serial_model(TangoConst.NO_SYNC);
-            log.info("Done.");
-
-            log.info("Initializing Tango server instance...");
-            util.server_init();
-            log.info("Done.");
-
             if(cliOptions.verbose){
+                log.info("Setting verbose level to DEBUG...");
                 Logger.getRootLogger().setLevel(Level.DEBUG);
+                log.info("Done.");
             }
 
-            StatusServer ss = StatusServer.getInstance();
-
-            ClientsManager clientsManager = new ClientsManager(new ClientFactory());
-            AttributesManager attributesManager = new AttributesManager(new AttributeFactory());
-
-            log.info("Post initializing Tango server instance...");
-            ss.postInit_device(configuration, null, clientsManager, attributesManager);
+            log.info("Initialize and start Tango server instance...");
+            JStatusServer.setXmlConfigPath(cliOptions.pathToConfiguration);
+            ServerManager.getInstance().start(new String[]{configuration.getInstanceName()}, JStatusServer.class);
             log.info("Done.");
-
-            log.info("Staring server...");
-            util.server_run();
-        } catch (ConfigurationException e) {
-            log.error(e);
-            throw new RuntimeException(e);
-        } catch (DevFailed devFailed) {
-            java.lang.Exception exception = TangoUtils.convertDevFailedToException(devFailed);
-            log.error(exception);
-            throw new RuntimeException(exception);
-        }
     }
 
-    private static SsProperties parseProperties() {
-        PropertiesParser<SsProperties> parser = new PropertiesParser<SsProperties>(SsProperties.class);
-        SsProperties properties = parser.parseProperties();
+    private static StatusServerProperties parseProperties() {
+        PropertiesParser<StatusServerProperties> parser = new PropertiesParser<StatusServerProperties>(StatusServerProperties.class);
+        StatusServerProperties properties = parser.parseProperties();
         return properties;
     }
 

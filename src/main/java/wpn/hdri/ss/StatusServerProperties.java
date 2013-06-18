@@ -8,7 +8,7 @@ import hzg.wpn.properties.Property;
  * @since 18.06.13
  */
 @Properties("statusserver.properties")
-public class SsProperties {
+public class StatusServerProperties {
     @Property(key = "engine.thread_pool_max")
     public int engineCpus = Runtime.getRuntime().availableProcessors() * 2;
     @Property(key = "jacorb.poa.thread_pool_max")

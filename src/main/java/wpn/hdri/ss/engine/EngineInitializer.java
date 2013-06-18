@@ -1,6 +1,7 @@
 package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
+import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
@@ -19,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Encapsulates initialization logic of this engine.
@@ -29,14 +29,14 @@ public class EngineInitializer {
 
     private final StatusServerConfiguration configuration;
     //TODO replace with type safe class
-    private final Properties properties;
+    private final StatusServerProperties properties;
 
-    public EngineInitializer(StatusServerConfiguration configuration, Properties properties) {
+    public EngineInitializer(StatusServerConfiguration configuration, StatusServerProperties properties) {
         this.configuration = configuration;
         this.properties = properties;
     }
 
-    private Engine initialize() {
+    public Engine initialize() {
         LOGGER.info(new SimpleDateFormat("dd MMM yy HH:mm").format(new Date()) + " Engine initialization process started.");
         //TODO pass to AttributesManager
         StorageFactory storageFactory = new StorageFactory(/*TODO type*/);
@@ -48,7 +48,7 @@ public class EngineInitializer {
         List<PollingReadAttributeTask> pollingTasks =  initializePollTasks(clientsManager,attributesManager);
         List<EventReadAttributeTask> eventTasks   = initializeEventTasks(clientsManager,attributesManager);
 
-        Engine engine = new Engine(clientsManager, attributesManager, Integer.parseInt(properties.getProperty("CPUS")));
+        Engine engine = new Engine(clientsManager, attributesManager, properties.engineCpus);
         engine.submitPollingTasks(pollingTasks);
         engine.submitEventTasks(eventTasks);
         LOGGER.info("Finish engine initialization process.");
