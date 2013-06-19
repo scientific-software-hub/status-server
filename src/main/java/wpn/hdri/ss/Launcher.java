@@ -83,7 +83,7 @@ public class Launcher {
     }
 
     private static StatusServerProperties parseProperties() {
-        PropertiesParser<StatusServerProperties> parser = new PropertiesParser<StatusServerProperties>(StatusServerProperties.class);
+        PropertiesParser<StatusServerProperties> parser = PropertiesParser.createInstance(StatusServerProperties.class);
         StatusServerProperties properties = parser.parseProperties();
         return properties;
     }
