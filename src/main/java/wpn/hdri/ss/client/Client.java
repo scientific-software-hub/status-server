@@ -31,7 +31,6 @@ package wpn.hdri.ss.client;
 
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.engine.ReadAttributeTask;
 
 import java.util.Map;
 
