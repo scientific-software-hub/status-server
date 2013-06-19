@@ -1,6 +1,7 @@
 package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
+import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
@@ -27,9 +28,11 @@ public class EngineInitializer {
     public static final Logger LOGGER = Logger.getLogger(EngineInitializer.class);
 
     private final StatusServerConfiguration configuration;
+    private final StatusServerProperties properties;
 
-    public EngineInitializer(StatusServerConfiguration configuration) {
+    public EngineInitializer(StatusServerConfiguration configuration, StatusServerProperties properties) {
         this.configuration = configuration;
+        this.properties = properties;
     }
 
     public EngineInitializationContext initialize() {
@@ -45,7 +48,7 @@ public class EngineInitializer {
         List<EventReadAttributeTask> eventTasks   = initializeEventTasks(clientsManager,attributesManager);
 
         LOGGER.info("Finish engine initialization process.");
-        return new EngineInitializationContext(clientsManager,attributesManager,pollingTasks,eventTasks);
+        return new EngineInitializationContext(clientsManager,attributesManager, properties, pollingTasks,eventTasks);
     }
 
     public ClientsManager initializeClients() {

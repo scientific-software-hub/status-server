@@ -16,9 +16,12 @@ import java.util.Properties;
 public class PropertiesParser<T> {
     private final Class<T> scheme;
 
-    @SuppressWarnings("unchecked")
-    public PropertiesParser(Class<? extends T> scheme) {
-        this.scheme = (Class<T>) scheme;//cast to super
+    private PropertiesParser(Class<T> scheme) {
+        this.scheme = scheme;//cast to super
+    }
+
+    public static <T> PropertiesParser<T> createInstance(Class<T> scheme){
+        return new PropertiesParser<T>(scheme);
     }
 
     /**

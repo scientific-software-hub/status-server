@@ -106,15 +106,15 @@ public class JStatusServer {
         Preconditions.checkNotNull(XML_CONFIG_PATH,"Path to xml configuration is not set.");
         StatusServerConfiguration configuration = new ConfigurationBuilder().fromXml(XML_CONFIG_PATH);
 
-        StatusServerProperties properties = new PropertiesParser<StatusServerProperties>(StatusServerProperties.class).parseProperties();
+        StatusServerProperties properties = PropertiesParser.createInstance(StatusServerProperties.class).parseProperties();
 
-        EngineInitializer initializer = new EngineInitializer(configuration);
+        EngineInitializer initializer = new EngineInitializer(configuration,properties);
 
         initializeDynamicAttributes(configuration.getStatusServerAttributes(),dynamicManagement);
 
         EngineInitializationContext ctx = initializer.initialize();
 
-        this.engine = new Engine(ctx,properties.engineCpus);
+        this.engine = new Engine(ctx);
     }
 
     private void initializeDynamicAttributes(List<StatusServerAttribute> statusServerAttributes, DynamicManager dynamicManagement) throws DevFailed{

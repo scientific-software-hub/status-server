@@ -1,5 +1,7 @@
 package wpn.hdri.ss.engine;
 
+import wpn.hdri.ss.StatusServerProperties;
+
 import java.util.List;
 
 /**
@@ -9,12 +11,14 @@ import java.util.List;
 public class EngineInitializationContext {
     public final ClientsManager clientsManager;
     public final AttributesManager attributesManager;
+    public final StatusServerProperties properties;
     public final List<PollingReadAttributeTask> pollingTasks;
     public final List<EventReadAttributeTask> eventTasks;
 
-    public EngineInitializationContext(ClientsManager clientsManager, AttributesManager attributesManager, List<PollingReadAttributeTask> pollingTasks, List<EventReadAttributeTask> eventTasks) {
+    public EngineInitializationContext(ClientsManager clientsManager, AttributesManager attributesManager, StatusServerProperties properties, List<PollingReadAttributeTask> pollingTasks, List<EventReadAttributeTask> eventTasks) {
         this.clientsManager = clientsManager;
         this.attributesManager = attributesManager;
+        this.properties = properties;
         this.pollingTasks = pollingTasks;
         this.eventTasks = eventTasks;
     }

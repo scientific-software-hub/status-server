@@ -58,7 +58,7 @@ public class Engine {
      */
     public static final Logger LOGGER = Logger.getLogger(Engine.class);
     /**
-     * This one is used as a multiplicator for Math.random in {@link this#scheduleTasks(java.util.Collection, int)}
+     * This one is used as a multiplicator for Math.random in {@link this#scheduler}
      */
     public static final int MAX_INITIAL_DELAY = 1000;
     public static final long MAX_DELAY = 1000L;
@@ -81,17 +81,17 @@ public class Engine {
     /**
      * @param clientsManager
      * @param attributesManager
-     * @param cpus
+     * @param threads how many thread will be utilized by the engine
      */
-    public Engine(ClientsManager clientsManager, AttributesManager attributesManager, int cpus) {
+    public Engine(ClientsManager clientsManager, AttributesManager attributesManager, int threads) {
         this.clientsManager = clientsManager;
         this.attributesManager = attributesManager;
 
-        this.scheduler = Executors.newScheduledThreadPool(cpus);
+        this.scheduler = Executors.newScheduledThreadPool(threads);
     }
 
-    public Engine(EngineInitializationContext ctx,int cpus){
-        this(ctx.clientsManager,ctx.attributesManager,cpus);
+    public Engine(EngineInitializationContext ctx){
+        this(ctx.clientsManager,ctx.attributesManager,ctx.properties.engineCpus);
         submitPollingTasks(ctx.pollingTasks);
         submitEventTasks(ctx.eventTasks);
     }
