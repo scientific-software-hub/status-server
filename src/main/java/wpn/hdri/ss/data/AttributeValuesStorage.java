@@ -76,7 +76,7 @@ public class AttributeValuesStorage<T> {
     public AttributeValuesStorage(String name, String persistentStorageRoot, long persistTimestampThreshold, long updateTimestampThreshold) {
         this.name = name;
         //TODO persistent type should be defined in the configuration
-        this.persistent = new SingleThreadStorage(new CsvFileStorage(persistentStorageRoot, true));
+        this.persistent = new SingleThreadStorage(new CsvFileStorage(persistentStorageRoot));
         this.persistTimestampThreshold = persistTimestampThreshold;
         this.updateTimestampThreshold = updateTimestampThreshold;
     }

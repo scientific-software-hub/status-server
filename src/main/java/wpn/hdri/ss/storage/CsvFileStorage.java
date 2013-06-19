@@ -22,19 +22,15 @@ public class CsvFileStorage implements Storage {
     private final BodyParser bodyParser = new BodyParser();
 
     /**
+     * Creates folder data_xxxx, where xxxx - this#hashCode
+     *
      * @param root
-     * @param clearRoot if true will delete root on creation
+     *
      */
-    public CsvFileStorage(String root, boolean clearRoot) {
-        this.root = new File(root, "data");
+    public CsvFileStorage(String root) {
+        this.root = new File(root, "data_" + hashCode());
         if (!this.root.exists()) {
             this.root.mkdirs();
-        } else if (clearRoot) {
-            try {
-                FileUtils.forceDelete(this.root);
-            } catch (IOException e) {
-                throw new RuntimeException("Can not delete FileSystemStorage root dir " + this.root.getAbsolutePath(), e);
-            }
         }
     }
 
