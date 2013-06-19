@@ -1,32 +1,24 @@
-package StatusServer;
+package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.client.ClientException;
-import wpn.hdri.ss.client.ClientFactory;
-import wpn.hdri.ss.configuration.ConfigurationBuilder;
-import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.engine.AttributeFilters;
-import wpn.hdri.ss.engine.AttributesManager;
-import wpn.hdri.ss.engine.ClientsManager;
-import wpn.hdri.ss.engine.Engine;
+import wpn.hdri.ss.EngineTestBootstrap;
+import wpn.hdri.ss.data.Timestamp;
 
-import java.math.BigDecimal;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 14.06.13
  */
 public class ITEngineStressTest {
-    private static final String CONFIGURATION = "target/test-classes/conf/StatusServer.integration.test.xml";
-
-    public static final int _1M = 999999 +2;//force persistent file creation
+    public static final int _1M   = 999999 +2;//force persistent file creation
+    public static final int _10K  = 10000;
     public static final int _100K = 100000;
 
     private final Logger mockLogger = spy(new Logger(ITEngineStressTest.class.getSimpleName()) {
@@ -50,54 +42,31 @@ public class ITEngineStressTest {
 
     @Before
     public void before(){
-        StatusServerConfiguration configuration = new ConfigurationBuilder().addDevice("fake").addAttributeToDevice("fake","double","poll","last",1,0).build();
+        EngineTestBootstrap bootstrap = new EngineTestBootstrap();
+        bootstrap.bootstrap();
+        engine = bootstrap.getEngine();
+    }
 
-        ClientsManager clientsManager = new ClientsManager(new ClientFactory() {
-            @Override
-            public Client createClient(String deviceName) {
-                Client client = mock(Client.class);
-                try {
-                    doReturn(true).when(client).checkAttribute("double");
-                    doReturn(double.class).when(client).getAttributeClass("double");
-                } catch (ClientException e) {
-                    throw new RuntimeException(e);
-                }
-
-                return client;
-            }
-        });
-
-        long timestamp = System.currentTimeMillis();
-        final NumericAttribute<Double> doubleAttribute = new NumericAttribute<Double>("fake","double", Interpolation.LAST,0.);
-        for(int i = 0; i< _1M; ++i){
-            long currentTimestamp = timestamp + i * 1000;
-            doubleAttribute.addValue(currentTimestamp, Value.getInstance(Math.random()), currentTimestamp);
-        }
-
-
-        AttributesManager attributesManager = new AttributesManager(new AttributeFactory(){
-            @Override
-            public Attribute<?> createAttribute(String attrName, String attrAlias, String devName, Interpolation interpolation, BigDecimal precision, Class<?> type, boolean isArray) {
-                return doubleAttribute;
-            }
-        });
-
-
-        engine = new Engine(clientsManager, attributesManager, 2);
+    @After
+    public void after(){
+        engine.clear();
+        engine = null;
     }
 
     @Test
     public void testGetLatestSnapshot() throws Exception{
-        engine.initialize();
+        for(int i = 0; i<_100K; i++){
+            engine.getLatestValues(AttributeFilters.none());
+        }
 
         long start = System.nanoTime();
-        for(int i = 0; i<1000; i++){
+        for(int i = 0; i<_10K; i++){
             engine.getLatestValues(AttributeFilters.none());
         }
         long stop = System.nanoTime();
 
         long delta = stop - start;
-        long average = delta / 1000;
+        long average = delta / _10K;
         System.out.println("Average time in getLatestValues (nano) = " + average);
         System.out.println("Average time in getLatestValues (millis) = " + TimeUnit.MILLISECONDS.convert(average,TimeUnit.NANOSECONDS));
         System.out.println("Average time in getLatestValues (seconds) = " + TimeUnit.SECONDS.convert(average, TimeUnit.NANOSECONDS));
@@ -107,17 +76,19 @@ public class ITEngineStressTest {
 
     @Test
     public void testGetSnapshot(){
-        engine.initialize();
-
         Timestamp timestamp = new Timestamp(System.currentTimeMillis() - 1000);
+        for(int i = 0; i<_100K; i++){
+            engine.getValues(timestamp, AttributeFilters.none());
+        }
+
         long start = System.nanoTime();
-        for(int i = 0; i<1000; i++){
+        for(int i = 0; i<_10K; i++){
             engine.getValues(timestamp, AttributeFilters.none());
         }
         long stop = System.nanoTime();
 
         long delta = stop - start;
-        long average = delta / 1000;
+        long average = delta / _10K;
         System.out.println("Average time in getLatestValues (nano) = " + average);
         System.out.println("Average time in getLatestValues (millis) = " + TimeUnit.MILLISECONDS.convert(average,TimeUnit.NANOSECONDS));
         System.out.println("Average time in getLatestValues (seconds) = " + TimeUnit.SECONDS.convert(average, TimeUnit.NANOSECONDS));
@@ -127,17 +98,20 @@ public class ITEngineStressTest {
 
     @Test
     public void testGetDataUpdates(){
-        engine.initialize();
-
         Timestamp timestamp = new Timestamp(System.currentTimeMillis() - 1000);
+        for(int i = 0; i<_100K; i++){
+            engine.getAllAttributeValues(timestamp, AttributeFilters.none());
+        }
+
+
         long start = System.nanoTime();
-        for(int i = 0; i<1000; i++){
+        for(int i = 0; i<_10K; i++){
             engine.getAllAttributeValues(timestamp, AttributeFilters.none());
         }
         long stop = System.nanoTime();
 
         long delta = stop - start;
-        long average = delta / 1000;
+        long average = delta / _10K;
         System.out.println("Average time in getLatestValues (nano) = " + average);
         System.out.println("Average time in getLatestValues (millis) = " + TimeUnit.MILLISECONDS.convert(average,TimeUnit.NANOSECONDS));
         System.out.println("Average time in getLatestValues (seconds) = " + TimeUnit.SECONDS.convert(average, TimeUnit.NANOSECONDS));
@@ -147,16 +121,18 @@ public class ITEngineStressTest {
 
     @Test
     public void testGetData(){
-        engine.initialize();
+        for(int i = 0; i<_100K; i++){
+            engine.getAllAttributeValues(Timestamp.DEEP_PAST, AttributeFilters.none());
+        }
 
         long start = System.nanoTime();
-        for(int i = 0; i<1000; i++){
+        for(int i = 0; i<_10K; i++){
             engine.getAllAttributeValues(Timestamp.DEEP_PAST, AttributeFilters.none());
         }
         long stop = System.nanoTime();
 
         long delta = stop - start;
-        long average = delta / 1000;
+        long average = delta / _10K;
         System.out.println("Average time in getLatestValues (nano) = " + average);
         System.out.println("Average time in getLatestValues (millis) = " + TimeUnit.MILLISECONDS.convert(average,TimeUnit.NANOSECONDS));
         System.out.println("Average time in getLatestValues (seconds) = " + TimeUnit.SECONDS.convert(average, TimeUnit.NANOSECONDS));
@@ -166,9 +142,10 @@ public class ITEngineStressTest {
 
     public static void main(String... args) throws Exception{
         ITEngineStressTest testSuite = new ITEngineStressTest();
-
         testSuite.before();
 
-        testSuite.testGetSnapshot();
+        testSuite.testGetData();
+
+        testSuite.after();
     }
 }

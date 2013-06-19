@@ -69,6 +69,15 @@ public class JStatusServer {
         System.out.println("Create instance");
     }
 
+    /**
+     * For tests
+     *
+     * @param engine
+     */
+    JStatusServer(Engine engine){
+        this.engine = engine;
+    }
+
     // ==== Tango API specific
     @State
     private DeviceState state = DeviceState.OFF;
