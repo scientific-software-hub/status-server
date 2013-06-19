@@ -40,7 +40,7 @@ import java.util.*;
  */
 //TODO put a reference to a client into Attribute (do not use Strings to link client and attribute)
 //TODO client must have references to its attributes
-public final class ClientsManager {
+public /*final*/ class ClientsManager {
     private final ClientFactory factory;
 
     private final Map<String, Client> clients = new HashMap<String, Client>();

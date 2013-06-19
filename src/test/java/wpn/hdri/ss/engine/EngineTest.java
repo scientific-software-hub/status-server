@@ -29,16 +29,21 @@
 
 package wpn.hdri.ss.engine;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
-import wpn.hdri.ss.data.AttributeFactory;
+import wpn.hdri.ss.data.AttributeName;
+import wpn.hdri.ss.data.AttributeValue;
+import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.storage.Storage;
 
+import static junit.framework.Assert.assertSame;
 import static org.mockito.Mockito.*;
 
 /**
@@ -46,12 +51,10 @@ import static org.mockito.Mockito.*;
  * @since 04.05.12
  */
 public class EngineTest {
-    private final String xmlConfig = "target/test-classes/conf/StatusServer.test.xml";
+    private final String xmlConfigPath = "target/test-classes/conf/StatusServer.test.xml";
     private final ConfigurationBuilder conf = new ConfigurationBuilder();
     private Storage mockStorage;
     private Logger mockLogger;
-
-    private AttributesManager attributesManager;
 
     @Before
     public void before() {
@@ -72,8 +75,6 @@ public class EngineTest {
                 System.err.println(message);
             }
         });
-
-        attributesManager = new AttributesManager(new AttributeFactory());
     }
 
     @Test
@@ -83,33 +84,41 @@ public class EngineTest {
 
     @Test
     public void testTolerateExceptionsDuringWork() throws Exception {
+        final Client client = mock(Client.class);
+
+        doReturn(true).when(client).checkAttribute(anyString());
+        doThrow(new RuntimeException("Holy mother of God!")).when(client).readAttribute(anyString());
+        doReturn(String.class).when(client).getAttributeClass(anyString());
+
+
         ClientsManager clientsManager = new ClientsManager(new ClientFactory() {
             @Override
             public Client createClient(String deviceName) {
-                Client client = mock(Client.class);
-
-                try {
-                    //TODO replace anyString
-                    doReturn(true).when(client).checkAttribute(anyString());
-                    doThrow(new RuntimeException("Holy mother of God!")).when(client).readAttribute(anyString());
-                    doReturn(String.class).when(client).getAttributeClass(anyString());
-                } catch (ClientException e) {
-                    throw new RuntimeException(e);
-                }
-
-
                 return client;
             }
-        });
+        }){
+            @Override
+            public Client getClient(String name) {
+                return client;
+            }
+        };
+
+        EngineInitializer initializer = new EngineInitializer(new ConfigurationBuilder().fromXml(xmlConfigPath), new StatusServerProperties());
+
+        AttributesManager attributesManager = initializer.initializeAttributes(clientsManager);
 
         Engine engine = new Engine(clientsManager, attributesManager, 2);
+        engine.submitPollingTasks(initializer.initializePollTasks(clientsManager,attributesManager));
 
         engine.start(1);
         Thread.sleep(7000);
         engine.stop();
 
-        verify(mockLogger, atLeastOnce()).error(eq("An attempt to read attribute Test.Device/Test.Attribute has failed. Tries left: 2"), any(Throwable.class));
-        verify(mockLogger, atLeast(2)).error(eq("All attempts to read attribute Test.Device/Test.Attribute failed. Writing null."), any(Throwable.class));
+        Multimap<AttributeName,AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
+
+        assertSame(Value.NULL, Iterables.getFirst(values.asMap().get(new AttributeName("Test.Device", "Test.Attribute", null)), null).getValue());
+//        this produces NPE because event based attribute has never been updated
+//        assertEquals("NA", Iterables.getLast(values.values(),null).getValue().get());
 
         engine.shutdown();
     }
