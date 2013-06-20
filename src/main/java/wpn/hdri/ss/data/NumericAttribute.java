@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 @NotThreadSafe
 public final class NumericAttribute<T extends Number> extends Attribute<T> {
+
     public static final double DEFAULT_PRECISION = 0.;
 
     private static final DecimalFormat DECIMAL_FORMAT = (DecimalFormat) DecimalFormat.getInstance();
@@ -96,6 +97,11 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
     @SuppressWarnings("unchecked")
     public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append) {
         AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
+        if(value == Value.NULL){
+            LOGGER.warn("Trying to add NULL value");
+            storage.addValue(attributeValue,false);
+            return;
+        }
 
         //in general prefer new BigDecimal(String) over new BigDecimal(double). See Effective Java Item 31
         String text = String.valueOf(value.get());
@@ -104,7 +110,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
             try {
                 decimal = new BigDecimal(text);
             } catch (NumberFormatException e) {
-                //TODO log
+                LOGGER.error(e);
                 return;
             }
         }

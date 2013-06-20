@@ -12,6 +12,7 @@ import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.Attribute;
 import wpn.hdri.ss.data.AttributeFactory;
 import wpn.hdri.ss.data.Method;
+import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.storage.StorageFactory;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
@@ -67,7 +68,15 @@ public class EngineInitializer {
         return clientsManager;
     }
 
+    /**
+     * Creates attributes defined in the configuration. Upon creation adds the {@link Value#NULL} as the default value (without persisting it)
+     *
+     * @param clientsManager
+     * @return a newly created {@link AttributesManager} instance filled with the attributes defined in the configuration. Attributes have default value set to {@link Value#NULL}
+     */
     public AttributesManager initializeAttributes(ClientsManager clientsManager) {
+        long now = System.currentTimeMillis();
+
         AttributesManager attributesManager = new AttributesManager(new AttributeFactory());
         for (Device dev : configuration.getDevices()) {
             String devName = dev.getName();
@@ -87,7 +96,8 @@ public class EngineInitializer {
                 try {
                     Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
                     boolean isArray = devClient.isArrayAttribute(attr.getName());
-                    attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray);
+                    attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray).
+                    addValue(now, Value.NULL,now,false);
                     LOGGER.info("Initialization succeed.");
                 } catch (ClientException e) {
                     LOGGER.warn("Attribute initialization failed.", e);
@@ -100,7 +110,9 @@ public class EngineInitializer {
         for (StatusServerAttribute attr : configuration.getStatusServerAttributes()) {
             LOGGER.info("Initializing embedded attribute " + attr.getName());
             TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
-            attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false);
+            //create and add default value - null
+            attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false).
+            addValue(now, Value.NULL,now,false);
             LOGGER.info("Initialization succeed.");
         }
         return attributesManager;

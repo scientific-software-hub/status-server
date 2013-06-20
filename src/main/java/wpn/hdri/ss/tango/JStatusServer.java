@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 17.06.13
  */
 @Device
-public class JStatusServer {
+public class JStatusServer implements JStatusServerStub {
     private static String XML_CONFIG_PATH;
 
     public static void setXmlConfigPath(String v){
@@ -82,6 +82,7 @@ public class JStatusServer {
     @State
     private DeviceState state = DeviceState.OFF;
 
+    @Override
     public DeviceState getState() {
         return state;
     }
@@ -97,6 +98,7 @@ public class JStatusServer {
         this.status = v;
     }
 
+    @Override
     public String getStatus(){
         return this.status;
     }
@@ -109,6 +111,7 @@ public class JStatusServer {
     }
     // ====================
 
+    @Override
     @Init
     @StateMachine(endState = DeviceState.ON)
     public void init() throws Exception {
@@ -131,7 +134,7 @@ public class JStatusServer {
             dynamicManagement.addAttribute(new IAttributeBehavior() {
                 private final StatusServerAttribute wrapped = attribute;
                 private final AtomicReference<org.tango.server.attribute.AttributeValue> value =
-                        new AtomicReference<org.tango.server.attribute.AttributeValue>();
+                        new AtomicReference<org.tango.server.attribute.AttributeValue>(new org.tango.server.attribute.AttributeValue(null));
 
                 @Override
                 public AttributeConfiguration getConfiguration() throws DevFailed {
@@ -166,6 +169,7 @@ public class JStatusServer {
 
     //TODO attributes
     private final AtomicInteger clientId = new AtomicInteger(0);
+    @Override
     @Attribute
     @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
     public int getClientId(){
@@ -176,24 +180,29 @@ public class JStatusServer {
     @Attribute
     private boolean useAliases = false;
 
+    @Override
     public void setUseAliases(boolean v){
         this.useAliases = v;
     }
 
+    @Override
     public boolean isUseAliases(){
         return this.useAliases;
     }
 
+    @Override
     @Attribute
     public String getCrtActivity(){
         return engine.getCurrentActivity();
     }
 
+    @Override
     @Attribute
     public long getCrtTimestamp(){
         return System.currentTimeMillis();
     }
 
+    @Override
     @Attribute
     public String[] getData(){
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, AttributeFilters.none());
@@ -203,6 +212,7 @@ public class JStatusServer {
         return view.toStringArray();
     }
 
+    @Override
     @Attribute
     public String getDataEncoded() throws IOException{
         Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(null, AttributeFilters.none());
@@ -215,11 +225,13 @@ public class JStatusServer {
     }
 
     //TODO commands
+    @Override
     @Command
     public void eraseData(){
         engine.clear();
     }
 
+    @Override
     @Command
     @StateMachine(endState = DeviceState.RUNNING)
     public void startLightPolling(){
@@ -228,6 +240,7 @@ public class JStatusServer {
         setStatus(Status.LIGHT_POLLING);
     }
 
+    @Override
     @Command(inTypeDesc = "light polling rate in millis")
     @StateMachine(endState = DeviceState.RUNNING)
     public void startLightPollingAtFixedRate(long rate){
@@ -236,6 +249,7 @@ public class JStatusServer {
         setStatus(Status.LIGHT_POLLING_AT_FIXED_RATE);
     }
 
+    @Override
     @Command
     @StateMachine(endState = DeviceState.RUNNING)
     public void startCollectData(){
@@ -244,6 +258,7 @@ public class JStatusServer {
         setStatus(Status.HEAVY_DUTY);
     }
 
+    @Override
     @Command
     @StateMachine(endState = DeviceState.ON)
     public void stopCollectData(){
@@ -251,6 +266,7 @@ public class JStatusServer {
         setStatus(Status.IDLE);
     }
 
+    @Override
     @Command
     public String[] getUpdates(int clientId){
         final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -262,6 +278,7 @@ public class JStatusServer {
         return view.toStringArray();
     }
 
+    @Override
     @Command
     public String getUpdatesEncoded(int clientId) throws IOException{
         final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -275,6 +292,7 @@ public class JStatusServer {
         return new String(Compressor.encodeAndCompress(result.getBytes()));
     }
 
+    @Override
     @Command
     public String[] getLatestSnapshot(){
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
@@ -285,6 +303,7 @@ public class JStatusServer {
         return output;
     }
 
+    @Override
     @Command
     public String[] getLatestSnapshotByGroup(String groupName){
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(groupName));
@@ -295,6 +314,7 @@ public class JStatusServer {
         return output;
     }
 
+    @Override
     @Command
     public String[] getSnapshot(long value){
         Timestamp timestamp = new Timestamp(value);
@@ -306,6 +326,7 @@ public class JStatusServer {
         return output;
     }
 
+    @Override
     @Command
     public String[] getSnapshotByGroup(String[] data_in){
         long value = Long.parseLong(data_in[0]);
@@ -320,6 +341,7 @@ public class JStatusServer {
         return output;
     }
 
+    @Override
     @Command(inTypeDesc = "String array where first element is a group name and last elements are attribute full names.")
     public void createAttributesGroup(String[] args){
         engine.createAttributesGroup(args[0], Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));

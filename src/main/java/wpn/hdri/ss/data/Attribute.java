@@ -30,11 +30,12 @@
 package wpn.hdri.ss.data;
 
 import com.google.common.base.Objects;
+import org.apache.log4j.Logger;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Stores values and corresponding read timestamps
+ * Stores values and corresponding read/write timestamps
  * <p/>
  * Implementation is thread safe but does not guarantee that underlying map won't be changed while reading
  * <p/>
@@ -45,6 +46,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class Attribute<T> {
+    protected static final Logger LOGGER = Logger.getLogger(Attribute.class);
+
+
     private final AttributeName name;
 
     protected final AttributeValuesStorage<T> storage;
