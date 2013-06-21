@@ -15,6 +15,10 @@ public class StatusServerProperties {
     public int engineCpus = Runtime.getRuntime().availableProcessors() * 2;
     @Property(key = ENGINE_PERSISTENT_ROOT)
     public String engineStorageRoot = System.getProperty("user.dir");
+    @Property(key = "engine.persistent_max")
+    public long engineStorageMax = 100000;
+    @Property(key = "engine.persistent_split")
+    public long engineStorageSplit = 50000;
     @Property(key = "jacorb.poa.thread_pool_min")
     public int jacorbMinCpus = Runtime.getRuntime().availableProcessors();
     @Property(key = "jacorb.poa.thread_pool_max")

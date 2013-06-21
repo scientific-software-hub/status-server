@@ -34,10 +34,7 @@ import com.google.common.collect.Sets;
 import org.junit.Test;
 import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
-import wpn.hdri.ss.data.Attribute;
-import wpn.hdri.ss.data.AttributeFactory;
-import wpn.hdri.ss.data.Interpolation;
-import wpn.hdri.ss.data.Method;
+import wpn.hdri.ss.data.*;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -66,7 +63,7 @@ public class AttributesManagerTest {
 
     @Test
     public void testAttributesGroup() {
-        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev.getName(), null, Double.class, false);
+        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev.getName(), null, Double.class, false, new AttributeValuesStorageFactory(".",10,5));
         instance.createAttributesGroup("group1", Sets.newHashSet(initializedAttribute.getFullName()));
 
         Collection<Attribute<?>> result = instance.getAttributesByGroup("group1");

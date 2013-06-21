@@ -145,7 +145,7 @@ public class AttributeTest {
 
     @Test
     public void testPrecision_SameValue() {
-        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE);
+        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE, new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance(20.3), timestamp, true);
         attribute.addValue(timestamp + 10, Value.getInstance(20.1), timestamp, true);
@@ -158,7 +158,7 @@ public class AttributeTest {
 
     @Test
     public void testPrecision_SameValue_morePrecision() {
-        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, new BigDecimal("0.001"));
+        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, new BigDecimal("0.001"), new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance(0.2441406), timestamp, true);
         attribute.addValue(timestamp + 10, Value.getInstance(0.2453613), timestamp, true);
@@ -173,7 +173,7 @@ public class AttributeTest {
 
     @Test
     public void testSameValue_Numeric() {
-        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE);
+        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE, new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance(20.3), timestamp, true);
         attribute.addValue(timestamp + 10, Value.getInstance(20.3), timestamp, true);
@@ -188,7 +188,7 @@ public class AttributeTest {
 
     @Test
     public void testPrecision_SameValueDifferentTime() {
-        Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST);
+        Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST, new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance("Rabbit"), timestamp, true);
         attribute.addValue(timestamp + 10, Value.getInstance("Rabbit"), timestamp, true);
@@ -203,7 +203,7 @@ public class AttributeTest {
 
     @Test
     public void testPrecision_DifferentValue() {
-        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE);
+        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, "double", Interpolation.LINEAR, BigDecimal.ONE, new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance(20.3), timestamp, true);
         attribute.addValue(timestamp + 10, Value.getInstance(20.7), timestamp, true);
@@ -212,6 +212,17 @@ public class AttributeTest {
         double result = attribute.getAttributeValue().getValue().get();
 
         assertEquals(21.4, result);
+    }
+
+    @Test
+    public void testAddNull_Numeric_first() {
+        Attribute<Double> attribute = new NumericAttribute<Double>(deviceName, name, Interpolation.LAST);
+
+        attribute.addValue(timestamp + 10, Value.NULL, timestamp, true);
+
+        Double result = attribute.getAttributeValue().getValue().get();
+//        assertNull(result);
+        assertNull(result);
     }
 
     @Test
@@ -228,7 +239,7 @@ public class AttributeTest {
 
     @Test
     public void testAddNull_NonNumeric() {
-        Attribute<Boolean> attribute = new NonNumericAttribute<Boolean>(deviceName, name, "bool", Interpolation.LAST);
+        Attribute<Boolean> attribute = new NonNumericAttribute<Boolean>(deviceName, name, "bool", Interpolation.LAST, new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance(false), timestamp, true);
         attribute.addValue(timestamp + 10, Value.NULL, timestamp, true);
@@ -239,7 +250,7 @@ public class AttributeTest {
 
     @Test
     public void testGetTailValues() {
-        Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST);
+        Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST, new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance("Hello"), timestamp, true);
         attribute.addValue(timestamp + 10, Value.getInstance("World"), timestamp, true);
@@ -261,7 +272,7 @@ public class AttributeTest {
 
     @Test
     public void testArrayAttribute() {
-        ArrayAttribute attribute = new ArrayAttribute(deviceName, name, "string");
+        ArrayAttribute attribute = new ArrayAttribute(deviceName, name, "string", new AttributeValuesStorageFactory(".",10,5));
 
         attribute.addValue(timestamp, Value.getInstance((Object) new double[]{0.D, 0.1D, 0.2D}), timestamp, true);
         attribute.addValue(timestamp + 10, Value.getInstance((Object) new double[]{0.1D, 0.2D, 0.3D}), timestamp, true);
@@ -276,7 +287,7 @@ public class AttributeTest {
 
     @Test
     public void testSetNullValue() {
-        Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST);
+        Attribute<String> attribute = new NonNumericAttribute<String>(deviceName, name, "string", Interpolation.LAST, new AttributeValuesStorageFactory(".",10,5));
 
 //        attribute.addValue(timestamp, null, timestamp);
         attribute.addValue(timestamp, Value.getInstance(null), timestamp, true);

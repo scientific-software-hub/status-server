@@ -31,7 +31,6 @@ package wpn.hdri.ss.data;
 
 import com.google.common.base.Objects;
 import org.apache.log4j.Logger;
-import wpn.hdri.ss.StatusServerProperties;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -57,10 +56,9 @@ public abstract class Attribute<T> {
     //    protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
     private final Interpolation interpolation;
 
-    public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
+    public Attribute(String deviceName, String name, String alias, Interpolation interpolation, AttributeValuesStorageFactory storageFactory) {
         this.name = new AttributeName(deviceName, name, alias);
-        //TODO get storage root from config
-        this.storage = new AttributeValuesStorage<T>(this.name.getFullName(), System.getProperty(StatusServerProperties.ENGINE_PERSISTENT_ROOT));
+        this.storage = storageFactory.createInstance(this.name.getFullName());
 
         this.interpolation = interpolation;
     }

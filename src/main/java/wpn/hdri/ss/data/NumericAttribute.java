@@ -57,8 +57,8 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
 
     private final ConcurrentNavigableMap<Timestamp, BigDecimal> numericValues = new ConcurrentSkipListMap<Timestamp, BigDecimal>();
 
-    public NumericAttribute(String deviceName, String name, String alias, Interpolation interpolation, BigDecimal precision) {
-        super(deviceName, name, alias, interpolation);
+    public NumericAttribute(String deviceName, String name, String alias, Interpolation interpolation, BigDecimal precision, AttributeValuesStorageFactory storageFactory) {
+        super(deviceName, name, alias, interpolation, storageFactory);
         this.precision = precision;
     }
 
@@ -71,7 +71,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
      * @param precision
      */
     public NumericAttribute(String deviceName, String name, Interpolation interpolation, double precision) {
-        this(deviceName, name, name, interpolation, BigDecimal.valueOf(precision));
+        this(deviceName, name, name, interpolation, BigDecimal.valueOf(precision), new AttributeValuesStorageFactory(".",10,5));
     }
 
     /**
@@ -88,6 +88,8 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
     /**
      * Adds a value if it satisfies the precision test. If by ane means value can not be converted to BigDecimal it is skipped.
      *
+     * Normally does not permit null values, only if it is the first value is being added
+     *
      * @param readTimestamp  when the value was read by StatusServer
      * @param value          the value
      * @param writeTimestamp when the value was written on the remote server
@@ -97,7 +99,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
     @SuppressWarnings("unchecked")
     public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append) {
         AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
-        if(value == Value.NULL){
+        if(value == Value.NULL && storage.isEmpty()){
             LOGGER.warn("Trying to add NULL value");
             storage.addValue(attributeValue,false);
             return;

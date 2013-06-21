@@ -34,8 +34,8 @@ package wpn.hdri.ss.data;
  * @since 02.05.12
  */
 public final class NonNumericAttribute<T> extends Attribute<T> {
-    public NonNumericAttribute(String deviceName, String name, String alias, Interpolation interpolation) {
-        super(deviceName, name, alias, interpolation);
+    public NonNumericAttribute(String deviceName, String name, String alias, Interpolation interpolation, AttributeValuesStorageFactory storageFactory) {
+        super(deviceName, name, alias, interpolation, storageFactory);
     }
 
     @Override

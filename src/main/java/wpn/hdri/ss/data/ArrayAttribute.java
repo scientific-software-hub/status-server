@@ -7,8 +7,8 @@ import org.apache.commons.lang3.ArrayUtils;
  * @since 30.11.12
  */
 public class ArrayAttribute extends Attribute<Object> {
-    public ArrayAttribute(String devName, String attrName, String alias) {
-        super(devName, attrName, alias, Interpolation.LAST);
+    public ArrayAttribute(String devName, String attrName, String alias, AttributeValuesStorageFactory storageFactory) {
+        super(devName, attrName, alias, Interpolation.LAST, storageFactory);
     }
 
     @Override

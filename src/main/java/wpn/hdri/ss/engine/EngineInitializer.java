@@ -9,10 +9,7 @@ import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.data.Attribute;
-import wpn.hdri.ss.data.AttributeFactory;
-import wpn.hdri.ss.data.Method;
-import wpn.hdri.ss.data.Value;
+import wpn.hdri.ss.data.*;
 import wpn.hdri.ss.storage.StorageFactory;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
@@ -80,6 +77,7 @@ public class EngineInitializer {
         long now = System.currentTimeMillis();
 
         AttributesManager attributesManager = new AttributesManager(new AttributeFactory());
+        AttributeValuesStorageFactory storageFactory = new AttributeValuesStorageFactory(properties.engineStorageRoot,properties.engineStorageMax,properties.engineStorageSplit);
         for (Device dev : configuration.getDevices()) {
             String devName = dev.getName();
 
@@ -98,7 +96,7 @@ public class EngineInitializer {
                 try {
                     Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
                     boolean isArray = devClient.isArrayAttribute(attr.getName());
-                    attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray).
+                    attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray, storageFactory).
                     addValue(now, Value.NULL,now,false);
                     LOGGER.info("Initialization succeed.");
                 } catch (ClientException e) {
@@ -113,7 +111,7 @@ public class EngineInitializer {
             LOGGER.info("Initializing embedded attribute " + attr.getName());
             TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
             //create and add default value - null
-            attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false).
+            attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false, storageFactory).
             addValue(now, Value.NULL,now,false);
             LOGGER.info("Initialization succeed.");
         }

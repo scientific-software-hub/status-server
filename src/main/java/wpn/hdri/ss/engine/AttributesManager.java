@@ -81,8 +81,8 @@ public final class AttributesManager {
         this.factory = factory;
     }
 
-    public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray) {
-        Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, attr.getInterpolation(), attr.getPrecision(), attributeClass, isArray);
+    public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray, AttributeValuesStorageFactory storageFactory) {
+        Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, attr.getInterpolation(), attr.getPrecision(), attributeClass, isArray, storageFactory);
         attributes.put(attribute, devClient);
         attributesByMethod.put(attr.getMethod(), attribute);
         attributesByFullName.put(attribute.getFullName(), attribute);
