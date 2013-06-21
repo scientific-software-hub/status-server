@@ -11,6 +11,10 @@ import hzg.wpn.properties.Property;
 public class StatusServerProperties {
     @Property(key = "engine.thread_pool_max")
     public int engineCpus = Runtime.getRuntime().availableProcessors() * 2;
+    @Property(key = "engine.persistent_root")
+    public String engineStorageRoot = System.getProperty("user.dir");
+    @Property(key = "jacorb.poa.thread_pool_min")
+    public int jacorbMinCpus = Runtime.getRuntime().availableProcessors();
     @Property(key = "jacorb.poa.thread_pool_max")
-    public int jacorbCpus = Runtime.getRuntime().availableProcessors() * 2;
+    public int jacorbMaxCpus = Runtime.getRuntime().availableProcessors() * 2;
 }

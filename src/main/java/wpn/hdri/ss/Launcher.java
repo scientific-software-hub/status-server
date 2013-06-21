@@ -29,6 +29,8 @@
 
 package wpn.hdri.ss;
 
+import fr.esrf.TangoDs.TangoConst;
+import fr.esrf.TangoDs.Util;
 import hzg.wpn.cli.CliEntryPoint;
 import hzg.wpn.properties.PropertiesParser;
 import org.apache.log4j.Level;
@@ -43,7 +45,7 @@ import wpn.hdri.ss.tango.JStatusServer;
  * @since 26.04.12
  */
 public class Launcher {
-    public static final Logger log = Logger.getLogger(Launcher.class);
+    public static final Logger LOG = Logger.getLogger(Launcher.class);
 
     /**
      * This property should be set before creating Engine
@@ -52,34 +54,35 @@ public class Launcher {
 
 
     public static void main(String[] args) throws Exception{
-            log.info("Parsing cli arguments...");
+        LOG.info("Parsing cli arguments...");
             CliOptions cliOptions = parseCl(args);
-            log.info("Done.");
+        LOG.info("Done.");
 
-            log.info("Parsing properties...");
+        LOG.info("Parsing properties...");
             StatusServerProperties properties = parseProperties();
-            log.info("Done.");
+        LOG.info("Done.");
 
-            log.info("Max thread pool value for Engine: " + properties.engineCpus);
+        LOG.info("Max thread pool value for Engine: " + properties.engineCpus);
 
-            log.info("Setting System settings...");
-            setSystemProperties(properties.jacorbCpus);
-            log.info("Done.");
+        LOG.info("Setting System settings...");
+        Util.set_serial_model(TangoConst.NO_SYNC);
+        setSystemProperties(properties.jacorbMinCpus,properties.jacorbMaxCpus);
+        LOG.info("Done.");
 
-            log.info("Parsing configuration...");
+        LOG.info("Parsing configuration...");
             StatusServerConfiguration configuration = new ConfigurationBuilder().fromXml(cliOptions.pathToConfiguration);
-            log.info("Done.");
+        LOG.info("Done.");
 
             if(cliOptions.verbose){
-                log.info("Setting verbose level to DEBUG...");
+                LOG.info("Setting verbose level to DEBUG...");
                 Logger.getRootLogger().setLevel(Level.DEBUG);
-                log.info("Done.");
+                LOG.info("Done.");
             }
 
-            log.info("Initialize and start Tango server instance...");
+        LOG.info("Initialize and start Tango server instance...");
             JStatusServer.setXmlConfigPath(cliOptions.pathToConfiguration);
             ServerManager.getInstance().start(new String[]{configuration.getInstanceName()}, JStatusServer.class);
-            log.info("Done.");
+        LOG.info("Done.");
     }
 
     private static StatusServerProperties parseProperties() {
@@ -88,15 +91,14 @@ public class Launcher {
         return properties;
     }
 
-    private static void setSystemProperties(int cpus) {
-        String strCpus = Integer.toString(cpus);
+    private static void setSystemProperties(int minCpus, int maxCpus) {
         //jacORB tuning
-        log.info("Tuning jacORB thread pool:");
-        log.info("jacorb.poa.thread_pool_min=1");
-        System.setProperty("jacorb.poa.thread_pool_min", "1");
+        LOG.info("Tuning jacORB thread pool:");
+        LOG.info("jacorb.poa.thread_pool_min=" + Integer.toString(minCpus));
+        System.setProperty("jacorb.poa.thread_pool_min", Integer.toString(minCpus));
 
-        log.info("jacorb.poa.thread_pool_max=" + strCpus);
-        System.setProperty("jacorb.poa.thread_pool_max", strCpus);
+        LOG.info("jacorb.poa.thread_pool_max=" + Integer.toString(maxCpus));
+        System.setProperty("jacorb.poa.thread_pool_max", Integer.toString(maxCpus));
     }
 
     private static CliOptions parseCl(String[] args) {
@@ -105,7 +107,7 @@ public class Launcher {
 
         entryPoint.initialize();
 
-        entryPoint.parse(log, args);
+        entryPoint.parse(LOG, args);
         return cliOptions;
     }
 }
