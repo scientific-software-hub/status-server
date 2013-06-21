@@ -3,9 +3,7 @@ package hzg.wpn.properties;
 import hzg.wpn.util.conveter.TypeConverter;
 import hzg.wpn.util.conveter.TypeConverters;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.util.Properties;
 
@@ -39,9 +37,18 @@ public class PropertiesParser<T> {
         }
 
         try {
-            InputStream rdr = new BufferedInputStream(scheme.getClassLoader().getResourceAsStream(annot.value()));
+            if(!annot.resource().isEmpty()){
+                InputStream rdr = new BufferedInputStream(scheme.getClassLoader().getResourceAsStream(annot.resource()));
 
-            properties.load(rdr);
+                properties.load(rdr);
+            } else if(!annot.file().isEmpty() && new File(annot.file()).exists()){
+                InputStream rdr = new BufferedInputStream(new FileInputStream(new File(annot.file())));
+
+                properties.load(rdr);
+            } else {
+                //TODO warn using default values
+                return parseProperties(properties);
+            }
 
             return parseProperties(properties);
         } catch (IOException e) {

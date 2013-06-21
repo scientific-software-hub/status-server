@@ -17,5 +17,12 @@ public @interface Properties {
      *
      * @return
      */
-    String value();
+    String resource() default "";
+
+    /**
+     * Path to the .properties file. This file will be loaded as a stream.
+     *
+     * @return
+     */
+    String file() default "";
 }

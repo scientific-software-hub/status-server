@@ -7,7 +7,7 @@ import hzg.wpn.properties.Property;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.06.13
  */
-@Properties("statusserver.properties")
+@Properties(file = "statusserver.properties")
 public class StatusServerProperties {
     public static final String ENGINE_PERSISTENT_ROOT = "engine.persistent_root";
 
