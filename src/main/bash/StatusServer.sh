@@ -8,4 +8,4 @@ echo "Using SS_HOME=$SS_HOME"
 export TINE_HOME=/home/p07user/tine/database
 echo "Using TINE_HOME=$TINE_HOME"
 
-java -Xmx1G -cp "$SS_HOME/lib/*" -Dss.home=$SS_HOME wpn.hdri.ss.Launcher --config $SS_HOME/conf/StatusServer.configuration.xml
+java -server -Xmx1G -cp "$SS_HOME/lib/*" -Dss.home=$SS_HOME wpn.hdri.ss.Launcher --config $SS_HOME/conf/StatusServer.configuration.xml

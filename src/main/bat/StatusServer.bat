@@ -9,4 +9,4 @@ echo Using SS_HOME=%SS_HOME%
 set CONFIGURATION=\conf\StatusServer.configuration.xml
 echo Using configuration file %CONFIGURATION%
 
-java -Xmx1G -cp "%SS_HOME%\..\lib\*" -Dss.home="%SS_HOME%\.." wpn.hdri.ss.Launcher --config %SS_HOME%\..%CONFIGURATION%
+java -server -Xmx1G -cp "%SS_HOME%\..\lib\*" -Dss.home="%SS_HOME%\.." wpn.hdri.ss.Launcher --config %SS_HOME%\..%CONFIGURATION%
