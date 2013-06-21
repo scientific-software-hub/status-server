@@ -20,7 +20,7 @@ import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.AttributeName;
 import wpn.hdri.ss.data.AttributeValue;
-import wpn.hdri.ss.data.AttributesView;
+import wpn.hdri.ss.data.AttributeValuesView;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.Engine;
@@ -207,7 +207,7 @@ public class JStatusServer implements JStatusServerStub {
     public String[] getData(){
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, AttributeFilters.none());
 
-        AttributesView view = new AttributesView(attributes, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(attributes, isUseAliases());
 
         return view.toStringArray();
     }
@@ -217,7 +217,7 @@ public class JStatusServer implements JStatusServerStub {
     public String getDataEncoded() throws IOException{
         Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(null, AttributeFilters.none());
 
-        AttributesView view = new AttributesView(data, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(data, isUseAliases());
 
         String result = view.toJsonString();
 
@@ -273,7 +273,7 @@ public class JStatusServer implements JStatusServerStub {
         final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
 
-        AttributesView view = new AttributesView(attributes, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(attributes, isUseAliases());
 
         return view.toStringArray();
     }
@@ -285,7 +285,7 @@ public class JStatusServer implements JStatusServerStub {
         final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
         Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
 
-        AttributesView view = new AttributesView(data, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(data, isUseAliases());
 
         String result = view.toJsonString();
 
@@ -297,7 +297,7 @@ public class JStatusServer implements JStatusServerStub {
     public String[] getLatestSnapshot(){
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
 
-        AttributesView view = new AttributesView(values, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
         String[] output = view.toStringArray();
         return output;
@@ -308,7 +308,7 @@ public class JStatusServer implements JStatusServerStub {
     public String[] getLatestSnapshotByGroup(String groupName){
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(groupName));
 
-        AttributesView view = new AttributesView(values, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
         String[] output = view.toStringArray();
         return output;
@@ -320,7 +320,7 @@ public class JStatusServer implements JStatusServerStub {
         Timestamp timestamp = new Timestamp(value);
         Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.none());
 
-        AttributesView view = new AttributesView(values, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
         String[] output = view.toStringArray();
         return output;
@@ -335,7 +335,7 @@ public class JStatusServer implements JStatusServerStub {
         Timestamp timestamp = new Timestamp(value);
         Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.byGroup(groupName));
 
-        AttributesView view = new AttributesView(values, isUseAliases());
+        AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
         String[] output = view.toStringArray();
         return output;

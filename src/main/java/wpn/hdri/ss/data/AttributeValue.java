@@ -50,12 +50,14 @@ public class AttributeValue<T> {
     private final Timestamp readTimestamp;
     //when this value was written by a remote server
     private final Timestamp writeTimestamp;
+    private final String valueAsString;
 
     @SuppressWarnings("unchecked")
     AttributeValue(String attributeFullName, String alias, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
         this.attributeFullName = attributeFullName;
         this.alias = alias;
         this.value = (Value<T>) value;//cast from super
+        this.valueAsString = value.toString();
         this.readTimestamp = readTimestamp;
         this.writeTimestamp = writeTimestamp;
     }
@@ -110,6 +112,11 @@ public class AttributeValue<T> {
      * @return
      */
     public Iterable<String> getStringValues() {
-        return Arrays.asList(attributeFullName, alias, value.get().getClass().getName(), String.valueOf(value.get()), String.valueOf(readTimestamp.getValue()), String.valueOf(writeTimestamp.getValue()));
+        return Arrays.asList(attributeFullName, alias, value.get().getClass().getSimpleName(), valueAsString, String.valueOf(readTimestamp.getValue()), String.valueOf(writeTimestamp.getValue()));
+    }
+
+
+    public String getValueAsString() {
+        return valueAsString;
     }
 }

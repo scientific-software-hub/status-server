@@ -3,18 +3,22 @@ package wpn.hdri.ss.data;
 import com.google.common.collect.Multimap;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
+ * Designed to be thread confinement
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 03.06.13
  */
 @NotThreadSafe
-public class AttributesView {
+public class AttributeValuesView {
     private final Multimap<AttributeName, AttributeValue<?>> data;
     private final boolean useAliases;
 
-    public AttributesView(Multimap<AttributeName, AttributeValue<?>> data, boolean useAliases) {
+    public AttributeValuesView(Multimap<AttributeName, AttributeValue<?>> data, boolean useAliases) {
         this.data = data;
         this.useAliases = useAliases;
     }
@@ -50,9 +54,16 @@ public class AttributesView {
                 AttributeValue<?> value = values.next();
                 bld.append('{');
 
-                bld.append("'value':").append(value.getValue()).append(',')
-                        .append("'readTimestamp':").append(value.getReadTimestamp()).append(',')
-                        .append("'writeTimestamp':").append(value.getWriteTimestamp());
+                bld.append("'value':");
+                Class<?> valueClass = value.getValue().get().getClass();
+                if(valueClass == String.class || valueClass.isArray())
+                    bld.append('\'');
+                bld.append(value.getValueAsString());
+                if(valueClass == String.class || valueClass.isArray())
+                    bld.append('\'');
+                bld.append(',')
+                        .append("'read':").append(value.getReadTimestamp()).append(',')
+                        .append("'write':").append(value.getWriteTimestamp());
 
                 bld.append('}');
                 if (values.hasNext())
@@ -71,23 +82,29 @@ public class AttributesView {
         }
     }
 
+    private static final ThreadLocal<String[]> LOCAL_RESULT = new ThreadLocal<String[]>();
     public String[] toStringArray() {
-        //TODO avoid temporary object creation
-        List<String> result = new ArrayList<String>(data.keySet().size());
+        String[] result = LOCAL_RESULT.get();
+        int size = data.keySet().size();
+        if(result == null || result.length != size){
+            LOCAL_RESULT.set(result = new String[size]);
+        }
+
         StringBuilder bld = new StringBuilder();
+        int i = 0;
         for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry : data.asMap().entrySet()) {
             bld.append(resolveAttributeName(entry.getKey())).append('\n');
             for (AttributeValue<?> value : entry.getValue()) {
                 bld.append('@').append(value.getReadTimestamp())
-                        .append('[').append(value.getValue())
+                        .append('[').append(value.getValueAsString())
                         .append('@').append(value.getWriteTimestamp())
                         .append("]\n");
             }
+            result[i++] = bld.toString();
+            bld.setLength(0);
         }
-        result.add(bld.toString());
-        bld.setLength(0);
 
-        return result.toArray(new String[result.size()]);
+        return result;
     }
 
     private String resolveAttributeName(AttributeName attrName) {

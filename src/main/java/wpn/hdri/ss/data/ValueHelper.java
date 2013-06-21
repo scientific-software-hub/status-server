@@ -45,7 +45,7 @@ public class ValueHelper {
         if (formatter != null) {
             return formatter.format(value.get());
         } else {
-            return value.getStr();
+            return value.asString();
         }
     }
 }

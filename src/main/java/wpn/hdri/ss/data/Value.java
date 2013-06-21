@@ -60,7 +60,7 @@ public class Value<T> {
      *
      * @return
      */
-    String getStr() {
+    String asString() {
         return str;
     }
 
