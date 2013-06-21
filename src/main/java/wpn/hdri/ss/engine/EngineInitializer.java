@@ -41,6 +41,8 @@ public class EngineInitializer {
         //TODO pass to AttributesManager
         StorageFactory storageFactory = new StorageFactory(/*TODO type*/);
 
+        System.setProperty(StatusServerProperties.ENGINE_PERSISTENT_ROOT,properties.engineStorageRoot);
+
         ClientsManager clientsManager = initializeClients();
 
         AttributesManager attributesManager = initializeAttributes(clientsManager);

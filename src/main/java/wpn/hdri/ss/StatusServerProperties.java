@@ -9,9 +9,11 @@ import hzg.wpn.properties.Property;
  */
 @Properties("statusserver.properties")
 public class StatusServerProperties {
+    public static final String ENGINE_PERSISTENT_ROOT = "engine.persistent_root";
+
     @Property(key = "engine.thread_pool_max")
     public int engineCpus = Runtime.getRuntime().availableProcessors() * 2;
-    @Property(key = "engine.persistent_root")
+    @Property(key = ENGINE_PERSISTENT_ROOT)
     public String engineStorageRoot = System.getProperty("user.dir");
     @Property(key = "jacorb.poa.thread_pool_min")
     public int jacorbMinCpus = Runtime.getRuntime().availableProcessors();

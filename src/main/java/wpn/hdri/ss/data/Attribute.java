@@ -31,6 +31,7 @@ package wpn.hdri.ss.data;
 
 import com.google.common.base.Objects;
 import org.apache.log4j.Logger;
+import wpn.hdri.ss.StatusServerProperties;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -59,7 +60,7 @@ public abstract class Attribute<T> {
     public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
         this.name = new AttributeName(deviceName, name, alias);
         //TODO get storage root from config
-        this.storage = new AttributeValuesStorage<T>(this.name.getFullName(), System.getProperty("user.dir"));
+        this.storage = new AttributeValuesStorage<T>(this.name.getFullName(), System.getProperty(StatusServerProperties.ENGINE_PERSISTENT_ROOT));
 
         this.interpolation = interpolation;
     }
