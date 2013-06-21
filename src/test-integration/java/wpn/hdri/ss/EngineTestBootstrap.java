@@ -52,7 +52,7 @@ public class EngineTestBootstrap {
 
         AttributesManager attributesManager = new AttributesManager(new AttributeFactory(){
             @Override
-            public Attribute<?> createAttribute(String attrName, String attrAlias, String devName, Interpolation interpolation, BigDecimal precision, Class<?> type, boolean isArray) {
+            public Attribute<?> createAttribute(String attrName, String attrAlias, String devName, Interpolation interpolation, BigDecimal precision, Class<?> type, boolean isArray, AttributeValuesStorageFactory storageFactory) {
                 return doubleAttribute;
             }
         });
