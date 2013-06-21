@@ -63,6 +63,7 @@ public final class AttributesManager {
 
     // Different combinations of attributes
     private final Map<Attribute<?>, Client> attributes = Maps.newIdentityHashMap();
+    private final Map<AttributeName, Class<?>> attributeClasses = Maps.newIdentityHashMap();
     private final Multimap<Method, Attribute<?>> attributesByMethod = HashMultimap.create();
     private final BiMap<String, Attribute<?>> attributesByFullName = HashBiMap.create();
     private final Multimap<String, Attribute<?>> attributesByGroup =
@@ -84,6 +85,7 @@ public final class AttributesManager {
     public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray, AttributeValuesStorageFactory storageFactory) {
         Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, attr.getInterpolation(), attr.getPrecision(), attributeClass, isArray, storageFactory);
         attributes.put(attribute, devClient);
+        attributeClasses.put(attribute.getName(), attributeClass);
         attributesByMethod.put(attr.getMethod(), attribute);
         attributesByFullName.put(attribute.getFullName(), attribute);
         return attribute;
@@ -102,6 +104,10 @@ public final class AttributesManager {
                 return !badAttributes.containsKey(input.getFullName());
             }
         });
+    }
+
+    public Iterable<Entry<AttributeName,Class<?>>> getAttributeClasses(){
+        return attributeClasses.entrySet();
     }
 
     /**

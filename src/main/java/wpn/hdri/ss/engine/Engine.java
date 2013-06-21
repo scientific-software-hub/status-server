@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -241,5 +242,9 @@ public class Engine {
         for(EventReadAttributeTask task : eventTasks){
             activityCtx.addEventTask(task);
         }
+    }
+
+    public Iterable<Map.Entry<AttributeName, Class<?>>> getAttributeClasses() {
+        return attributesManager.getAttributeClasses();
     }
 }

@@ -1,6 +1,7 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import fr.esrf.Tango.AttrWriteType;
@@ -26,12 +27,14 @@ import wpn.hdri.ss.engine.AttributeFilters;
 import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.engine.EngineInitializationContext;
 import wpn.hdri.ss.engine.EngineInitializer;
+import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -210,6 +213,24 @@ public class JStatusServer implements JStatusServerStub {
         AttributeValuesView view = new AttributeValuesView(attributes, isUseAliases());
 
         return view.toStringArray();
+    }
+
+    @Override
+    @Attribute
+    public String[] getMeta(){
+        Iterable<Map.Entry<AttributeName,Class<?>>> data = engine.getAttributeClasses();
+
+        String[] result = new String[Iterables.size(data)];
+        int i = 0;
+        for(Map.Entry<AttributeName,Class<?>> entry : data){
+            TangoDataType<?> dataType = TangoDataTypes.forClass(entry.getValue());
+            //TODO TINE has completely different types, i.e. NAME64
+            if(dataType == null)
+                dataType = ScalarTangoDataTypes.STRING;
+            result[i++] = entry.getKey().getFullName() + "->" + dataType.toString();
+        }
+
+        return result;
     }
 
     @Override

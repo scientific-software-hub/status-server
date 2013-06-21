@@ -22,6 +22,8 @@ public interface JStatusServerStub {
     @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
     int getClientId();
 
+    String[] getMeta();
+
     void setUseAliases(boolean v);
 
     boolean isUseAliases();

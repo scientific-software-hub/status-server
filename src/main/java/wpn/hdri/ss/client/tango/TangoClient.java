@@ -142,7 +142,7 @@ public class TangoClient extends Client {
     public void printAttributeInfo(String name, Logger logger) {
         TangoAttributeInfoWrapper info = proxy.getAttributeInfo(name);
         if (info == null)
-            logger.error("Can not print attribute info for " + name + ". Reason - info is null.");
+            logger.warn("Can not print attribute info for " + name + ". Reason - info is null.");
         else {
             logger.info("Information for attribute " + proxy.getName() + "/" + name);
             logger.info("Data format:" + info.getFormat().toString());
