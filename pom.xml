@@ -102,6 +102,12 @@
             <groupId>hzg.wpn</groupId>
             <artifactId>TangoAPI</artifactId>
             <version>1.0.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>fr.esrf.tango</groupId>
+                    <artifactId>TangORB</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
