@@ -23,7 +23,7 @@ public class ITClientServerTest {
     public void test() throws Exception{
         StatusServerStub instance = TangoProxy.proxy("tango://hzgharwi3:10000/development/ss-1.0.0/0",StatusServerStub.class);
 
-        System.out.println(instance.getCrtActivity());
+        System.out.println(instance.getStatus());
         //TODO class cast exception
 //        System.out.println(instance.getState());
         System.out.println(instance.getStatus());
@@ -33,7 +33,7 @@ public class ITClientServerTest {
         instance.setUseAliases(true);
         System.out.println(instance.isUseAliases());
 
-        System.out.println(instance.getCrtActivity());
+        System.out.println(instance.getStatus());
 
         for(int i = 0; i<100000;++i){
             instance.getLatestSnapshot();
