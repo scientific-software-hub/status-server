@@ -37,7 +37,7 @@
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
     </description>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -94,9 +94,9 @@
             <version>1.2.17</version>
         </dependency>
         <dependency>
-            <groupId>desy.tine</groupId>
-            <artifactId>tine</artifactId>
-            <version>4.2.10</version>
+            <groupId>de.desy.tine</groupId>
+            <artifactId>tineJAVA</artifactId>
+            <version>4.3.9</version>
         </dependency>
         <dependency>
             <groupId>hzg.wpn</groupId>

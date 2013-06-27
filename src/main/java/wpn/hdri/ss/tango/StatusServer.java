@@ -242,6 +242,7 @@ public class StatusServer implements StatusServerStub {
     //TODO commands
     @Override
     @Command
+    @StateMachine(deniedStates = DeviceState.RUNNING)
     public void eraseData(){
         engine.clear();
     }
