@@ -1,7 +1,9 @@
 package wpn.hdri.ss.data;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.apache.log4j.Logger;
 import wpn.hdri.collection.Maps;
 import wpn.hdri.ss.storage.CsvFileStorage;
@@ -11,7 +13,6 @@ import wpn.hdri.ss.storage.StorageException;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -165,6 +166,7 @@ public class AttributeValuesStorage<T> {
 
     //TODO check whether any values are already stored if no - return NULL object
     public AttributeValue<T> floorValue(Timestamp timestamp) {
+        //TODO this creates new ImmutableEntry this could be avoided because there is only one writter to this but many readers - read is safe
         Map.Entry<Timestamp, AttributeValue<T>> entry = inMemValues.floorEntry(timestamp);
         if (entry == null)//assume that timestamp is smaller than any stored and therefore it is safe to return first entry
             //TODO persisted values?!
@@ -174,6 +176,7 @@ public class AttributeValuesStorage<T> {
     }
 
     public AttributeValue<T> ceilingValue(Timestamp timestamp) {
+        //TODO this creates new ImmutableEntry this could be avoided because there is only one writter to this but many readers - read is safe
         Map.Entry<Timestamp, AttributeValue<T>> entry = inMemValues.ceilingEntry(timestamp);
         if (entry == null)//assume that timestamp is greater than any stored and therefore it is safe to return last value
             return lastValue.get();
@@ -197,12 +200,16 @@ public class AttributeValuesStorage<T> {
     }
 
     private void persist(Iterable<AttributeValue<T>> values) {
-        Iterable<String> header = AttributeValue.HEADER;
+        if(Iterables.isEmpty(values)) return;
 
-        List<Iterable<String>> body = Lists.newArrayList();
-        for (AttributeValue<T> value : values) {
-            body.add(value.getStringValues());
-        }
+        Iterable<String> header = AttributeValuesView.HEADER;
+
+        Multimap<AttributeName, AttributeValue<?>> data = LinkedListMultimap.create();
+        data.putAll(new AttributeName(name,Iterables.getFirst(values,null).getAlias()), values);
+
+        AttributeValuesView view = new AttributeValuesView(data);
+
+        Iterable<Iterable<String>> body = view.toStrings();
 
         try {
             persistent.save(name, header, body);

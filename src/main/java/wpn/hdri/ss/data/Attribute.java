@@ -145,7 +145,7 @@ public abstract class Attribute<T> {
         if (storage.isEmpty()) {
             return storage.getLastValue();
         }
-        //TODO this creates new ImmutableEntry this could be avoided because there is only one writter to this but many readers - read is safe
+
         AttributeValue<T> left = storage.floorValue(timestamp);
         AttributeValue<T> right = storage.ceilingValue(timestamp);
 

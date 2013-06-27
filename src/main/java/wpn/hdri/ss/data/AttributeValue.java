@@ -30,8 +30,6 @@
 package wpn.hdri.ss.data;
 
 import javax.annotation.concurrent.Immutable;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Immutability of this class really depends on immutability of T
@@ -41,8 +39,6 @@ import java.util.List;
  */
 @Immutable
 public class AttributeValue<T> {
-    static final List<String> HEADER = Arrays.asList("full_name", "alias", "type", "value", "read", "write");
-
     private final String attributeFullName;
     private final String alias;
     private final Value<T> value;
@@ -105,16 +101,6 @@ public class AttributeValue<T> {
     public Timestamp getWriteTimestamp() {
         return writeTimestamp;
     }
-
-    /**
-     * This method is used in {@link AttributeValuesStorage} class when this instance is being persisted
-     *
-     * @return
-     */
-    public Iterable<String> getStringValues() {
-        return Arrays.asList(attributeFullName, alias, value.get().getClass().getSimpleName(), valueAsString, String.valueOf(readTimestamp.getValue()), String.valueOf(writeTimestamp.getValue()));
-    }
-
 
     public String getValueAsString() {
         return valueAsString;

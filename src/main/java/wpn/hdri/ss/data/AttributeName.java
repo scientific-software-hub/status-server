@@ -24,6 +24,19 @@ public class AttributeName {
         this.alias = alias;
     }
 
+    /**
+     * Creates instance with deviceName and name set to null
+     *
+     * @param fullName
+     * @param alias
+     */
+    public AttributeName(String fullName, String alias) {
+        this.deviceName = null;
+        this.name = null;
+        this.full = fullName;
+        this.alias = alias;
+    }
+
     public String getDeviceName() {
         return deviceName;
     }

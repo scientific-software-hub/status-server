@@ -1,11 +1,10 @@
 package wpn.hdri.ss.data;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Designed to be thread confinement
@@ -15,12 +14,18 @@ import java.util.Map;
  */
 @NotThreadSafe
 public class AttributeValuesView {
-    private final Multimap<AttributeName, AttributeValue<?>> data;
+    static final Iterable<String> HEADER = Arrays.asList("full_name","alias","type","value","read","write");
+    private final Multimap<AttributeName, AttributeValue<?>> values;
     private final boolean useAliases;
 
     public AttributeValuesView(Multimap<AttributeName, AttributeValue<?>> data, boolean useAliases) {
-        this.data = data;
+        this.values = data;
         this.useAliases = useAliases;
+    }
+
+    public AttributeValuesView(Multimap<AttributeName, AttributeValue<?>> data) {
+        this.values = data;
+        this.useAliases = false;
     }
 
     /**
@@ -44,7 +49,7 @@ public class AttributeValuesView {
 
         bld.append('{');
 
-        for (Iterator<Map.Entry<AttributeName, Collection<AttributeValue<?>>>> it = data.asMap().entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<Map.Entry<AttributeName, Collection<AttributeValue<?>>>> it = values.asMap().entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry = it.next();
             bld.append('\'')
                     .append(resolveAttributeName(entry.getKey()))
@@ -85,14 +90,14 @@ public class AttributeValuesView {
     private static final ThreadLocal<String[]> LOCAL_RESULT = new ThreadLocal<String[]>();
     public String[] toStringArray() {
         String[] result = LOCAL_RESULT.get();
-        int size = data.keySet().size();
+        int size = values.keySet().size();
         if(result == null || result.length != size){
             LOCAL_RESULT.set(result = new String[size]);
         }
 
         StringBuilder bld = new StringBuilder();
         int i = 0;
-        for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry : data.asMap().entrySet()) {
+        for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry : values.asMap().entrySet()) {
             bld.append(resolveAttributeName(entry.getKey())).append('\n');
             for (AttributeValue<?> value : entry.getValue()) {
                 bld.append('@').append(value.getReadTimestamp())
@@ -113,4 +118,20 @@ public class AttributeValuesView {
         else
             return attrName.getFullName();
     }
+
+    public Iterable<Iterable<String>> toStrings(){
+        //TODO avoid temporary object creation
+        List<Iterable<String>> result = Lists.newArrayList();
+        for(AttributeValue<?> value : values.values()){
+            result.add(Arrays.asList(
+                    value.getAttributeFullName(),
+                    value.getAlias(),
+                    value.getValue().get().getClass().getName(),
+                    value.getValueAsString(),
+                    value.getReadTimestamp().toString(),
+                    value.getWriteTimestamp().toString()));
+        }
+        return result;
+    }
+
 }
