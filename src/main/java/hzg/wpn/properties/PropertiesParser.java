@@ -72,7 +72,7 @@ public class PropertiesParser<T> {
 
                 Class<?> type = fld.getType();
                 TypeConverter converter = TypeConverters.lookupStringToTypeConverter(type);
-                String key = !propertyDesc.key().isEmpty() ? propertyDesc.key() : fld.getName() ;
+                String key = !propertyDesc.value().isEmpty() ? propertyDesc.value() : fld.getName() ;
 
                 if(properties.get(key) == null) continue;
 
