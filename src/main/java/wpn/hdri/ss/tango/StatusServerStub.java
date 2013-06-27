@@ -29,9 +29,6 @@ public interface StatusServerStub {
     boolean isUseAliases();
 
     @Attribute
-    String getCrtActivity();
-
-    @Attribute
     long getCrtTimestamp();
 
     @Attribute

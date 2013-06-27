@@ -195,12 +195,6 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Attribute
-    public String getCrtActivity(){
-        return engine.getCurrentActivity();
-    }
-
-    @Override
-    @Attribute
     public long getCrtTimestamp(){
         return System.currentTimeMillis();
     }
