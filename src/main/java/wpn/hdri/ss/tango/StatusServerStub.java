@@ -9,7 +9,7 @@ import java.io.IOException;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 20.06.13
  */
-public interface JStatusServerStub {
+public interface StatusServerStub {
     DeviceState getState();
 
     String getStatus();

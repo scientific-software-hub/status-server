@@ -36,7 +36,7 @@ public class ITStatusServerStressTest {
 
     @Test
     public void testGetLatestSnapshot(){
-        JStatusServer instance = new JStatusServer(engine);
+        StatusServer instance = new StatusServer(engine);
 
         for(int i = 0; i<_100K;++i){
             instance.getLatestSnapshot();
@@ -61,7 +61,7 @@ public class ITStatusServerStressTest {
     @Test
     public void testGetSnapshot(){
         long timestamp = System.currentTimeMillis() - 1000;
-        JStatusServer instance = new JStatusServer(engine);
+        StatusServer instance = new StatusServer(engine);
 
         for(int i = 0; i<_100K;++i){
             instance.getSnapshot(timestamp);
@@ -86,7 +86,7 @@ public class ITStatusServerStressTest {
     //TODO
     @Test(expected = OutOfMemoryError.class)
     public void testGetDataEncoded() throws Exception{
-        JStatusServer instance = new JStatusServer(engine);
+        StatusServer instance = new StatusServer(engine);
 
         for(int i = 0; i<_100K;++i){
             instance.getDataEncoded();
@@ -110,7 +110,7 @@ public class ITStatusServerStressTest {
 
     @Test
     public void testGetData(){
-        JStatusServer instance = new JStatusServer(engine);
+        StatusServer instance = new StatusServer(engine);
 
         for(int i = 0; i<_100K;++i){
             instance.getData();

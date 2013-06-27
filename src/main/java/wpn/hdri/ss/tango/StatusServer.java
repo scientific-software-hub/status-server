@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 17.06.13
  */
 @Device
-public class JStatusServer implements JStatusServerStub {
+public class StatusServer implements StatusServerStub {
     private static String XML_CONFIG_PATH;
 
     public static void setXmlConfigPath(String v){
@@ -68,7 +68,7 @@ public class JStatusServer implements JStatusServerStub {
 
     private Engine engine;
 
-    public JStatusServer() {
+    public StatusServer() {
         System.out.println("Create instance");
     }
 
@@ -77,7 +77,7 @@ public class JStatusServer implements JStatusServerStub {
      *
      * @param engine
      */
-    JStatusServer(Engine engine){
+    StatusServer(Engine engine){
         this.engine = engine;
     }
 
@@ -375,6 +375,6 @@ public class JStatusServer implements JStatusServerStub {
     }
 
     public static void main(String... args) throws Exception{
-        ServerManager.getInstance().start(args, JStatusServer.class);
+        ServerManager.getInstance().start(args, StatusServer.class);
     }
 }

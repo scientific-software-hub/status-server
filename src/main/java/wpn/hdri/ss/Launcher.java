@@ -38,7 +38,7 @@ import org.apache.log4j.Logger;
 import org.tango.server.ServerManager;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.tango.JStatusServer;
+import wpn.hdri.ss.tango.StatusServer;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -80,8 +80,8 @@ public class Launcher {
             }
 
         LOG.info("Initialize and start Tango server instance...");
-            JStatusServer.setXmlConfigPath(cliOptions.pathToConfiguration);
-            ServerManager.getInstance().start(new String[]{configuration.getInstanceName()}, JStatusServer.class);
+            StatusServer.setXmlConfigPath(cliOptions.pathToConfiguration);
+            ServerManager.getInstance().start(new String[]{configuration.getInstanceName()}, StatusServer.class);
         LOG.info("Done.");
     }
 

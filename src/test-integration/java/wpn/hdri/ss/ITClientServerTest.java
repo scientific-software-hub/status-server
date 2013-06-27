@@ -2,10 +2,9 @@ package wpn.hdri.ss;
 
 import org.junit.Before;
 import org.junit.Test;
-import wpn.hdri.ss.tango.JStatusServerStub;
+import wpn.hdri.ss.tango.StatusServerStub;
 import wpn.hdri.tango.proxy.TangoProxy;
 
-import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static junit.framework.Assert.assertTrue;
@@ -22,7 +21,7 @@ public class ITClientServerTest {
 
     @Test
     public void test() throws Exception{
-        JStatusServerStub instance = TangoProxy.proxy("tango://hzgharwi3:10000/development/ss-1.0.0/0",JStatusServerStub.class);
+        StatusServerStub instance = TangoProxy.proxy("tango://hzgharwi3:10000/development/ss-1.0.0/0",StatusServerStub.class);
 
         System.out.println(instance.getCrtActivity());
         //TODO class cast exception
