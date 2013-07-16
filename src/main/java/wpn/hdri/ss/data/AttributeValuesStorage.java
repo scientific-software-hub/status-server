@@ -4,8 +4,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import hzg.wpn.collection.Maps;
 import org.apache.log4j.Logger;
-import wpn.hdri.collection.Maps;
 import wpn.hdri.ss.storage.CsvFileStorage;
 import wpn.hdri.ss.storage.SingleThreadStorage;
 import wpn.hdri.ss.storage.Storage;
@@ -30,19 +30,19 @@ import java.util.concurrent.atomic.AtomicReference;
  * Implementation specification:
  * Concurrent read/write -
  * 1) read pretends and overlaps write
- *        a) lastValue - reads either previous value or a new one
- *        b) inMemValues - may or may not reflect new changes
- *        c) allValues - undefined
+ * a) lastValue - reads either previous value or a new one
+ * b) inMemValues - may or may not reflect new changes
+ * c) allValues - undefined
  * 2) write pretends and overlaps read
- *        a) lastValue - reads either previous value or a new one
- *        b) inMemValues - may or may not reflect new changes
- *        c) allValues - undefined
+ * a) lastValue - reads either previous value or a new one
+ * b) inMemValues - may or may not reflect new changes
+ * c) allValues - undefined
  * 3) sequential execution
- *        no problems
+ * no problems
  * Concurrent read/clear - it is client's responsibility to guarantee that clear is not executed concurrently with RW
  * 1) read pretends and overlaps clear - undefined
  * 2) clear pretends and overlaps read - undefined
- *
+ * <p/>
  * Current implementation deletes persisted values only during restart
  *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -54,7 +54,7 @@ public class AttributeValuesStorage<T> {
 
     //TODO read from configuration
     public static final long PERSIST_VALUES_THRESHOLD = 1000000;//1M
-    public static final long SAVE_TIMESTAMP_THRESHOLD =  500000;//0,5M
+    public static final long SAVE_TIMESTAMP_THRESHOLD = 500000;//0,5M
 
     private final AtomicLong valuesCounter = new AtomicLong();
 
@@ -101,7 +101,7 @@ public class AttributeValuesStorage<T> {
 
         lastValue.set(value);
 
-        if(!append) return true;
+        if (!append) return true;
 
         long counter = valuesCounter.incrementAndGet();
         LOG.debug(counter + " collected values so far.");
@@ -139,7 +139,7 @@ public class AttributeValuesStorage<T> {
                     persisted,
                     inMemValues.values());
         } catch (StorageException e) {
-            LOG.error("Attempt to load persisted values has failed.",e);
+            LOG.error("Attempt to load persisted values has failed.", e);
             return inMemValues.values();
         }
     }
@@ -153,7 +153,7 @@ public class AttributeValuesStorage<T> {
      */
     public Iterable<AttributeValue<T>> getInMemoryValues(Timestamp timestamp) {
         //inMem is empty or timestamp is greater than last inMem
-        if(inMemValues.lastEntry() == null || inMemValues.lastEntry().getValue().getReadTimestamp().compareTo(timestamp) == -1)
+        if (inMemValues.lastEntry() == null || inMemValues.lastEntry().getValue().getReadTimestamp().compareTo(timestamp) == -1)
             //TODO avoid collection creation
             return lastValue.get() == null ? Collections.<AttributeValue<T>>emptyList() : Lists.newArrayList(lastValue.get());
         else
@@ -194,18 +194,18 @@ public class AttributeValuesStorage<T> {
         persist(inMemValues.values());
     }
 
-    public void persistAndClearInMemoryValues(){
+    public void persistAndClearInMemoryValues() {
         persistInMemoryValues();
         clearInMemoryValues();
     }
 
     private void persist(Iterable<AttributeValue<T>> values) {
-        if(Iterables.isEmpty(values)) return;
+        if (Iterables.isEmpty(values)) return;
 
         Iterable<String> header = AttributeValuesView.HEADER;
 
         Multimap<AttributeName, AttributeValue<?>> data = LinkedListMultimap.create();
-        data.putAll(new AttributeName(name,Iterables.getFirst(values,null).getAlias()), values);
+        data.putAll(new AttributeName(name, Iterables.getFirst(values, null).getAlias()), values);
 
         AttributeValuesView view = new AttributeValuesView(data);
 
@@ -214,7 +214,7 @@ public class AttributeValuesStorage<T> {
         try {
             persistent.save(name, header, body);
         } catch (StorageException e) {
-            LOG.error("Attempt to persist values has failed.",e);
+            LOG.error("Attempt to persist values has failed.", e);
             throw new RuntimeException(e);
         }
     }
