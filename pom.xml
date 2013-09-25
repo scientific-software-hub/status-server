@@ -97,7 +97,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>1.0.1-alpha</version>
+            <version>1.0.2-alpha-all</version>
         </dependency>
         <dependency>
             <groupId>hzg.wpn</groupId>
