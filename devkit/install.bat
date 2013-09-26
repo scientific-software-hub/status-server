@@ -1,9 +1,28 @@
 @echo off
 
-call mvn install:install-file -Dfile=tineJAVA-4.3.9.jar -DgroupId=de.desy.tine -DartifactId=tineJAVA -Dversion=4.3.9 -Dpackaging=jar -DgeneratePom=true
+set TINE_VER=4.3.9
+echo TINE_VER=%TINE_VER%
 
-call mvn install:install-file -Dfile=JTangoServer-1.0.2-alpha-all.jar -DgroupId=org.tango -DartifactId=JTangoServer -Dversion=1.0.2-alpha-all -Dpackaging=jar -DgeneratePom=true -Dpackaging=jar
+set JTANGO_VER=1.0.2-alpha-all
+echo JTANGO_VER=%JTANGO_VER%
 
-call mvn install:install-file -Dfile=utils-0.0.1.jar -DgroupId=hzg.wpn -DartifactId=utils -Dversion=0.0.1 -Dpackaging=jar -DpomFile=utils-0.0.1.pom -Dsources=utils-0.0.1-sources.jar -Djavadoc=utils-0.0.1-javadoc.jar
+call mvn install:install-file -Dfile=tineJAVA-%TINE_VER%.jar -DgroupId=de.desy.tine -DartifactId=tineJAVA -Dversion=%TINE_VER% -Dpackaging=jar -DgeneratePom=true
 
-call mvn install:install-file -Dfile=TangoAPI-1.0.2.jar -DgroupId=hzg.wpn -DartifactId=TangoAPI -Dversion=1.0.2 -Dpackaging=jar -DpomFile=TangoAPI-1.0.2.pom -Dsources=TangoAPI-1.0.2-sources.jar -Djavadoc=TangoAPI-1.0.2-javadoc.jar
+call mvn install:install-file -Dfile=JTangoServer-%JTANGO_VER%.jar -DgroupId=org.tango -DartifactId=JTangoServer -Dversion=%JTANGO_VER% -Dpackaging=jar -DgeneratePom=true -Dpackaging=jar
+
+call :install "utils" "0.0.1"
+
+call :install "TangoApi" "1.0.4"
+
+GOTO:EOF
+
+:install
+set ARTIFACT=%~1
+set VERSION=%~2
+set INSTALL_DIR=%TMP%\%ARTIFACT%
+echo Extracting %ARTIFACT%-%VERSION%-bundle.zip into %INSTALL_DIR%
+call unzip %ARTIFACT%-%VERSION%-bundle.zip -d %INSTALL_DIR%
+call mvn install:install-file -Dfile=%INSTALL_DIR%\%ARTIFACT%-%VERSION%.jar -DgroupId=hzg.wpn -DartifactId=%ARTIFACT% -Dversion=%VERSION% -Dpackaging=jar -DpomFile=%INSTALL_DIR%\pom.xml -Dsources=%INSTALL_DIR%\%ARTIFACT%-%VERSION%-sources.jar -Djavadoc=%INSTALL_DIR%\%ARTIFACT%-%VERSION%-javadoc.jar
+echo Removing %INSTALL_DIR%
+call rm -r %INSTALL_DIR%
+GOTO:EOF
