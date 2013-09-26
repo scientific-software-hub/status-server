@@ -51,9 +51,13 @@ public class PollingReadAttributeTask implements Runnable {
             //uncomment this will produce a huge number of Strings. So it is not recommended in production
             //logger.info("Read attribute " + attribute.getFullName() + ": " + data);
 
-            attribute.addValue(Timestamp.now(), Value.getInstance(data), result.getValue());
+            if (append)
+                attribute.addValue(Timestamp.now(), Value.getInstance(data), result.getValue());
+            else
+                attribute.replaceValue(Timestamp.now(), Value.getInstance(data), result.getValue());
+
             tries.set(0L);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             if (tries.incrementAndGet() < MAX_TRIES) {
                 logger.warn("An attempt to read attribute " + attribute.getFullName() + " has failed. Tries left: " + (MAX_TRIES - tries.get()), e);
                 long delay = getDelay() + tries.get() * getDelay();

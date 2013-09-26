@@ -33,8 +33,10 @@ public class EventReadAttributeTask implements EventCallback<Object> {
      * @param eventData new value
      */
     public final void onEvent(EventData<Object> eventData) {
-        Timestamp timestamp = Timestamp.now();
-        attribute.addValue(timestamp, Value.getInstance(eventData.getData()), new Timestamp(eventData.getTimestamp()));
+        if (append)
+            attribute.addValue(Timestamp.now(), Value.getInstance(eventData.getData()), new Timestamp(eventData.getTimestamp()));
+        else
+            attribute.replaceValue(Timestamp.now(), Value.getInstance(eventData.getData()), new Timestamp(eventData.getTimestamp()));
     }
 
     /**

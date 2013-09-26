@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Engine should never fail during its work. It may fail during initialization.
@@ -82,6 +83,8 @@ public class Engine {
      */
     private final Random rnd = new Random();
 
+    private final AtomicLong valuesCount = new AtomicLong(0L);
+    //TODO exceptions counter
 
     /**
      * @param clientsManager
@@ -128,11 +131,6 @@ public class Engine {
         Preconditions.checkNotNull(timestamp);
         Preconditions.checkNotNull(filter);
         return attributesManager.takeSnapshot(timestamp, filter);
-    }
-
-    public String getInfo() {
-        //TODO
-        return null;
     }
 
     /**
