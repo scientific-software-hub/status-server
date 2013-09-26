@@ -1,6 +1,9 @@
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
 
 import org.apache.commons.lang3.ArrayUtils;
+import wpn.hdri.ss.data.Interpolation;
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.Value;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

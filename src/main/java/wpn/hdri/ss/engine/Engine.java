@@ -32,7 +32,11 @@ package wpn.hdri.ss.engine;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import org.apache.log4j.Logger;
-import wpn.hdri.ss.data.*;
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.Value;
+import wpn.hdri.ss.data.attribute.Attribute;
+import wpn.hdri.ss.data.attribute.AttributeName;
+import wpn.hdri.ss.data.attribute.AttributeValue;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -82,7 +86,7 @@ public class Engine {
     /**
      * @param clientsManager
      * @param attributesManager
-     * @param threads how many thread will be utilized by the engine
+     * @param threads           how many thread will be utilized by the engine
      */
     public Engine(ClientsManager clientsManager, AttributesManager attributesManager, int threads) {
         this.clientsManager = clientsManager;
@@ -91,8 +95,8 @@ public class Engine {
         this.scheduler = Executors.newScheduledThreadPool(threads);
     }
 
-    public Engine(EngineInitializationContext ctx){
-        this(ctx.clientsManager,ctx.attributesManager,ctx.properties.engineCpus);
+    public Engine(EngineInitializationContext ctx) {
+        this(ctx.clientsManager, ctx.attributesManager, ctx.properties.engineCpus);
         submitPollingTasks(ctx.pollingTasks);
         submitEventTasks(ctx.eventTasks);
     }
@@ -233,13 +237,13 @@ public class Engine {
     }
 
     public void submitPollingTasks(List<PollingReadAttributeTask> pollingTasks) {
-        for(PollingReadAttributeTask task : pollingTasks){
+        for (PollingReadAttributeTask task : pollingTasks) {
             activityCtx.addPollTask(task);
         }
     }
 
     public void submitEventTasks(List<EventReadAttributeTask> eventTasks) {
-        for(EventReadAttributeTask task : eventTasks){
+        for (EventReadAttributeTask task : eventTasks) {
             activityCtx.addEventTask(task);
         }
     }

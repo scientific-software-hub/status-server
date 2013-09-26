@@ -34,7 +34,9 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.*;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.configuration.DeviceAttribute;
-import wpn.hdri.ss.data.*;
+import wpn.hdri.ss.data.Method;
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.attribute.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
@@ -106,7 +108,7 @@ public final class AttributesManager {
         });
     }
 
-    public Iterable<Entry<AttributeName,Class<?>>> getAttributeClasses(){
+    public Iterable<Entry<AttributeName, Class<?>>> getAttributeClasses() {
         return attributeClasses.entrySet();
     }
 
@@ -222,7 +224,7 @@ public final class AttributesManager {
 
     /**
      * Designed to be thread confinement
-     * 
+     * <p/>
      * Implementation is backed with custom Multimap implementation. This implementation stores reference in putAll.
      */
     private class AttributeValues {
@@ -266,7 +268,7 @@ public final class AttributesManager {
 
             @Override
             public boolean putAll(AttributeName key, Iterable<? extends AttributeValue<?>> values) {
-                decorated.put(key, (Collection<AttributeValue<?>>)values);
+                decorated.put(key, (Collection<AttributeValue<?>>) values);
                 return true;
             }
 

@@ -29,8 +29,8 @@
 
 package wpn.hdri.ss.engine;
 
-import wpn.hdri.ss.data.Attribute;
 import wpn.hdri.ss.data.Method;
+import wpn.hdri.ss.data.attribute.Attribute;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

@@ -38,9 +38,9 @@ import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
-import wpn.hdri.ss.data.AttributeName;
-import wpn.hdri.ss.data.AttributeValue;
 import wpn.hdri.ss.data.Value;
+import wpn.hdri.ss.data.attribute.AttributeName;
+import wpn.hdri.ss.data.attribute.AttributeValue;
 import wpn.hdri.ss.storage.Storage;
 
 import static junit.framework.Assert.assertSame;
@@ -96,7 +96,7 @@ public class EngineTest {
             public Client createClient(String deviceName) {
                 return client;
             }
-        }){
+        }) {
             @Override
             public Client getClient(String name) {
                 return client;
@@ -108,13 +108,13 @@ public class EngineTest {
         AttributesManager attributesManager = initializer.initializeAttributes(clientsManager);
 
         Engine engine = new Engine(clientsManager, attributesManager, 2);
-        engine.submitPollingTasks(initializer.initializePollTasks(clientsManager,attributesManager));
+        engine.submitPollingTasks(initializer.initializePollTasks(clientsManager, attributesManager));
 
         engine.start(1);
         Thread.sleep(7000);
         engine.stop();
 
-        Multimap<AttributeName,AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
 
         assertSame(Value.NULL, Iterables.getFirst(values.asMap().get(new AttributeName("Test.Device", "Test.Attribute", null)), null).getValue());
 //        this produces NPE because event based attribute has never been updated

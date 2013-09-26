@@ -32,8 +32,8 @@ package wpn.hdri.ss.engine;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.data.Attribute;
 import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.attribute.Attribute;
 
 import java.util.AbstractMap;
 import java.util.List;

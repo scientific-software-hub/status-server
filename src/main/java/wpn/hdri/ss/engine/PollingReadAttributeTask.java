@@ -2,9 +2,9 @@ package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.data.Attribute;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
+import wpn.hdri.ss.data.attribute.Attribute;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,7 +30,6 @@ public class PollingReadAttributeTask implements Runnable {
      * Defines a number of tries this read task will attempt before throw an exception
      */
     public final static long MAX_TRIES = 10L;
-
 
 
     public PollingReadAttributeTask(Attribute<?> attribute, Client devClient, long delay, boolean append, Logger logger) {

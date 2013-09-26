@@ -1,4 +1,4 @@
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -14,7 +14,7 @@ import java.util.*;
  */
 @NotThreadSafe
 public class AttributeValuesView {
-    static final Iterable<String> HEADER = Arrays.asList("full_name","alias","type","value","read","write");
+    static final Iterable<String> HEADER = Arrays.asList("full_name", "alias", "type", "value", "read", "write");
     private final Multimap<AttributeName, AttributeValue<?>> values;
     private final boolean useAliases;
 
@@ -61,10 +61,10 @@ public class AttributeValuesView {
 
                 bld.append("'value':");
                 Class<?> valueClass = value.getValue().get().getClass();
-                if(valueClass == String.class || valueClass.isArray())
+                if (valueClass == String.class || valueClass.isArray())
                     bld.append('\'');
                 bld.append(value.getValueAsString());
-                if(valueClass == String.class || valueClass.isArray())
+                if (valueClass == String.class || valueClass.isArray())
                     bld.append('\'');
                 bld.append(',')
                         .append("'read':").append(value.getReadTimestamp()).append(',')
@@ -88,10 +88,11 @@ public class AttributeValuesView {
     }
 
     private static final ThreadLocal<String[]> LOCAL_RESULT = new ThreadLocal<String[]>();
+
     public String[] toStringArray() {
         String[] result = LOCAL_RESULT.get();
         int size = values.keySet().size();
-        if(result == null || result.length != size){
+        if (result == null || result.length != size) {
             LOCAL_RESULT.set(result = new String[size]);
         }
 
@@ -119,10 +120,10 @@ public class AttributeValuesView {
             return attrName.getFullName();
     }
 
-    public Iterable<Iterable<String>> toStrings(){
+    public Iterable<Iterable<String>> toStrings() {
         //TODO avoid temporary object creation
         List<Iterable<String>> result = Lists.newArrayList();
-        for(AttributeValue<?> value : values.values()){
+        for (AttributeValue<?> value : values.values()) {
             result.add(Arrays.asList(
                     value.getAttributeFullName(),
                     value.getAlias(),

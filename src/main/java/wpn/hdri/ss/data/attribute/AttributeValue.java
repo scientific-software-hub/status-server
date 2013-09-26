@@ -27,7 +27,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
+
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.Value;
 
 import javax.annotation.concurrent.Immutable;
 

@@ -27,32 +27,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
+
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.Value;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
- * @since 02.05.12
+ * @since 17.05.12
  */
-public final class NonNumericAttribute<T> extends Attribute<T> {
-    public NonNumericAttribute(String deviceName, String name, String alias, Interpolation interpolation, AttributeValuesStorageFactory storageFactory) {
-        super(deviceName, name, alias, interpolation, storageFactory);
+public class AttributeHelper {
+    //helper class
+    private AttributeHelper() {
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append) {
-        AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
-
-        storage.addValue(attributeValue, append);
-    }
-
-    @Override
-    public AttributeValue<T> getAttributeValue(Timestamp timestamp, Interpolation interpolation) {
-        //Non-numeric does not support linear interpolation
-        if (interpolation == Interpolation.LINEAR) {
-            return super.getAttributeValue(timestamp, Interpolation.NEAREST);
-        } else {
-            return super.getAttributeValue(timestamp, interpolation);
-        }
+    public static <T> AttributeValue<T> newAttributeValue(String fullName, String alias, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
+        return new AttributeValue<T>(fullName, alias, value, readTimestamp, writeTimestamp);
     }
 }

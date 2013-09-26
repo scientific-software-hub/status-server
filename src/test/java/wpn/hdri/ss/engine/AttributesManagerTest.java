@@ -34,7 +34,11 @@ import com.google.common.collect.Sets;
 import org.junit.Test;
 import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
-import wpn.hdri.ss.data.*;
+import wpn.hdri.ss.data.Interpolation;
+import wpn.hdri.ss.data.Method;
+import wpn.hdri.ss.data.attribute.Attribute;
+import wpn.hdri.ss.data.attribute.AttributeFactory;
+import wpn.hdri.ss.data.attribute.AttributeValuesStorageFactory;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -51,6 +55,7 @@ public class AttributesManagerTest {
 
     private final AttributesManager instance = new AttributesManager(new AttributeFactory());
     private final DeviceAttribute attr = new DeviceAttribute();
+
     {
         attr.setName(TEST_ATTR);
         attr.setAlias(null);
@@ -59,11 +64,12 @@ public class AttributesManagerTest {
         attr.setDelay(20L);
         attr.setPrecision(BigDecimal.ZERO);
     }
+
     private final Device dev = new Device("Test", Lists.newArrayList(attr));
 
     @Test
     public void testAttributesGroup() {
-        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev.getName(), null, Double.class, false, new AttributeValuesStorageFactory(".",10,5));
+        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev.getName(), null, Double.class, false, new AttributeValuesStorageFactory(".", 10, 5));
         instance.createAttributesGroup("group1", Sets.newHashSet(initializedAttribute.getFullName()));
 
         Collection<Attribute<?>> result = instance.getAttributesByGroup("group1");

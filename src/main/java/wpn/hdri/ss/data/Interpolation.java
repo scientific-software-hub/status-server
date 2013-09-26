@@ -30,6 +30,8 @@
 package wpn.hdri.ss.data;
 
 import com.google.common.base.Preconditions;
+import wpn.hdri.ss.data.attribute.AttributeHelper;
+import wpn.hdri.ss.data.attribute.AttributeValue;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

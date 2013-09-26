@@ -1,7 +1,9 @@
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
 
 import com.google.common.collect.Iterables;
 import org.junit.Test;
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +39,7 @@ public class AttributeValuesStorageTest {
     }
 
     @Test
-    public void testConcurrentSaveLoad_SWSR() throws Exception{
+    public void testConcurrentSaveLoad_SWSR() throws Exception {
         final AttributeValuesStorage<Double> instance = new AttributeValuesStorage<Double>(TEST_ATTR_FULL_NAME, TEST_ATTR_STORAGE_ROOT, 6, 3);
 
         ExecutorService exec = Executors.newFixedThreadPool(2);
@@ -55,7 +57,7 @@ public class AttributeValuesStorageTest {
                     AttributeValue<Double> value = new AttributeValue<Double>(TEST_ATTR_FULL_NAME, null, Value.getInstance(rnd), new Timestamp(TEST_TIMESTAMP + i * 1000), Timestamp.now());
                     instance.addValue(value, true);
                     expected.add(value);
-                    if(i == 12){
+                    if (i == 12) {
                         startRead.countDown();
                     }
                 }
@@ -91,17 +93,17 @@ public class AttributeValuesStorageTest {
             }
         });
 
-            allDone.await();
-            //at least 8 elements should be in the result
-            assertTrue(result.size() >= 13);
-            //compare first elements
-            for(int i = 0, size = result.size();i<size;++i){
-                assertEquals(expected.get(i),result.get(i));
-            }
+        allDone.await();
+        //at least 8 elements should be in the result
+        assertTrue(result.size() >= 13);
+        //compare first elements
+        for (int i = 0, size = result.size(); i < size; ++i) {
+            assertEquals(expected.get(i), result.get(i));
+        }
     }
 
     @Test
-    public void testClear(){
+    public void testClear() {
         AttributeValuesStorage<Double> instance = new AttributeValuesStorage<Double>(TEST_ATTR_FULL_NAME, TEST_ATTR_STORAGE_ROOT, 6, 3);
 
         List<AttributeValue<Double>> expected = new ArrayList<AttributeValue<Double>>();
@@ -122,7 +124,7 @@ public class AttributeValuesStorageTest {
     }
 
     @Test
-    public void testConcurrentClear(){
+    public void testConcurrentClear() {
         //TODO clear while writing
     }
 }

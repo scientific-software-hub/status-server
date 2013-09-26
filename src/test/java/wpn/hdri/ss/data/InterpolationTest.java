@@ -31,6 +31,8 @@ package wpn.hdri.ss.data;
 
 import org.junit.Before;
 import org.junit.Test;
+import wpn.hdri.ss.data.attribute.AttributeHelper;
+import wpn.hdri.ss.data.attribute.AttributeValue;
 
 import static junit.framework.Assert.assertEquals;
 

@@ -1,4 +1,4 @@
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import hzg.wpn.collection.Maps;
 import org.apache.log4j.Logger;
+import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.storage.CsvFileStorage;
 import wpn.hdri.ss.storage.SingleThreadStorage;
 import wpn.hdri.ss.storage.Storage;

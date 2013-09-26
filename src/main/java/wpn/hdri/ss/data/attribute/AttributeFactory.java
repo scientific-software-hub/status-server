@@ -1,4 +1,6 @@
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
+
+import wpn.hdri.ss.data.Interpolation;
 
 import java.math.BigDecimal;
 

@@ -1,4 +1,4 @@
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -17,7 +17,7 @@ public class AttributeValuesStorageFactory {
         this.persistentSplit = persistentSplit;
     }
 
-    public <T> AttributeValuesStorage<T> createInstance(String name){
-        return new AttributeValuesStorage<T>(name,storageRoot,persistentMax,persistentSplit);
+    public <T> AttributeValuesStorage<T> createInstance(String name) {
+        return new AttributeValuesStorage<T>(name, storageRoot, persistentMax, persistentSplit);
     }
 }

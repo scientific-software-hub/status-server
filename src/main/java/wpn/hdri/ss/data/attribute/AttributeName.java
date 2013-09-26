@@ -1,4 +1,4 @@
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
 
 import javax.annotation.concurrent.ThreadSafe;
 

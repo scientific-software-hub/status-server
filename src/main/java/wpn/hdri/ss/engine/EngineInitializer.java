@@ -9,7 +9,11 @@ import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.data.*;
+import wpn.hdri.ss.data.Method;
+import wpn.hdri.ss.data.Value;
+import wpn.hdri.ss.data.attribute.Attribute;
+import wpn.hdri.ss.data.attribute.AttributeFactory;
+import wpn.hdri.ss.data.attribute.AttributeValuesStorageFactory;
 import wpn.hdri.ss.storage.StorageFactory;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
@@ -38,17 +42,17 @@ public class EngineInitializer {
         //TODO pass to AttributesManager
         StorageFactory storageFactory = new StorageFactory(/*TODO type*/);
 
-        System.setProperty(StatusServerProperties.ENGINE_PERSISTENT_ROOT,properties.engineStorageRoot);
+        System.setProperty(StatusServerProperties.ENGINE_PERSISTENT_ROOT, properties.engineStorageRoot);
 
         ClientsManager clientsManager = initializeClients();
 
         AttributesManager attributesManager = initializeAttributes(clientsManager);
 
-        List<PollingReadAttributeTask> pollingTasks =  initializePollTasks(clientsManager,attributesManager);
-        List<EventReadAttributeTask> eventTasks   = initializeEventTasks(clientsManager,attributesManager);
+        List<PollingReadAttributeTask> pollingTasks = initializePollTasks(clientsManager, attributesManager);
+        List<EventReadAttributeTask> eventTasks = initializeEventTasks(clientsManager, attributesManager);
 
         LOGGER.info("Finish engine initialization process.");
-        return new EngineInitializationContext(clientsManager,attributesManager, properties, pollingTasks,eventTasks);
+        return new EngineInitializationContext(clientsManager, attributesManager, properties, pollingTasks, eventTasks);
     }
 
     public ClientsManager initializeClients() {
@@ -77,7 +81,7 @@ public class EngineInitializer {
         long now = System.currentTimeMillis();
 
         AttributesManager attributesManager = new AttributesManager(new AttributeFactory());
-        AttributeValuesStorageFactory storageFactory = new AttributeValuesStorageFactory(properties.engineStorageRoot,properties.engineStorageMax,properties.engineStorageSplit);
+        AttributeValuesStorageFactory storageFactory = new AttributeValuesStorageFactory(properties.engineStorageRoot, properties.engineStorageMax, properties.engineStorageSplit);
         for (Device dev : configuration.getDevices()) {
             String devName = dev.getName();
 
@@ -97,7 +101,7 @@ public class EngineInitializer {
                     Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
                     boolean isArray = devClient.isArrayAttribute(attr.getName());
                     attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray, storageFactory).
-                    addValue(now, Value.NULL,now,false);
+                            addValue(now, Value.NULL, now, false);
                     LOGGER.info("Initialization succeed.");
                 } catch (ClientException e) {
                     LOGGER.warn("Attribute initialization failed.", e);
@@ -112,7 +116,7 @@ public class EngineInitializer {
             TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
             //create and add default value - null
             attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false, storageFactory).
-            addValue(now, Value.NULL,now,false);
+                    addValue(now, Value.NULL, now, false);
             LOGGER.info("Initialization succeed.");
         }
         return attributesManager;

@@ -27,10 +27,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-package wpn.hdri.ss.data;
+package wpn.hdri.ss.data.attribute;
 
 import com.google.common.base.Objects;
 import org.apache.log4j.Logger;
+import wpn.hdri.ss.data.Interpolation;
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.Value;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -82,7 +85,7 @@ public abstract class Attribute<T> {
      * @param readTimestamp  when the value was read by StatusServer
      * @param value          value
      * @param writeTimestamp when the value was written on the remote server
-     * @param append indicates whether value will be added to inMem and storage
+     * @param append         indicates whether value will be added to inMem and storage
      */
     public abstract void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append);
 
