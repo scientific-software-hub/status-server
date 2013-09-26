@@ -13,7 +13,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AttributeName {
     private final String deviceName;
     private final String name;
-    private final String full;
+    private final String full;//combination of deviceName and name
     private final String alias;
 
 

@@ -30,12 +30,16 @@
 package wpn.hdri.ss.data.attribute;
 
 import com.google.common.base.Objects;
+import hzg.wpn.collection.Maps;
 import org.apache.log4j.Logger;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Map;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Stores values and corresponding read/write timestamps
@@ -51,31 +55,27 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class Attribute<T> {
     protected static final Logger LOGGER = Logger.getLogger(Attribute.class);
 
-
     private final AttributeName name;
 
-    protected final AttributeValuesStorage<T> storage;
+    private final AtomicReference<AttributeValue<T>> lastValue;
+    private final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
 
-    //    protected final ConcurrentNavigableMap<Timestamp, AttributeValue<T>> values = Maps.newConcurrentNavigableMap();
     private final Interpolation interpolation;
 
+    /**
+     * Upon construction last value equals to Value.NULL
+     *
+     * @param deviceName
+     * @param name
+     * @param alias
+     * @param interpolation
+     * @param storageFactory
+     */
     public Attribute(String deviceName, String name, String alias, Interpolation interpolation, AttributeValuesStorageFactory storageFactory) {
         this.name = new AttributeName(deviceName, name, alias);
-        this.storage = storageFactory.createInstance(this.name.getFullName());
+        this.lastValue = new AtomicReference<>(new AttributeValue<T>(this.name.getFullName(), alias, Value.NULL, Timestamp.now(), Timestamp.now()));
 
         this.interpolation = interpolation;
-    }
-
-    /**
-     * Adds value associated with timestamp
-     *
-     * @param addTimestamp
-     * @param value
-     * @param readTimestamp
-     * @param append
-     */
-    public void addValue(long addTimestamp, Value<? super T> value, long readTimestamp, boolean append) {
-        addValue(new Timestamp(addTimestamp), value, new Timestamp(readTimestamp), append);
     }
 
     /**
@@ -85,9 +85,27 @@ public abstract class Attribute<T> {
      * @param readTimestamp  when the value was read by StatusServer
      * @param value          value
      * @param writeTimestamp when the value was written on the remote server
-     * @param append         indicates whether value will be added to inMem and storage
      */
-    public abstract void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append);
+    public final void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp) {
+        AttributeValue<T> valueToAdd = AttributeHelper.newAttributeValue(this.name.getFullName(), this.name.getAlias(), value, readTimestamp, writeTimestamp);
+        if (addValueInternal(valueToAdd)) {
+            lastValue.set(valueToAdd);
+            values.put(readTimestamp, valueToAdd);
+        }
+    }
+
+    protected abstract boolean addValueInternal(AttributeValue<T> value);
+
+    /**
+     * Replaces lastValue does not change inMem values.
+     *
+     * @param readTimestamp
+     * @param value
+     * @param writeTimestamp
+     */
+    public void replaceValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp) {
+        lastValue.set(new AttributeValue<T>(this.name.getFullName(), this.name.getAlias(), value, readTimestamp, writeTimestamp));
+    }
 
     /**
      * Returns the latest stored value.
@@ -96,20 +114,8 @@ public abstract class Attribute<T> {
      *
      * @return the latest value
      */
-    @SuppressWarnings("unchecked")
     public AttributeValue<T> getAttributeValue() {
-        return storage.getLastValue();
-    }
-
-    public AttributeValue<T> getAttributeValue(long timestamp) {
-        return getAttributeValue(new Timestamp(timestamp), interpolation);
-    }
-
-    /**
-     * @return latest stored value of the attribute
-     */
-    public AttributeValue<T> getLatestAttributeValue() {
-        return storage.getLastValue();
+        return lastValue.get();
     }
 
     public AttributeValue<T> getAttributeValue(Timestamp timestamp) {
@@ -123,19 +129,7 @@ public abstract class Attribute<T> {
      * @return
      */
     public Iterable<AttributeValue<T>> getAttributeValues(final Timestamp timestamp) {
-        return storage.getInMemoryValues(timestamp);
-    }
-
-    /**
-     * Performance comparable to O(log n) due to underlying SkipList.
-     *
-     * @param timestamp     milliseconds
-     * @param interpolation overrides default interpolation
-     * @return
-     */
-    public AttributeValue<T> getAttributeValue(long timestamp, Interpolation interpolation) {
-        Timestamp key = new Timestamp(timestamp);
-        return getAttributeValue(key, interpolation);
+        return values.tailMap(timestamp, true).values();
     }
 
     /**
@@ -145,12 +139,19 @@ public abstract class Attribute<T> {
      */
     @SuppressWarnings("unchecked")
     public AttributeValue<T> getAttributeValue(Timestamp timestamp, Interpolation interpolation) {
-        if (storage.isEmpty()) {
-            return storage.getLastValue();
+        if (values.isEmpty()) {
+            return lastValue.get();
         }
 
-        AttributeValue<T> left = storage.floorValue(timestamp);
-        AttributeValue<T> right = storage.ceilingValue(timestamp);
+        Map.Entry<Timestamp, AttributeValue<T>> floorEntry = values.floorEntry(timestamp);
+        if (floorEntry == null)
+            floorEntry = values.firstEntry();
+        AttributeValue<T> left = floorEntry.getValue();
+
+        Map.Entry<Timestamp, AttributeValue<T>> ceilingEntry = values.ceilingEntry(timestamp);
+        if (ceilingEntry == null)
+            ceilingEntry = values.lastEntry();
+        AttributeValue<T> right = ceilingEntry.getValue();
 
         return interpolation.interpolate(
                 left,
@@ -191,16 +192,16 @@ public abstract class Attribute<T> {
         return Objects.hashCode(name);
     }
 
-
     @Override
     public String toString() {
         return name.toString();
     }
 
-    public Iterable<AttributeValue<T>> getAttributeValues(long timestamp) {
-        return getAttributeValues(new Timestamp(timestamp));
-    }
-
+    /**
+     * For tests only
+     *
+     * @return
+     */
     Iterable<AttributeValue<T>> getAttributeValues() {
         return getAttributeValues(new Timestamp(0L));
     }
@@ -209,6 +210,6 @@ public abstract class Attribute<T> {
      * Erases inMem data from this attribute simultaneously inMem data is persisted
      */
     public void clear() {
-        storage.persistAndClearInMemoryValues();
+        values.clear();
     }
 }

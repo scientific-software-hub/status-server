@@ -108,4 +108,8 @@ public class AttributeValue<T> {
     public String getValueAsString() {
         return valueAsString;
     }
+
+    public boolean isNull() {
+        return value == Value.NULL;
+    }
 }

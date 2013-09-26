@@ -51,7 +51,7 @@ public class PollingReadAttributeTask implements Runnable {
             //uncomment this will produce a huge number of Strings. So it is not recommended in production
             //logger.info("Read attribute " + attribute.getFullName() + ": " + data);
 
-            attribute.addValue(Timestamp.now(), Value.getInstance(data), result.getValue(), append);
+            attribute.addValue(Timestamp.now(), Value.getInstance(data), result.getValue());
             tries.set(0L);
         } catch (Throwable e) {
             if (tries.incrementAndGet() < MAX_TRIES) {
@@ -67,7 +67,7 @@ public class PollingReadAttributeTask implements Runnable {
                 logger.warn("All attempts to read attribute " + attribute.getFullName() + " failed. Writing null.", e);
 
                 Timestamp now = Timestamp.now();
-                attribute.addValue(now, Value.NULL, now, append);
+                attribute.addValue(now, Value.NULL, now);
             }
         }
     }

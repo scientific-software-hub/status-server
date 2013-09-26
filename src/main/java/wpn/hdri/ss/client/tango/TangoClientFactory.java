@@ -34,6 +34,7 @@ import wpn.hdri.ss.client.AbsClientFactory;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.tango.proxy.TangoProxyException;
 import wpn.hdri.tango.proxy.TangoProxyWrapper;
+import wpn.hdri.tango.proxy.TangoProxyWrappers;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -49,7 +50,7 @@ public class TangoClientFactory extends AbsClientFactory {
     @Override
     public Client createClient(String deviceName) {
         try {
-            TangoProxyWrapper proxy = new TangoProxyWrapper(deviceName);
+            TangoProxyWrapper proxy = TangoProxyWrappers.newInstance(deviceName);
             return new TangoClient(deviceName, proxy);
         } catch (TangoProxyException e) {
             thrownException = e;

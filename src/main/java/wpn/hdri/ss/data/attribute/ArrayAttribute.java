@@ -2,8 +2,6 @@ package wpn.hdri.ss.data.attribute;
 
 import org.apache.commons.lang3.ArrayUtils;
 import wpn.hdri.ss.data.Interpolation;
-import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.data.Value;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -14,15 +12,13 @@ public class ArrayAttribute extends Attribute<Object> {
         super(devName, attrName, alias, Interpolation.LAST, storageFactory);
     }
 
+    /**
+     * Adds a new value to this attribute if the new array is different from the last one.
+     *
+     * @param value value
+     */
     @Override
-    public void addValue(Timestamp readTimestamp, Value<? super Object> value, Timestamp writeTimestamp, boolean append) {
-        AttributeValue<Object> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
-
-        AttributeValue<Object> lastValue = storage.getLastValue();
-        if (lastValue == null) {
-            storage.addValue(attributeValue, append);
-        } else if (!ArrayUtils.isEquals(lastValue.getValue().get(), value.get())) {
-            storage.addValue(attributeValue, append);
-        }
+    protected boolean addValueInternal(AttributeValue value) {
+        return !ArrayUtils.isEquals(getAttributeValue().getValue().get(), value.getValue().get());
     }
 }

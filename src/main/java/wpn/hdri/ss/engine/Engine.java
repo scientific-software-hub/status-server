@@ -233,7 +233,7 @@ public class Engine {
 
     public <T> void writeAttributeValue(String attrName, T data, Timestamp timestamp) {
         Attribute<T> attr = (Attribute<T>) attributesManager.getAttribute(attrName);
-        attr.addValue(timestamp, Value.<T>getInstance(data), Timestamp.now(), true);
+        attr.addValue(timestamp, Value.<T>getInstance(data), Timestamp.now());
     }
 
     public void submitPollingTasks(List<PollingReadAttributeTask> pollingTasks) {

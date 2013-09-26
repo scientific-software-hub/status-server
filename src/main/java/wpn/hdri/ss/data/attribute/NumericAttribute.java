@@ -31,7 +31,6 @@ package wpn.hdri.ss.data.attribute;
 
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.data.Value;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.math.BigDecimal;
@@ -94,47 +93,41 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
      * <p/>
      * Normally does not permit null values, only if it is the first value is being added
      *
-     * @param readTimestamp  when the value was read by StatusServer
-     * @param value          the value
-     * @param writeTimestamp when the value was written on the remote server
-     * @param append
+     * @param value the value
      */
     @Override
     @SuppressWarnings("unchecked")
-    public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append) {
-        AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
-        if (value == Value.NULL && storage.isEmpty()) {
-            LOGGER.warn("Trying to add NULL value");
-            storage.addValue(attributeValue, false);
-            return;
+    protected boolean addValueInternal(AttributeValue<T> value) {
+        if (value.isNull()) {
+            return true;
         }
 
         //in general prefer new BigDecimal(String) over new BigDecimal(double). See Effective Java Item 31
-        String text = String.valueOf(value.get());
+        String text = String.valueOf(value.getValue().get());
         BigDecimal decimal = (BigDecimal) DECIMAL_FORMAT.parse(text, POSITION);
         if (decimal == null) {
             try {
                 decimal = new BigDecimal(text);
             } catch (NumberFormatException e) {
                 LOGGER.error(e);
-                return;
+                return false;
             }
         }
 
-        Map.Entry<Timestamp, BigDecimal> lastNumericEntry = numericValues.floorEntry(readTimestamp);
+        Map.Entry<Timestamp, BigDecimal> lastNumericEntry = numericValues.floorEntry(value.getReadTimestamp());
         if (lastNumericEntry == null) {
-            if (storage.addValue(attributeValue, append))
-                numericValues.putIfAbsent(readTimestamp, decimal);
-            return;
+            numericValues.putIfAbsent(value.getReadTimestamp(), decimal);
+            return true;
         }
 
         BigDecimal lastDecimal = lastNumericEntry.getValue();
 
         // |x - y| > precision
         if (decimal.subtract(lastDecimal).abs().compareTo(precision) > 0) {
-            if (storage.addValue(attributeValue, append))
-                numericValues.putIfAbsent(readTimestamp, decimal);
+            numericValues.putIfAbsent(value.getReadTimestamp(), decimal);
+            return true;
         }
+        return false;
     }
 
     @Override

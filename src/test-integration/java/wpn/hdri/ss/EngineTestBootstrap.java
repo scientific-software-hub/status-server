@@ -50,7 +50,7 @@ public class EngineTestBootstrap {
         final NumericAttribute<Double> doubleAttribute = new NumericAttribute<Double>("fake","double", Interpolation.LAST,0.);
         for(int i = 0; i< _1M; ++i){
             long currentTimestamp = timestamp + i * 1000;
-            doubleAttribute.addValue(currentTimestamp, Value.getInstance(Math.random()), currentTimestamp, true);
+            doubleAttribute.addValue(currentTimestamp, Value.getInstance(Math.random()), currentTimestamp);
         }
 
 

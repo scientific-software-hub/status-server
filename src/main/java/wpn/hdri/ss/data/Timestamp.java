@@ -117,5 +117,9 @@ public class Timestamp implements Comparable<Timestamp> {
     public static Timestamp fromString(String s) {
         return new Timestamp(Long.parseLong(s));
     }
+
+    public Timestamp add(Timestamp timestamp) {
+        return new Timestamp(this.value + timestamp.value);
+    }
 }
 

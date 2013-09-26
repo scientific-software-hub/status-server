@@ -100,8 +100,7 @@ public class EngineInitializer {
                 try {
                     Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
                     boolean isArray = devClient.isArrayAttribute(attr.getName());
-                    attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray, storageFactory).
-                            addValue(now, Value.NULL, now, false);
+                    attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray, storageFactory);
                     LOGGER.info("Initialization succeed.");
                 } catch (ClientException e) {
                     LOGGER.warn("Attribute initialization failed.", e);
@@ -115,8 +114,7 @@ public class EngineInitializer {
             LOGGER.info("Initializing embedded attribute " + attr.getName());
             TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
             //create and add default value - null
-            attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false, storageFactory).
-                    addValue(now, Value.NULL, now, false);
+            attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false, storageFactory);
             LOGGER.info("Initialization succeed.");
         }
         return attributesManager;

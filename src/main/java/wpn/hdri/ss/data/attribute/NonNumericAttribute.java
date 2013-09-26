@@ -31,7 +31,6 @@ package wpn.hdri.ss.data.attribute;
 
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.data.Value;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -44,10 +43,8 @@ public final class NonNumericAttribute<T> extends Attribute<T> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp, boolean append) {
-        AttributeValue<T> attributeValue = AttributeHelper.newAttributeValue(getFullName(), getAlias(), value, readTimestamp, writeTimestamp);
-
-        storage.addValue(attributeValue, append);
+    protected boolean addValueInternal(AttributeValue<T> value) {
+        return !getAttributeValue().getValue().equals(value.getValue());
     }
 
     @Override

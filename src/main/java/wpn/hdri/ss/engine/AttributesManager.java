@@ -213,7 +213,7 @@ public final class AttributesManager {
         void update(AttributeFilter filter) {
             for (Attribute<?> attr : attributes.keySet()) {
                 if (filter.apply(AttributesManager.this, attr))
-                    values.put(attr.getName(), attr.getLatestAttributeValue());
+                    values.put(attr.getName(), attr.getAttributeValue());
             }
         }
 
