@@ -39,6 +39,7 @@ import wpn.hdri.ss.data.Value;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -62,6 +63,8 @@ public abstract class Attribute<T> {
 
     private final Interpolation interpolation;
 
+    private final AtomicLong size = new AtomicLong(0L);
+
     /**
      * Upon construction last value equals to Value.NULL
      *
@@ -69,9 +72,8 @@ public abstract class Attribute<T> {
      * @param name
      * @param alias
      * @param interpolation
-     * @param storageFactory
      */
-    public Attribute(String deviceName, String name, String alias, Interpolation interpolation, AttributeValuesStorageFactory storageFactory) {
+    public Attribute(String deviceName, String name, String alias, Interpolation interpolation) {
         this.name = new AttributeName(deviceName, name, alias);
         this.lastValue = new AtomicReference<>(new AttributeValue<T>(this.name.getFullName(), alias, Value.NULL, Timestamp.now(), Timestamp.now()));
 
@@ -87,10 +89,11 @@ public abstract class Attribute<T> {
      * @param writeTimestamp when the value was written on the remote server
      */
     public final void addValue(Timestamp readTimestamp, Value<? super T> value, Timestamp writeTimestamp) {
-        AttributeValue<T> valueToAdd = AttributeHelper.newAttributeValue(this.name.getFullName(), this.name.getAlias(), value, readTimestamp, writeTimestamp);
+        AttributeValue<T> valueToAdd = AttributeValueFactory.newAttributeValue(this.name.getFullName(), this.name.getAlias(), value, readTimestamp, writeTimestamp);
         if (addValueInternal(valueToAdd)) {
             lastValue.set(valueToAdd);
             values.put(readTimestamp, valueToAdd);
+            size.incrementAndGet();
         }
     }
 
@@ -211,5 +214,9 @@ public abstract class Attribute<T> {
      */
     public void clear() {
         values.clear();
+    }
+
+    public long size() {
+        return size.get();
     }
 }

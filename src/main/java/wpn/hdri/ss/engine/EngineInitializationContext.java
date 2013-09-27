@@ -14,12 +14,14 @@ public class EngineInitializationContext {
     public final StatusServerProperties properties;
     public final List<PollingReadAttributeTask> pollingTasks;
     public final List<EventReadAttributeTask> eventTasks;
+    public final PersistentStorageTask persistentStorageTask;
 
-    public EngineInitializationContext(ClientsManager clientsManager, AttributesManager attributesManager, StatusServerProperties properties, List<PollingReadAttributeTask> pollingTasks, List<EventReadAttributeTask> eventTasks) {
+    public EngineInitializationContext(ClientsManager clientsManager, AttributesManager attributesManager, StatusServerProperties properties, List<PollingReadAttributeTask> pollingTasks, List<EventReadAttributeTask> eventTasks, PersistentStorageTask persistentStorageTask) {
         this.clientsManager = clientsManager;
         this.attributesManager = attributesManager;
         this.properties = properties;
         this.pollingTasks = pollingTasks;
         this.eventTasks = eventTasks;
+        this.persistentStorageTask = persistentStorageTask;
     }
 }

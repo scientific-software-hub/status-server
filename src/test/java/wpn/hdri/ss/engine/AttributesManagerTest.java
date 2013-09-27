@@ -38,7 +38,6 @@ import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.attribute.Attribute;
 import wpn.hdri.ss.data.attribute.AttributeFactory;
-import wpn.hdri.ss.data.attribute.AttributeValuesStorageFactory;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -69,7 +68,7 @@ public class AttributesManagerTest {
 
     @Test
     public void testAttributesGroup() {
-        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev.getName(), null, Double.class, false, new AttributeValuesStorageFactory(".", 10, 5));
+        Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev.getName(), null, Double.class, false);
         instance.createAttributesGroup("group1", Sets.newHashSet(initializedAttribute.getFullName()));
 
         Collection<Attribute<?>> result = instance.getAttributesByGroup("group1");

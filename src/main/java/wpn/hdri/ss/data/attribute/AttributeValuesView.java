@@ -1,10 +1,12 @@
 package wpn.hdri.ss.data.attribute;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Designed to be thread confinement
@@ -15,6 +17,7 @@ import java.util.*;
 @NotThreadSafe
 public class AttributeValuesView {
     static final Iterable<String> HEADER = Arrays.asList("full_name", "alias", "type", "value", "read", "write");
+    private final SingleAttributeValueView valueView = new SingleAttributeValueView();
     private final Multimap<AttributeName, AttributeValue<?>> values;
     private final boolean useAliases;
 
@@ -57,20 +60,7 @@ public class AttributeValuesView {
 
             for (Iterator<AttributeValue<?>> values = entry.getValue().iterator(); values.hasNext(); ) {
                 AttributeValue<?> value = values.next();
-                bld.append('{');
-
-                bld.append("'value':");
-                Class<?> valueClass = value.getValue().get().getClass();
-                if (valueClass == String.class || valueClass.isArray())
-                    bld.append('\'');
-                bld.append(value.getValueAsString());
-                if (valueClass == String.class || valueClass.isArray())
-                    bld.append('\'');
-                bld.append(',')
-                        .append("'read':").append(value.getReadTimestamp()).append(',')
-                        .append("'write':").append(value.getWriteTimestamp());
-
-                bld.append('}');
+                valueView.toJsonString(value, bld);
                 if (values.hasNext())
                     bld.append(',');
             }
@@ -101,10 +91,7 @@ public class AttributeValuesView {
         for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry : values.asMap().entrySet()) {
             bld.append(resolveAttributeName(entry.getKey())).append('\n');
             for (AttributeValue<?> value : entry.getValue()) {
-                bld.append('@').append(value.getReadTimestamp())
-                        .append('[').append(value.getValueAsString())
-                        .append('@').append(value.getWriteTimestamp())
-                        .append("]\n");
+                valueView.toStringArray(value, bld);
             }
             result[i++] = bld.toString();
             bld.setLength(0);
@@ -119,20 +106,4 @@ public class AttributeValuesView {
         else
             return attrName.getFullName();
     }
-
-    public Iterable<Iterable<String>> toStrings() {
-        //TODO avoid temporary object creation
-        List<Iterable<String>> result = Lists.newArrayList();
-        for (AttributeValue<?> value : values.values()) {
-            result.add(Arrays.asList(
-                    value.getAttributeFullName(),
-                    value.getAlias(),
-                    value.getValue().get().getClass().getName(),
-                    value.getValueAsString(),
-                    value.getReadTimestamp().toString(),
-                    value.getWriteTimestamp().toString()));
-        }
-        return result;
-    }
-
 }

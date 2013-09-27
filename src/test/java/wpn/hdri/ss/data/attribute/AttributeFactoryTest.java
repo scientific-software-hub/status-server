@@ -16,21 +16,21 @@ public class AttributeFactoryTest {
 
     @Test
     public void testCreateAttribute_primitive() throws Exception {
-        Attribute result = instance.createAttribute("test-attr", null, "test", Interpolation.LAST, BigDecimal.ZERO, float.class, false, new AttributeValuesStorageFactory(".", 10, 5));
+        Attribute result = instance.createAttribute("test-attr", null, "test", Interpolation.LAST, BigDecimal.ZERO, float.class, false);
 
         assertTrue(NumericAttribute.class == result.getClass());
     }
 
     @Test
     public void testCreateAttribute_Numeric() throws Exception {
-        Attribute result = instance.createAttribute("test-attr", null, "test", Interpolation.LAST, BigDecimal.ZERO, Float.class, false, new AttributeValuesStorageFactory(".", 10, 5));
+        Attribute result = instance.createAttribute("test-attr", null, "test", Interpolation.LAST, BigDecimal.ZERO, Float.class, false);
 
         assertTrue(NumericAttribute.class == result.getClass());
     }
 
     @Test
     public void testCreateAttribute_NonNumeric() throws Exception {
-        Attribute result = instance.createAttribute("test-attr", null, "test", Interpolation.LAST, BigDecimal.ZERO, String.class, false, new AttributeValuesStorageFactory(".", 10, 5));
+        Attribute result = instance.createAttribute("test-attr", null, "test", Interpolation.LAST, BigDecimal.ZERO, String.class, false);
 
         assertTrue(NonNumericAttribute.class == result.getClass());
     }

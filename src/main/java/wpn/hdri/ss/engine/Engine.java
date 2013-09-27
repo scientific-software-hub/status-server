@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -71,6 +72,9 @@ public class Engine {
 
     private final //TODO use guava concurrency
             ScheduledExecutorService scheduler;
+
+    private final //TODO use guava concurrency
+            ScheduledExecutorService storageScheduler = Executors.newSingleThreadScheduledExecutor();
 
     private final ClientsManager clientsManager;
     private final AttributesManager attributesManager;
@@ -102,6 +106,8 @@ public class Engine {
         this(ctx.clientsManager, ctx.attributesManager, ctx.properties.engineCpus);
         submitPollingTasks(ctx.pollingTasks);
         submitEventTasks(ctx.eventTasks);
+
+        storageScheduler.scheduleWithFixedDelay(ctx.persistentStorageTask, ctx.properties.persistentDelay, ctx.properties.persistentDelay, TimeUnit.MILLISECONDS);
     }
 
 

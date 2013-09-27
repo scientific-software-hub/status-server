@@ -27,21 +27,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-package wpn.hdri.ss.data.attribute;
-
-import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.data.Value;
+package wpn.hdri.ss.engine.exception;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
- * @since 17.05.12
+ * @since 30.04.12
  */
-public class AttributeHelper {
-    //helper class
-    private AttributeHelper() {
+public class AttributeInitializationException extends Exception {
+    public AttributeInitializationException(Throwable cause) {
+        super(cause);
     }
 
-    public static <T> AttributeValue<T> newAttributeValue(String fullName, String alias, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
-        return new AttributeValue<T>(fullName, alias, value, readTimestamp, writeTimestamp);
+    public AttributeInitializationException(String message) {
+        super(message);
     }
 }

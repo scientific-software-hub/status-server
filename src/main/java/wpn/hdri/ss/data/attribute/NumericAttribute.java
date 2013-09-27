@@ -60,8 +60,8 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
 
     private final ConcurrentNavigableMap<Timestamp, BigDecimal> numericValues = new ConcurrentSkipListMap<Timestamp, BigDecimal>();
 
-    public NumericAttribute(String deviceName, String name, String alias, Interpolation interpolation, BigDecimal precision, AttributeValuesStorageFactory storageFactory) {
-        super(deviceName, name, alias, interpolation, storageFactory);
+    public NumericAttribute(String deviceName, String name, String alias, Interpolation interpolation, BigDecimal precision) {
+        super(deviceName, name, alias, interpolation);
         this.precision = precision;
     }
 
@@ -74,7 +74,7 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
      * @param precision
      */
     public NumericAttribute(String deviceName, String name, Interpolation interpolation, double precision) {
-        this(deviceName, name, name, interpolation, BigDecimal.valueOf(precision), new AttributeValuesStorageFactory(".", 10, 5));
+        this(deviceName, name, name, interpolation, BigDecimal.valueOf(precision));
     }
 
     /**

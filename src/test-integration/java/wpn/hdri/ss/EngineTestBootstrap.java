@@ -5,10 +5,11 @@ import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.data.*;
+import wpn.hdri.ss.data.Interpolation;
+import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.data.attribute.Attribute;
 import wpn.hdri.ss.data.attribute.AttributeFactory;
-import wpn.hdri.ss.data.attribute.AttributeValuesStorageFactory;
 import wpn.hdri.ss.data.attribute.NumericAttribute;
 import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.ClientsManager;
@@ -28,8 +29,8 @@ public class EngineTestBootstrap {
 
     private Engine engine;
 
-    public void bootstrap(){
-        StatusServerConfiguration configuration = new ConfigurationBuilder().addDevice("fake").addAttributeToDevice("fake","double","poll","last",1,0).build();
+    public void bootstrap() {
+        StatusServerConfiguration configuration = new ConfigurationBuilder().addDevice("fake").addAttributeToDevice("fake", "double", "poll", "last", 1, 0).build();
 
         ClientsManager clientsManager = new ClientsManager(new ClientFactory() {
             @Override
@@ -47,16 +48,17 @@ public class EngineTestBootstrap {
         });
 
         long timestamp = System.currentTimeMillis();
-        final NumericAttribute<Double> doubleAttribute = new NumericAttribute<Double>("fake","double", Interpolation.LAST,0.);
-        for(int i = 0; i< _1M; ++i){
+        final NumericAttribute<Double> doubleAttribute = new NumericAttribute<Double>("fake", "double", Interpolation.LAST, 0.);
+        for (int i = 0; i < _1M; ++i) {
             long currentTimestamp = timestamp + i * 1000;
-            doubleAttribute.addValue(currentTimestamp, Value.getInstance(Math.random()), currentTimestamp);
+            Timestamp writeTimestamp = new Timestamp(currentTimestamp);
+            doubleAttribute.addValue(writeTimestamp, Value.getInstance(Math.random()), writeTimestamp);
         }
 
 
-        AttributesManager attributesManager = new AttributesManager(new AttributeFactory(){
+        AttributesManager attributesManager = new AttributesManager(new AttributeFactory() {
             @Override
-            public Attribute<?> createAttribute(String attrName, String attrAlias, String devName, Interpolation interpolation, BigDecimal precision, Class<?> type, boolean isArray, AttributeValuesStorageFactory storageFactory) {
+            public Attribute<?> createAttribute(String attrName, String attrAlias, String devName, Interpolation interpolation, BigDecimal precision, Class<?> type, boolean isArray) {
                 return doubleAttribute;
             }
         });

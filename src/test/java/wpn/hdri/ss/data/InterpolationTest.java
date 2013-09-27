@@ -31,8 +31,8 @@ package wpn.hdri.ss.data;
 
 import org.junit.Before;
 import org.junit.Test;
-import wpn.hdri.ss.data.attribute.AttributeHelper;
 import wpn.hdri.ss.data.attribute.AttributeValue;
+import wpn.hdri.ss.data.attribute.AttributeValueFactory;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -51,7 +51,7 @@ public class InterpolationTest {
 
     @Test
     public void test_Last() {
-        AttributeValue<String> left = AttributeHelper.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
+        AttributeValue<String> left = AttributeValueFactory.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
         String result = Interpolation.LAST.interpolate(left, null, new Timestamp(timestamp + 10)).getValue().get();
 
         assertEquals("Hello World!", result);
@@ -59,8 +59,8 @@ public class InterpolationTest {
 
     @Test
     public void test_NearestFloor() {
-        AttributeValue<String> ceil = AttributeHelper.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
-        AttributeValue<String> floor = AttributeHelper.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World, again!"), new Timestamp(timestamp + 10), new Timestamp(timestamp + 10));
+        AttributeValue<String> ceil = AttributeValueFactory.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
+        AttributeValue<String> floor = AttributeValueFactory.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World, again!"), new Timestamp(timestamp + 10), new Timestamp(timestamp + 10));
 
         String result = Interpolation.NEAREST.interpolate(ceil, floor, new Timestamp(timestamp + 7)).getValue().get();
 
@@ -69,8 +69,8 @@ public class InterpolationTest {
 
     @Test
     public void test_NearestCeil() {
-        AttributeValue<String> ceil = AttributeHelper.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
-        AttributeValue<String> floor = AttributeHelper.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World, again!"), new Timestamp(timestamp + 10), new Timestamp(timestamp + 10));
+        AttributeValue<String> ceil = AttributeValueFactory.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
+        AttributeValue<String> floor = AttributeValueFactory.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World, again!"), new Timestamp(timestamp + 10), new Timestamp(timestamp + 10));
 
         String result = Interpolation.NEAREST.interpolate(ceil, floor, new Timestamp(timestamp + 3)).getValue().get();
 
@@ -79,8 +79,8 @@ public class InterpolationTest {
 
     @Test
     public void test_NearestBetween() {
-        AttributeValue<String> ceil = AttributeHelper.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
-        AttributeValue<String> floor = AttributeHelper.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World, again!"), new Timestamp(timestamp + 10), new Timestamp(timestamp + 10));
+        AttributeValue<String> ceil = AttributeValueFactory.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World!"), new Timestamp(timestamp), new Timestamp(timestamp));
+        AttributeValue<String> floor = AttributeValueFactory.newAttributeValue(fullName, null, Value.<String>getInstance("Hello World, again!"), new Timestamp(timestamp + 10), new Timestamp(timestamp + 10));
 
         String result = Interpolation.NEAREST.interpolate(ceil, floor, new Timestamp(timestamp + 5)).getValue().get();
 
@@ -89,8 +89,8 @@ public class InterpolationTest {
 
     @Test
     public void test_Linear() {
-        AttributeValue<Double> ceil = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(0.), new Timestamp(0L), new Timestamp(0L));
-        AttributeValue<Double> floor = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(10.), new Timestamp(10L), new Timestamp(10L));
+        AttributeValue<Double> ceil = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(0.), new Timestamp(0L), new Timestamp(0L));
+        AttributeValue<Double> floor = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(10.), new Timestamp(10L), new Timestamp(10L));
 
         double result = Interpolation.LINEAR.interpolate(ceil, floor, new Timestamp(7)).getValue().get();
 
@@ -99,8 +99,8 @@ public class InterpolationTest {
 
     @Test
     public void test_Linear_Integer() {
-        AttributeValue<Integer> ceil = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(0), new Timestamp(0L), new Timestamp(0L));
-        AttributeValue<Integer> floor = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(10), new Timestamp(10L), new Timestamp(10L));
+        AttributeValue<Integer> ceil = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(0), new Timestamp(0L), new Timestamp(0L));
+        AttributeValue<Integer> floor = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(10), new Timestamp(10L), new Timestamp(10L));
 
         int result = Interpolation.LINEAR.interpolate(ceil, floor, new Timestamp(7)).getValue().get();
 
@@ -109,8 +109,8 @@ public class InterpolationTest {
 
     @Test
     public void test_Linear_CornerLeft() {
-        AttributeValue<Double> ceil = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(0.), new Timestamp(0L), new Timestamp(0L));
-        AttributeValue<Double> floor = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(10.), new Timestamp(10L), new Timestamp(10L));
+        AttributeValue<Double> ceil = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(0.), new Timestamp(0L), new Timestamp(0L));
+        AttributeValue<Double> floor = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(10.), new Timestamp(10L), new Timestamp(10L));
 
         double result = Interpolation.LINEAR.interpolate(ceil, floor, new Timestamp(0L)).getValue().get();
 
@@ -119,8 +119,8 @@ public class InterpolationTest {
 
     @Test
     public void test_Linear_CornerRight() {
-        AttributeValue<Double> ceil = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(0.), new Timestamp(0L), new Timestamp(0L));
-        AttributeValue<Double> floor = AttributeHelper.newAttributeValue(fullName, null, Value.getInstance(10.), new Timestamp(10L), new Timestamp(10L));
+        AttributeValue<Double> ceil = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(0.), new Timestamp(0L), new Timestamp(0L));
+        AttributeValue<Double> floor = AttributeValueFactory.newAttributeValue(fullName, null, Value.getInstance(10.), new Timestamp(10L), new Timestamp(10L));
 
         double result = Interpolation.LINEAR.interpolate(ceil, floor, new Timestamp(10L)).getValue().get();
 

@@ -31,6 +31,7 @@ package wpn.hdri.ss.engine;
 
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientFactory;
+import wpn.hdri.ss.engine.exception.ClientInitializationException;
 
 import java.util.*;
 

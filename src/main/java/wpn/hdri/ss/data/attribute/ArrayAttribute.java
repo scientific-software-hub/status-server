@@ -8,8 +8,8 @@ import wpn.hdri.ss.data.Interpolation;
  * @since 30.11.12
  */
 public class ArrayAttribute extends Attribute<Object> {
-    public ArrayAttribute(String devName, String attrName, String alias, AttributeValuesStorageFactory storageFactory) {
-        super(devName, attrName, alias, Interpolation.LAST, storageFactory);
+    public ArrayAttribute(String devName, String attrName, String alias) {
+        super(devName, attrName, alias, Interpolation.LAST);
     }
 
     /**

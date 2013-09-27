@@ -27,18 +27,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-package wpn.hdri.ss.engine;
+package wpn.hdri.ss.engine.exception;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 30.04.12
  */
-public class AttributeInitializationException extends Exception {
-    public AttributeInitializationException(Throwable cause) {
-        super(cause);
-    }
-
-    public AttributeInitializationException(String message) {
-        super(message);
+public class ClientInitializationException extends Exception {
+    public ClientInitializationException(String devName, Throwable cause) {
+        super("Connection to device " + devName + " has failed.", cause);
     }
 }

@@ -36,7 +36,10 @@ import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.data.attribute.*;
+import wpn.hdri.ss.data.attribute.Attribute;
+import wpn.hdri.ss.data.attribute.AttributeFactory;
+import wpn.hdri.ss.data.attribute.AttributeName;
+import wpn.hdri.ss.data.attribute.AttributeValue;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
@@ -84,8 +87,8 @@ public final class AttributesManager {
         this.factory = factory;
     }
 
-    public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray, AttributeValuesStorageFactory storageFactory) {
-        Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, attr.getInterpolation(), attr.getPrecision(), attributeClass, isArray, storageFactory);
+    public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray) {
+        Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, attr.getInterpolation(), attr.getPrecision(), attributeClass, isArray);
         attributes.put(attribute, devClient);
         attributeClasses.put(attribute.getName(), attributeClass);
         attributesByMethod.put(attr.getMethod(), attribute);
@@ -191,6 +194,10 @@ public final class AttributesManager {
 
     public Attribute<?> getAttribute(String attrName) {
         return attributesByFullName.get(attrName);
+    }
+
+    public Iterable<Attribute<?>> getAllAttributes() {
+        return attributes.keySet();
     }
 
     /**

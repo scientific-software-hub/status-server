@@ -12,6 +12,10 @@ import wpn.hdri.ss.storage.TypeFactory;
  * @since 23.04.13
  */
 public class AttributeValueFactory<T> implements TypeFactory<AttributeValue<T>> {
+    public static <T> AttributeValue<T> newAttributeValue(String fullName, String alias, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
+        return new AttributeValue<T>(fullName, alias, value, readTimestamp, writeTimestamp);
+    }
+
     /**
      * @param dataName
      * @param header
@@ -37,7 +41,7 @@ public class AttributeValueFactory<T> implements TypeFactory<AttributeValue<T>> 
             Timestamp read = Timestamp.fromString(Iterables.get(values, 4));
             Timestamp write = Timestamp.fromString(Iterables.get(values, 5));
 
-            return AttributeHelper.newAttributeValue(dataName, alias, val, read, write);
+            return newAttributeValue(dataName, alias, val, read, write);
         } catch (ClassNotFoundException e) {
             //TODO log
             return null;

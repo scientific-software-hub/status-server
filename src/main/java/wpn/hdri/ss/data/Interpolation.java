@@ -30,8 +30,8 @@
 package wpn.hdri.ss.data;
 
 import com.google.common.base.Preconditions;
-import wpn.hdri.ss.data.attribute.AttributeHelper;
 import wpn.hdri.ss.data.attribute.AttributeValue;
+import wpn.hdri.ss.data.attribute.AttributeValueFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -91,7 +91,7 @@ public enum Interpolation {
                 BigDecimal result = y0.add(x.subtract(x0).multiply(y1.subtract(y0)).divide(divisor, RoundingMode.HALF_UP));
 
                 Value<T> value = Value.getInstance(convertToType(result, valueType));
-                return AttributeHelper.newAttributeValue(left.getAttributeFullName(), left.getAlias(), value, timestamp, timestamp);
+                return AttributeValueFactory.newAttributeValue(left.getAttributeFullName(), left.getAlias(), value, timestamp, timestamp);
             }
         }
 
