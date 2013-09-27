@@ -16,9 +16,9 @@ public class StatusServerProperties {
     @Property("jacorb.poa.thread_pool_max")
     public int jacorbMaxCpus = Runtime.getRuntime().availableProcessors() * 2;
     @Property("persistent.threshold")
-    public long persistentThreshold;
+    public long persistentThreshold = 100;
     @Property("persistent.delay")
-    public long persistentDelay;
+    public long persistentDelay = 10;
     @Property("persistent.root")
-    public String persistentRoot;
+    public String persistentRoot = ".";
 }

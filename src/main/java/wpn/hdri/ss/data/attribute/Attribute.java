@@ -221,6 +221,8 @@ public abstract class Attribute<T> {
     }
 
     public void eraseHead(Timestamp timestamp) {
-        values.headMap(timestamp).clear();
+        ConcurrentNavigableMap<Timestamp, AttributeValue<T>> head = values.headMap(timestamp);
+        size.addAndGet(-head.size());
+        head.clear();
     }
 }

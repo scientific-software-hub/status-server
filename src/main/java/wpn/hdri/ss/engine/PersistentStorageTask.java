@@ -33,9 +33,10 @@ public class PersistentStorageTask implements Runnable {
     private final SingleAttributeValueView valueView = new SingleAttributeValueView();
 
 
-    public PersistentStorageTask(AttributesManager attributesManager, long threshold, String persistentRoot) {
+    public PersistentStorageTask(AttributesManager attributesManager, long threshold, String persistentRoot) throws IOException {
         this.attributesManager = attributesManager;
         this.threshold = threshold;
+        Files.createDirectories(Paths.get(persistentRoot));
         this.output = Paths.get(persistentRoot, "data");
     }
 
@@ -49,12 +50,13 @@ public class PersistentStorageTask implements Runnable {
 
         StringBuilder bld = new StringBuilder();
         Timestamp timestamp = Timestamp.now();
-        try (BufferedWriter writer = Files.newBufferedWriter(output, Charset.forName("UTF-8"), StandardOpenOption.CREATE)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(output, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
             for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry :
                     attributesManager.takeAllAttributeValues(Timestamp.DEEP_PAST, AttributeFilters.none()).asMap().entrySet()) {
 
                 AttributeName attr = entry.getKey();
                 writer.write(attr.getFullName());
+                writer.write("\n");
                 for (AttributeValue<?> value : entry.getValue()) {
                     valueView.toStringArray(value, bld);
                     try {

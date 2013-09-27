@@ -14,6 +14,7 @@ import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.data.attribute.Attribute;
 import wpn.hdri.ss.data.attribute.AttributeFactory;
 import wpn.hdri.ss.engine.exception.ClientInitializationException;
+import wpn.hdri.ss.engine.exception.EngineInitializationException;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
 
@@ -36,19 +37,24 @@ public class EngineInitializer {
         this.properties = properties;
     }
 
-    public EngineInitializationContext initialize() {
-        LOGGER.info(new SimpleDateFormat("dd MMM yy HH:mm").format(new Date()) + " Engine initialization process started.");
-        ClientsManager clientsManager = initializeClients();
+    public EngineInitializationContext initialize() throws EngineInitializationException {
+        try {
+            LOGGER.info(new SimpleDateFormat("dd MMM yy HH:mm").format(new Date()) + " Engine initialization process started.");
+            ClientsManager clientsManager = initializeClients();
 
-        AttributesManager attributesManager = initializeAttributes(clientsManager);
+            AttributesManager attributesManager = initializeAttributes(clientsManager);
 
-        List<PollingReadAttributeTask> pollingTasks = initializePollTasks(clientsManager, attributesManager);
-        List<EventReadAttributeTask> eventTasks = initializeEventTasks(clientsManager, attributesManager);
+            List<PollingReadAttributeTask> pollingTasks = initializePollTasks(clientsManager, attributesManager);
+            List<EventReadAttributeTask> eventTasks = initializeEventTasks(clientsManager, attributesManager);
 
-        PersistentStorageTask persistentStorageTask = new PersistentStorageTask(attributesManager, properties.persistentThreshold, properties.persistentRoot);
+            PersistentStorageTask persistentStorageTask = new PersistentStorageTask(attributesManager, properties.persistentThreshold, properties.persistentRoot);
 
-        LOGGER.info("Finish engine initialization process.");
-        return new EngineInitializationContext(clientsManager, attributesManager, properties, pollingTasks, eventTasks, persistentStorageTask);
+            LOGGER.info("Finish engine initialization process.");
+            return new EngineInitializationContext(clientsManager, attributesManager, properties, pollingTasks, eventTasks, persistentStorageTask);
+        } catch (Exception e) {
+            LOGGER.error("Unable to initialize Engine:", e);
+            throw new EngineInitializationException("Unable to initialize Engine:", e);
+        }
     }
 
     public ClientsManager initializeClients() {
