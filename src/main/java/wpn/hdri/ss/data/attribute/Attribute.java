@@ -219,4 +219,8 @@ public abstract class Attribute<T> {
     public long size() {
         return size.get();
     }
+
+    public void eraseHead(Timestamp timestamp) {
+        values.headMap(timestamp).clear();
+    }
 }

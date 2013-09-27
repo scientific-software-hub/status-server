@@ -48,6 +48,7 @@ public class PersistentStorageTask implements Runnable {
         if (totalSize < threshold) return;
 
         StringBuilder bld = new StringBuilder();
+        Timestamp timestamp = Timestamp.now();
         try (BufferedWriter writer = Files.newBufferedWriter(output, Charset.forName("UTF-8"), StandardOpenOption.CREATE)) {
             for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry :
                     attributesManager.takeAllAttributeValues(Timestamp.DEEP_PAST, AttributeFilters.none()).asMap().entrySet()) {
@@ -63,9 +64,9 @@ public class PersistentStorageTask implements Runnable {
                     }
                 }
             }
-            //TODO this may cause some values to be lost if they were added while I/O operation was being performed
+            //TODO replace with iterator remove
             for (Attribute<?> attr : attributesManager.getAllAttributes()) {
-                attr.clear();
+                attr.eraseHead(timestamp);
             }
         } catch (IOException e) {
             LOG.error("Unable to store file.", e);
