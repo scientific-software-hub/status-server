@@ -18,24 +18,22 @@ public interface StatusServerStub {
     @StateMachine(endState = DeviceState.ON)
     void init() throws Exception;
 
-    @Attribute
-    @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
-    int getClientId();
+//    @Attribute
+//    @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
+//    int getClientId();
 
     String[] getMeta();
 
-    void setUseAliases(boolean v);
-
-    boolean isUseAliases();
+    void setUseAliases(boolean v) throws Exception;
 
     @Attribute
     long getCrtTimestamp();
 
-    @Attribute
-    String[] getData();
+    @Command
+    String[] getUpdates() throws Exception;
 
     @Attribute
-    String getDataEncoded() throws IOException;
+    String[] getData() throws Exception;
 
     //TODO commands
     @Command
@@ -58,22 +56,16 @@ public interface StatusServerStub {
     void stopCollectData();
 
     @Command
-    String[] getUpdates(int clientId);
+    String[] getLatestSnapshot() throws Exception;
 
     @Command
-    String getUpdatesEncoded(int clientId) throws IOException;
+    String[] getLatestSnapshotByGroup(String groupName) throws Exception;
 
     @Command
-    String[] getLatestSnapshot();
+    String[] getSnapshot(long value) throws Exception;
 
     @Command
-    String[] getLatestSnapshotByGroup(String groupName);
-
-    @Command
-    String[] getSnapshot(long value);
-
-    @Command
-    String[] getSnapshotByGroup(String[] data_in);
+    String[] getSnapshotByGroup(String[] data_in) throws Exception;
 
     @Command(inTypeDesc = "String array where first element is a group name and last elements are attribute full names.")
     void createAttributesGroup(String[] args);
