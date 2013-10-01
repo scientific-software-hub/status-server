@@ -355,9 +355,9 @@ public class StatusServer implements StatusServerStub {
     }
 
     @Attribute
-    public Collection<String> getattributesGroupsMap() throws Exception {
+    public String[] getAttributesGroupsMap() throws Exception {
         String cid = getClientId();
-        return attributesGroupsMap.get(cid);
+        return attributesGroupsMap.get(cid).toArray(new String[attributesGroupsMap.get(cid).size()]);
     }
 
     @Delete
