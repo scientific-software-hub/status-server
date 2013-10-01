@@ -1,9 +1,11 @@
 #!/bin/bash
 
-export TINE_VER=4.3.9
+echo M2_HOME=$M2_HOME
+
+TINE_VER=4.3.9
 echo TINE_VER=$TINE_VER
 
-export JTANGO_VER=1.0.2-alpha-all
+JTANGO_VER=1.0.2-alpha-all
 echo JTANGO_VER=$JTANGO_VER
 
 function _install {
