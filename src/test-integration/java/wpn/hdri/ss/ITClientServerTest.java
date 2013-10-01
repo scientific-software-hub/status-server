@@ -7,21 +7,19 @@ import wpn.hdri.tango.proxy.TangoProxy;
 
 import java.util.concurrent.*;
 
-import static junit.framework.Assert.assertTrue;
-
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 20.06.13
  */
 public class ITClientServerTest {
     @Before
-    public void before(){
+    public void before() {
         //TODO start up server
     }
 
     @Test
-    public void test() throws Exception{
-        StatusServerStub instance = TangoProxy.proxy("tango://hzgharwi3:10000/development/ss-1.0.0/0",StatusServerStub.class);
+    public void test() throws Exception {
+        StatusServerStub instance = TangoProxy.proxy("tango://hzgharwi3:10000/development/ss-1.0.0/0", StatusServerStub.class);
 
         System.out.println(instance.getStatus());
         //TODO class cast exception
@@ -31,16 +29,15 @@ public class ITClientServerTest {
 //        instance.startCollectData();
 
         instance.setUseAliases(true);
-        System.out.println(instance.isUseAliases());
 
         System.out.println(instance.getStatus());
 
-        for(int i = 0; i<100000;++i){
+        for (int i = 0; i < 100000; ++i) {
             instance.getLatestSnapshot();
         }
 
         long start = System.nanoTime();
-        for(int i = 0; i<10000;++i){
+        for (int i = 0; i < 10000; ++i) {
             instance.getLatestSnapshot();
         }
         long end = System.nanoTime();
@@ -63,8 +60,8 @@ public class ITClientServerTest {
     }
 
     @Test
-    public void testMultithreading() throws Exception{
-        ExecutorService exec  = Executors.newFixedThreadPool(2);
+    public void testMultithreading() throws Exception {
+        ExecutorService exec = Executors.newFixedThreadPool(2);
 
         final CyclicBarrier done = new CyclicBarrier(3);
 
