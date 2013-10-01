@@ -1,6 +1,7 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -24,19 +25,14 @@ import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.attribute.AttributeName;
 import wpn.hdri.ss.data.attribute.AttributeValue;
 import wpn.hdri.ss.data.attribute.AttributeValuesView;
-import wpn.hdri.ss.engine.AttributeFilters;
-import wpn.hdri.ss.engine.Engine;
-import wpn.hdri.ss.engine.EngineInitializationContext;
-import wpn.hdri.ss.engine.EngineInitializer;
+import wpn.hdri.ss.engine.*;
 import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -49,7 +45,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @Device
 public class StatusServer implements StatusServerStub {
     private static String XML_CONFIG_PATH;
-
+    private final static String DEFAULT_ATTR_GROUP = "default";
+    private final Multimap <String, String> attributesGroupsMap = HashMultimap.create();
     public static void setXmlConfigPath(String v) {
         XML_CONFIG_PATH = v;
     }
@@ -171,13 +168,33 @@ public class StatusServer implements StatusServerStub {
         }
     }
 
+    @Attribute
+    public void setAttributesGroup(String attributesGroup) throws Exception {
+        RequestContext ctx = getContext();
+        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
+        setContext(updated);
+    }
+    @Attribute
+    public String getAttributesGroup() throws Exception {
+        RequestContext cxt = getContext();
+        return cxt.attributesGroup;
+    }
+
+    public AttributeFilter getFilter() throws Exception {
+          if (getAttributesGroup() == DEFAULT_ATTR_GROUP){
+              return AttributeFilters.none();
+          }
+        return AttributeFilters.byGroup(getAttributesGroup());
+    }
+
+
     //TODO attributes
     @Attribute
     @Override
     public void setUseAliases(boolean v) throws Exception{
         String cid = getClientId();
         RequestContext old = getContext();
-        RequestContext ctx = new RequestContext(v,old.encode,old.outputType,old.lastTimestamp);
+        RequestContext ctx = new RequestContext(v,old.encode,old.outputType,old.lastTimestamp, old.attributesGroup);
         ctxs.put(cid,ctx);
     }
 
@@ -195,7 +212,7 @@ public class StatusServer implements StatusServerStub {
     @Attribute
     public String[] getData() throws Exception{
         RequestContext ctx = getContext();
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, AttributeFilters.none());
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, getFilter());
 
         AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
         return processResult(view);
@@ -230,10 +247,10 @@ public class StatusServer implements StatusServerStub {
         final Timestamp oldTimestamp = ctx.lastTimestamp;
         final Timestamp timestamp = Timestamp.now();
 
-        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp);
+        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
         setContext(updated);
 
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, getFilter());
 
         AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
 
@@ -305,18 +322,7 @@ public class StatusServer implements StatusServerStub {
     @Override
     @Command
     public String[] getLatestSnapshot() throws Exception{
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
-
-        AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
-
-        String[] output = view.toStringArray();
-        return output;
-    }
-
-    @Override
-    @Command
-    public String[] getLatestSnapshotByGroup(String groupName) throws Exception{
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(groupName));
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(getFilter());
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
@@ -328,22 +334,7 @@ public class StatusServer implements StatusServerStub {
     @Command
     public String[] getSnapshot(long value) throws Exception{
         Timestamp timestamp = new Timestamp(value);
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.none());
-
-        AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
-
-        String[] output = view.toStringArray();
-        return output;
-    }
-
-    @Override
-    @Command
-    public String[] getSnapshotByGroup(String[] data_in) throws Exception{
-        long value = Long.parseLong(data_in[0]);
-        String groupName = data_in[1];
-
-        Timestamp timestamp = new Timestamp(value);
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.byGroup(groupName));
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, getFilter());
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
@@ -353,8 +344,20 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command(inTypeDesc = "String array where first element is a group name and last elements are attribute full names.")
-    public void createAttributesGroup(String[] args) {
-        engine.createAttributesGroup(args[0], Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
+    public void createAttributesGroup(String[] args) throws Exception {
+        RequestContext ctx = getContext();
+        String cid = getClientId();
+        String attributesGroup = args[0];
+        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
+        setContext(updated);
+        attributesGroupsMap.put(cid,attributesGroup);
+        engine.createAttributesGroup(attributesGroup, Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
+    }
+
+    @Attribute
+    public Collection<String> getattributesGroupsMap() throws Exception {
+        String cid = getClientId();
+        return attributesGroupsMap.get(cid);
     }
 
     @Delete
@@ -370,8 +373,10 @@ public class StatusServer implements StatusServerStub {
     private RequestContext getContext() throws Exception{
         String cid = getClientId();
         RequestContext context = ctxs.get(cid);
-        if(context == null)
+        if(context == null) {
             ctxs.put(cid, context = new RequestContext());
+            attributesGroupsMap.put(cid,DEFAULT_ATTR_GROUP);
+        }
         return context;
     }
 
@@ -413,19 +418,21 @@ public class StatusServer implements StatusServerStub {
         private final boolean encode;
         private final OutputType outputType;
         private final Timestamp lastTimestamp;
+        private final String attributesGroup;
 
-        private RequestContext(boolean useAliases, boolean encode, OutputType outputType, Timestamp lastTimestamp) {
+        private RequestContext(boolean useAliases, boolean encode, OutputType outputType, Timestamp lastTimestamp, String attributesGroup) {
             this.useAliases = useAliases;
             this.encode = encode;
             this.outputType = outputType;
             this.lastTimestamp = lastTimestamp;
+            this.attributesGroup = attributesGroup;
         }
 
         /**
          * Creates default context
          */
         private RequestContext() {
-            this(false, false, OutputType.PLAIN, Timestamp.DEEP_PAST);
+            this(false, false, OutputType.PLAIN, Timestamp.DEEP_PAST, DEFAULT_ATTR_GROUP);
         }
 
 

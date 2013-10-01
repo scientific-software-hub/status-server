@@ -59,14 +59,8 @@ public interface StatusServerStub {
     String[] getLatestSnapshot() throws Exception;
 
     @Command
-    String[] getLatestSnapshotByGroup(String groupName) throws Exception;
-
-    @Command
     String[] getSnapshot(long value) throws Exception;
 
-    @Command
-    String[] getSnapshotByGroup(String[] data_in) throws Exception;
-
     @Command(inTypeDesc = "String array where first element is a group name and last elements are attribute full names.")
-    void createAttributesGroup(String[] args);
+    void createAttributesGroup(String[] args) throws Exception;
 }
