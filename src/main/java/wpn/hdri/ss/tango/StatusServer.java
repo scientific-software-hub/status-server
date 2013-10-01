@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import fr.esrf.Tango.AttrWriteType;
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.Tango.LockerLanguage;
 import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
@@ -32,11 +33,11 @@ import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -61,9 +62,9 @@ public class StatusServer implements StatusServerStub {
     }
 
     /**
-     * This field tracks timestamps of the clients and is used in getXXXUpdates methods
+     * This field tracks ctxs of the clients and is used in getXXXUpdates methods
      */
-    private final ConcurrentMap<Integer, Timestamp> timestamps = Maps.newConcurrentMap();
+    private final ConcurrentMap<String, RequestContext> ctxs = Maps.newConcurrentMap();
 
 
     private Engine engine;
@@ -171,27 +172,17 @@ public class StatusServer implements StatusServerStub {
     }
 
     //TODO attributes
-    private final AtomicInteger clientId = new AtomicInteger(0);
-
-    @Override
     @Attribute
-    @AttributeProperties(description = "clientId is used in getXXXUpdates methods as an argument.")
-    public int getClientId() {
-        return clientId.incrementAndGet();
+    @Override
+    public void setUseAliases(boolean v) throws Exception{
+        String cid = getClientId();
+        RequestContext old = getContext();
+        RequestContext ctx = new RequestContext(v,old.encode,old.outputType,old.lastTimestamp);
+        ctxs.put(cid,ctx);
     }
 
-    //TODO make useAliases client specific
-    @Attribute
-    private boolean useAliases = false;
-
-    @Override
-    public void setUseAliases(boolean v) {
-        this.useAliases = v;
-    }
-
-    @Override
-    public boolean isUseAliases() {
-        return this.useAliases;
+    private boolean isUseAliases() throws Exception{
+        return getContext().useAliases;
     }
 
     @Override
@@ -202,13 +193,53 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Attribute
-    public String[] getData() {
+    public String[] getData() throws Exception{
+        RequestContext ctx = getContext();
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, AttributeFilters.none());
 
-        AttributeValuesView view = new AttributeValuesView(attributes, isUseAliases());
-
-        return view.toStringArray();
+        AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
+        return processResult(view);
     }
+
+    private String[] processResult(AttributeValuesView view) throws Exception {
+        RequestContext ctx = getContext();
+        String[] result = new String[0];
+        switch (ctx.outputType){
+            case PLAIN:
+                result = view.toStringArray();
+                break;
+            case JSON:
+                result = new String[]{view.toJsonString()};
+                break;
+        }
+        if(ctx.encode){
+            for (int i = 0, resultLength = result.length; i < resultLength; i++) {
+                String string = result[i];
+
+                result[i] = new String(Compressor.encodeAndCompress(string.getBytes()));
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    @Attribute
+    public String[] getUpdates() throws Exception{
+        RequestContext ctx = getContext();
+        final Timestamp oldTimestamp = ctx.lastTimestamp;
+        final Timestamp timestamp = Timestamp.now();
+
+        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp);
+        setContext(updated);
+
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
+
+        AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
+
+        return processResult(view);
+    }
+
 
     @Override
     @Attribute
@@ -226,18 +257,6 @@ public class StatusServer implements StatusServerStub {
         }
 
         return result;
-    }
-
-    @Override
-    @Attribute
-    public String getDataEncoded() throws IOException {
-        Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(null, AttributeFilters.none());
-
-        AttributeValuesView view = new AttributeValuesView(data, isUseAliases());
-
-        String result = view.toJsonString();
-
-        return new String(Compressor.encodeAndCompress(result.getBytes()));
     }
 
     //TODO commands
@@ -285,33 +304,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command
-    public String[] getUpdates(int clientId) {
-        final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
-
-        AttributeValuesView view = new AttributeValuesView(attributes, isUseAliases());
-
-        return view.toStringArray();
-    }
-
-    @Override
-    @Command
-    public String getUpdatesEncoded(int clientId) throws IOException {
-        final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        final Timestamp oldTimestamp = timestamps.put(clientId, timestamp);
-        Multimap<AttributeName, AttributeValue<?>> data = engine.getAllAttributeValues(oldTimestamp, AttributeFilters.none());
-
-        AttributeValuesView view = new AttributeValuesView(data, isUseAliases());
-
-        String result = view.toJsonString();
-
-        return new String(Compressor.encodeAndCompress(result.getBytes()));
-    }
-
-    @Override
-    @Command
-    public String[] getLatestSnapshot() {
+    public String[] getLatestSnapshot() throws Exception{
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
@@ -322,7 +315,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command
-    public String[] getLatestSnapshotByGroup(String groupName) {
+    public String[] getLatestSnapshotByGroup(String groupName) throws Exception{
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.byGroup(groupName));
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
@@ -333,7 +326,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command
-    public String[] getSnapshot(long value) {
+    public String[] getSnapshot(long value) throws Exception{
         Timestamp timestamp = new Timestamp(value);
         Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, AttributeFilters.none());
 
@@ -345,7 +338,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command
-    public String[] getSnapshotByGroup(String[] data_in) {
+    public String[] getSnapshotByGroup(String[] data_in) throws Exception{
         long value = Long.parseLong(data_in[0]);
         String groupName = data_in[1];
 
@@ -372,5 +365,69 @@ public class StatusServer implements StatusServerStub {
 
     public static void main(String... args) throws Exception {
         ServerManager.getInstance().start(args, StatusServer.class);
+    }
+
+    private RequestContext getContext() throws Exception{
+        String cid = getClientId();
+        RequestContext context = ctxs.get(cid);
+        if(context == null)
+            ctxs.put(cid, context = new RequestContext());
+        return context;
+    }
+
+    private void setContext(RequestContext context) throws Exception{
+        String cid = getClientId();
+        ctxs.put(cid,context);
+    }
+
+    //TODO avoid this dirty hack
+    private String getClientId() throws Exception{
+        Field deviceImpl = this.dynamicManagement.getClass().getDeclaredField("deviceImpl");
+        deviceImpl.setAccessible(true);
+        Field clientIdentity = deviceImpl.get(this.dynamicManagement).getClass().getDeclaredField("clientIdentity");
+        clientIdentity.setAccessible(true);
+        Field discriminator = clientIdentity.get(deviceImpl.get(this.dynamicManagement)).getClass().getDeclaredField("discriminator");
+        discriminator.setAccessible(true);
+        LockerLanguage value = (LockerLanguage) discriminator.get(clientIdentity.get(deviceImpl.get(this.dynamicManagement)));
+        switch (value.value()){
+            case LockerLanguage._JAVA:
+                Field java_clnt = clientIdentity.get(deviceImpl.get(this.dynamicManagement)).getClass().getDeclaredField("java_clnt");
+                java_clnt.setAccessible(true);
+                Field mainClass = java_clnt.get(clientIdentity.get(deviceImpl.get(this.dynamicManagement))).getClass().getDeclaredField("MainClass");
+                mainClass.setAccessible(true);
+                return mainClass.get(java_clnt.get(clientIdentity.get(deviceImpl.get(this.dynamicManagement)))).toString();
+            case LockerLanguage._CPP:
+                //TODO
+                return null;
+        }
+        throw new AssertionError("Should not happen");
+    }
+
+    private static enum OutputType{
+        PLAIN,
+        JSON
+    }
+
+    private static class RequestContext {
+        private final boolean useAliases;
+        private final boolean encode;
+        private final OutputType outputType;
+        private final Timestamp lastTimestamp;
+
+        private RequestContext(boolean useAliases, boolean encode, OutputType outputType, Timestamp lastTimestamp) {
+            this.useAliases = useAliases;
+            this.encode = encode;
+            this.outputType = outputType;
+            this.lastTimestamp = lastTimestamp;
+        }
+
+        /**
+         * Creates default context
+         */
+        private RequestContext() {
+            this(false, false, OutputType.PLAIN, Timestamp.DEEP_PAST);
+        }
+
+
     }
 }
