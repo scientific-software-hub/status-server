@@ -1,25 +1,48 @@
 package wpn.hdri.ss;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import wpn.hdri.ss.tango.StatusServerStub;
 import wpn.hdri.tango.proxy.TangoProxy;
 
 import java.util.concurrent.*;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 20.06.13
  */
 public class ITClientServerTest {
-    @Before
-    public void before() {
-        //TODO start up server
+    private final static ExecutorService STATUS_SERVER_EXECUTOR = Executors.newSingleThreadExecutor();
+    @BeforeClass
+    public static void before() throws Exception{
+        final CountDownLatch start = new CountDownLatch(1);
+        STATUS_SERVER_EXECUTOR.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Launcher.main(new String[]{"development","-v","-c=src/main/conf/StatusServer.configuration.xml"});
+                    start.countDown();
+                } catch (Exception e) {
+                    assertTrue(false);
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        start.await();
+    }
+
+    @AfterClass
+    public static void after(){
+        STATUS_SERVER_EXECUTOR.shutdownNow();
     }
 
     @Test
     public void test() throws Exception {
-        StatusServerStub instance = TangoProxy.proxy("tango://hzgharwi3:10000/development/ss/0", StatusServerStub.class);
+        StatusServerStub instance = TangoProxy.proxy("tango://localhost:10000/development/1.0.1-SNAPSHOT/0", StatusServerStub.class);
 
         System.out.println(instance.getStatus());
         //TODO class cast exception
