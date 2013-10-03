@@ -82,14 +82,7 @@ public class Engine {
     private volatile Activity crtActivity = Activity.IDLE;
     private final ActivityContext activityCtx = new ActivityContext();
 
-    /**
-     * Used to determine initial delay for the submitted tasks
-     */
-    private final Random rnd = new Random();
-
-    private final AtomicLong valuesCount = new AtomicLong(0L);
-    //TODO exceptions counter
-
+    private /*final*/ PersistentStorageTask persister;
     /**
      * @param clientsManager
      * @param attributesManager
@@ -104,6 +97,8 @@ public class Engine {
 
     public Engine(EngineInitializationContext ctx) {
         this(ctx.clientsManager, ctx.attributesManager, ctx.properties.engineCpus);
+        this.persister = ctx.persistentStorageTask;
+
         submitPollingTasks(ctx.pollingTasks);
         submitEventTasks(ctx.eventTasks);
 
@@ -218,6 +213,7 @@ public class Engine {
     public synchronized void clear() {
         Preconditions.checkState(isNotRunning(), "Can not eraseData while current activity is not IDLE");
         LOGGER.info("Erase all data.");
+        persister.persist();
         attributesManager.clear();
     }
 
