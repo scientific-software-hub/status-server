@@ -88,6 +88,8 @@ public class Launcher {
     private static StatusServerProperties parseProperties() {
         PropertiesParser<StatusServerProperties> parser = PropertiesParser.createInstance(StatusServerProperties.class);
         StatusServerProperties properties = parser.parseProperties();
+        LOG.info("persistent.threshold=" + properties.persistentThreshold);
+        LOG.info("persistent.delay=" + properties.persistentDelay);
         return properties;
     }
 

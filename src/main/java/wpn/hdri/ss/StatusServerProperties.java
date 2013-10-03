@@ -12,7 +12,7 @@ public class StatusServerProperties {
     @Property("engine.thread_pool_max")
     public int engineCpus = Runtime.getRuntime().availableProcessors() * 2;
     @Property("jacorb.poa.thread_pool_min")
-    public int jacorbMinCpus = Runtime.getRuntime().availableProcessors();
+    public int jacorbMinCpus = 1;
     @Property("jacorb.poa.thread_pool_max")
     public int jacorbMaxCpus = Runtime.getRuntime().availableProcessors() * 2;
     @Property("persistent.threshold")
