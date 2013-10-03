@@ -44,7 +44,7 @@ import static org.junit.Assert.assertArrayEquals;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 04.05.12
  */
-public class TangoClientTest {
+public class ITTangoClientTest {
     private final String name = "Test.Device";
 
     //TODO move following tests to integration tests as they are environment depended
