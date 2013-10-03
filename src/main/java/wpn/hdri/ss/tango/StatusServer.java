@@ -180,7 +180,12 @@ public class StatusServer implements StatusServerStub {
 
     @Attribute
     public void setGroup(String attributesGroup) throws Exception {
+        String cid = getClientId();
+        if(!attributesGroupsMap.get(cid).contains(attributesGroup))
+            throw new IllegalArgumentException("No such group exists: " + attributesGroup);
         RequestContext ctx = getContext();
+        if(attributesGroup.equals(DEFAULT_ATTR_GROUP))
+            attributesGroup = DEFAULT_ATTR_GROUP;
         RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
     }
@@ -397,7 +402,6 @@ public class StatusServer implements StatusServerStub {
 
     //TODO avoid this dirty hack
     private String getClientId() throws Exception{
-        ServerRequestInterceptor.getInstance().getClientHostName();
         Field deviceImpl = this.deviceManager.getClass().getDeclaredField("device");
         deviceImpl.setAccessible(true);
         ClntIdent clientIdentity = ((DeviceImpl)deviceImpl.get(this.deviceManager)).getClientIdentity();
