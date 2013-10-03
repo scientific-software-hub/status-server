@@ -30,10 +30,7 @@ public class PersistentStorageTask implements Runnable {
 
     private final AtomicReference<Timestamp> lastTimestamp = new AtomicReference<>(Timestamp.now());
 
-
     private final Path output;
-    private final SingleAttributeValueView valueView = new SingleAttributeValueView();
-
 
     public PersistentStorageTask(AttributesManager attributesManager, long threshold, String persistentRoot) throws IOException {
         this.attributesManager = attributesManager;
@@ -50,30 +47,11 @@ public class PersistentStorageTask implements Runnable {
         }
         if (totalSize < threshold) return;
 
-        StringBuilder bld = new StringBuilder();
-        Timestamp timestamp = lastTimestamp.getAndSet(Timestamp.now());
-        try (BufferedWriter writer = Files.newBufferedWriter(output, Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
-            for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry :
-                    attributesManager.takeAllAttributeValues(timestamp, AttributeFilters.none()).asMap().entrySet()) {
-
-                AttributeName attr = entry.getKey();
-                writer.write(attr.getFullName());
-                writer.write("\n");
-                for (AttributeValue<?> value : entry.getValue()) {
-                    valueView.toStringArray(value, bld);
-                    try {
-                        writer.write(bld.toString());
-                    } finally {
-                        bld.setLength(0);
-                    }
-                }
-            }
-            //TODO replace with iterator remove
-            for (Attribute<?> attr : attributesManager.getAllAttributes()) {
-                attr.eraseHead(timestamp);
-            }
-        } catch (IOException e) {
-            LOG.error("Unable to store data file.", e);
+        Timestamp timestamp = lastTimestamp.get();
+        persist();
+        //TODO replace with iterator remove
+        for (Attribute<?> attr : attributesManager.getAllAttributes()) {
+            attr.eraseHead(timestamp);
         }
     }
 
