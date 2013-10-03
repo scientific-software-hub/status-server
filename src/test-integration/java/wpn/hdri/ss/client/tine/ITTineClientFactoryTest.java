@@ -29,49 +29,19 @@
 
 package wpn.hdri.ss.client.tine;
 
-import de.desy.tine.types.NAME64;
 import org.junit.Test;
-import wpn.hdri.ss.data.Timestamp;
-
-import java.util.Map;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertSame;
+import wpn.hdri.ss.client.Client;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
- * @since 08.05.12
+ * @since 07.05.12
  */
-public class TineClientTest {
-
-    private final String deviceName = "/TEST/SineServer/#SineGen3";
-
+public class ITTineClientFactoryTest {
     @Test
-    public void testReadAttribute() throws Exception {
-        TineClient instance = new TineClient(deviceName);
+    public void testCreateClient() throws Exception {
+        TineClientFactory instance = new TineClientFactory();
+        Client result = instance.createClient("/TEST/SineServer/#SineGen3");
 
-        Map.Entry<Object, Timestamp> result = instance.readAttribute("MessageText");
-
-        assertEquals("Don't worry, be happy!", result.getKey().toString());
-    }
-
-    @Test
-    public void testSubscribeEvent() throws Exception {
-
-    }
-
-    @Test
-    public void testCheckAttribute() throws Exception {
-
-    }
-
-    @Test
-    public void testGetAttributeClass() throws Exception {
-        TineClient instance = new TineClient(deviceName);
-
-        Class<?> result = instance.getAttributeClass("MessageText");
-
-        //assertSame(String.class,result);
-        assertSame(NAME64.class, result);
+        result.readAttribute("Amplitude");
     }
 }
