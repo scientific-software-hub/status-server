@@ -5,18 +5,20 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import fr.esrf.Tango.AttrWriteType;
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.Tango.LockerLanguage;
+import fr.esrf.Tango.*;
 import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
+import org.tango.orb.ServerRequestInterceptor;
 import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
+import org.tango.server.annotation.Device;
 import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.IAttributeBehavior;
+import org.tango.server.device.DeviceManager;
 import org.tango.server.dynamic.DynamicManager;
+import org.tango.server.servant.DeviceImpl;
 import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
@@ -110,6 +112,13 @@ public class StatusServer implements StatusServerStub {
     public void setDynamicManagement(DynamicManager dynamicManagement) {
         this.dynamicManagement = dynamicManagement;
     }
+
+    @DeviceManagement
+    private DeviceManager deviceManager;
+
+    public void setDeviceManager(DeviceManager deviceManager){
+        this.deviceManager = deviceManager;
+    }
     // ====================
 
     @Override
@@ -128,6 +137,7 @@ public class StatusServer implements StatusServerStub {
         EngineInitializationContext ctx = initializer.initialize();
 
         this.engine = new Engine(ctx);
+        setStatus(Status.IDLE);
     }
 
     private void initializeDynamicAttributes(List<StatusServerAttribute> statusServerAttributes, DynamicManager dynamicManagement) throws DevFailed {
@@ -142,7 +152,7 @@ public class StatusServer implements StatusServerStub {
                     AttributeConfiguration configuration = new AttributeConfiguration();
                     configuration.setName(wrapped.getName());
                     TangoDataType<?> dataType = TangoDataTypes.forString(wrapped.getType());
-//                    configuration.setTangoType(dataType.getAlias(), AttrDataFormat.FMT_UNKNOWN);
+                    configuration.setTangoType(dataType.getAlias(), AttrDataFormat.SCALAR);
                     configuration.setType(dataType.getDataType());
                     configuration.setWritable(AttrWriteType.READ_WRITE);
                     return configuration;
@@ -180,7 +190,7 @@ public class StatusServer implements StatusServerStub {
         return cxt.attributesGroup;
     }
 
-    public AttributeFilter getFilter() throws Exception {
+    private AttributeFilter getFilter() throws Exception {
           if (getGroup() == DEFAULT_ATTR_GROUP){
               return AttributeFilters.none();
           }
@@ -387,23 +397,17 @@ public class StatusServer implements StatusServerStub {
 
     //TODO avoid this dirty hack
     private String getClientId() throws Exception{
-        Field deviceImpl = this.dynamicManagement.getClass().getDeclaredField("deviceImpl");
+        ServerRequestInterceptor.getInstance().getClientHostName();
+        Field deviceImpl = this.deviceManager.getClass().getDeclaredField("device");
         deviceImpl.setAccessible(true);
-        Field clientIdentity = deviceImpl.get(this.dynamicManagement).getClass().getDeclaredField("clientIdentity");
-        clientIdentity.setAccessible(true);
-        Field discriminator = clientIdentity.get(deviceImpl.get(this.dynamicManagement)).getClass().getDeclaredField("discriminator");
-        discriminator.setAccessible(true);
-        LockerLanguage value = (LockerLanguage) discriminator.get(clientIdentity.get(deviceImpl.get(this.dynamicManagement)));
-        switch (value.value()){
+        ClntIdent clientIdentity = ((DeviceImpl)deviceImpl.get(this.deviceManager)).getClientIdentity();
+        LockerLanguage discriminator = clientIdentity.discriminator();
+        switch (discriminator.value()){
             case LockerLanguage._JAVA:
-                Field java_clnt = clientIdentity.get(deviceImpl.get(this.dynamicManagement)).getClass().getDeclaredField("java_clnt");
-                java_clnt.setAccessible(true);
-                Field mainClass = java_clnt.get(clientIdentity.get(deviceImpl.get(this.dynamicManagement))).getClass().getDeclaredField("MainClass");
-                mainClass.setAccessible(true);
-                return mainClass.get(java_clnt.get(clientIdentity.get(deviceImpl.get(this.dynamicManagement)))).toString();
+                JavaClntIdent java_clnt = clientIdentity.java_clnt();
+                return java_clnt.MainClass;
             case LockerLanguage._CPP:
-                //TODO
-                return null;
+                return "CPP " + clientIdentity.cpp_clnt();
         }
         throw new AssertionError("Should not happen");
     }
