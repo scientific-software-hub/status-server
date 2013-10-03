@@ -152,7 +152,7 @@ public class StatusServer implements StatusServerStub {
                     AttributeConfiguration configuration = new AttributeConfiguration();
                     configuration.setName(wrapped.getName());
                     TangoDataType<?> dataType = TangoDataTypes.forString(wrapped.getType());
-//                    configuration.setTangoType(dataType.getAlias(), AttrDataFormat.FMT_UNKNOWN);
+                    configuration.setTangoType(dataType.getAlias(), AttrDataFormat.SCALAR);
                     configuration.setType(dataType.getDataType());
                     configuration.setWritable(AttrWriteType.READ_WRITE);
                     return configuration;
