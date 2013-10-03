@@ -179,22 +179,22 @@ public class StatusServer implements StatusServerStub {
     }
 
     @Attribute
-    public void setAttributesGroup(String attributesGroup) throws Exception {
+    public void setGroup(String attributesGroup) throws Exception {
         RequestContext ctx = getContext();
         RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
     }
     @Attribute
-    public String getAttributesGroup() throws Exception {
+    public String getGroup() throws Exception {
         RequestContext cxt = getContext();
         return cxt.attributesGroup;
     }
 
-    public AttributeFilter getFilter() throws Exception {
-          if (getAttributesGroup() == DEFAULT_ATTR_GROUP){
+    private AttributeFilter getFilter() throws Exception {
+          if (getGroup() == DEFAULT_ATTR_GROUP){
               return AttributeFilters.none();
           }
-        return AttributeFilters.byGroup(getAttributesGroup());
+        return AttributeFilters.byGroup(getGroup());
     }
 
 
@@ -365,7 +365,7 @@ public class StatusServer implements StatusServerStub {
     }
 
     @Attribute
-    public String[] getAttributesGroupsMap() throws Exception {
+    public String[] getGroups() throws Exception {
         String cid = getClientId();
         return attributesGroupsMap.get(cid).toArray(new String[attributesGroupsMap.get(cid).size()]);
     }
