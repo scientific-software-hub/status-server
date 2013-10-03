@@ -7,7 +7,7 @@ import hzg.wpn.properties.Property;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.06.13
  */
-@Properties(file = "statusserver.properties")
+@Properties(file = "StatusServer.properties")
 public class StatusServerProperties {
     @Property("engine.thread_pool_max")
     public int engineCpus = Runtime.getRuntime().availableProcessors() * 2;
