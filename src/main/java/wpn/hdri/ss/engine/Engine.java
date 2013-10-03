@@ -73,9 +73,6 @@ public class Engine {
     private final //TODO use guava concurrency
             ScheduledExecutorService scheduler;
 
-    private final //TODO use guava concurrency
-            ScheduledExecutorService storageScheduler = Executors.newSingleThreadScheduledExecutor();
-
     private final ClientsManager clientsManager;
     private final AttributesManager attributesManager;
 
@@ -102,7 +99,7 @@ public class Engine {
         submitPollingTasks(ctx.pollingTasks);
         submitEventTasks(ctx.eventTasks);
 
-        storageScheduler.scheduleWithFixedDelay(ctx.persistentStorageTask, ctx.properties.persistentDelay, ctx.properties.persistentDelay, TimeUnit.MILLISECONDS);
+        scheduler.scheduleWithFixedDelay(ctx.persistentStorageTask, ctx.properties.persistentDelay, ctx.properties.persistentDelay, TimeUnit.MILLISECONDS);
     }
 
 
