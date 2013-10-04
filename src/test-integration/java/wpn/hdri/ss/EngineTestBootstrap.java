@@ -64,7 +64,7 @@ public class EngineTestBootstrap {
         });
 
 
-        engine = new Engine(clientsManager, attributesManager, 2);
+        engine = new Engine(clientsManager, attributesManager, null, 2);
     }
 
     public Engine getEngine() {

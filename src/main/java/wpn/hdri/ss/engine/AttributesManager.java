@@ -50,7 +50,7 @@ import java.util.Map.Entry;
  * @since 30.04.12
  */
 @ThreadSafe
-public final class AttributesManager {
+public class AttributesManager {
     // Thread Locals
     private final ThreadLocal<AttributesSnapshot> snapshotLocal = new ThreadLocal<AttributesSnapshot>() {
         @Override
@@ -155,6 +155,17 @@ public final class AttributesManager {
     }
 
     /**
+     * Erases data from attributes that is older than timestamp
+     */
+    public void clear(Timestamp timestamp) {
+        //TODO we may remove values through iterator stored in cached snapshot if this timestamp equals to the one used
+        // for acquiring data
+        for (Attribute<?> attribute : attributes.keySet()) {
+            attribute.eraseHead(timestamp);
+        }
+    }
+
+    /**
      * @param groupName
      * @param attrNames full attribute names
      */
@@ -196,8 +207,17 @@ public final class AttributesManager {
         return attributesByFullName.get(attrName);
     }
 
+    //TODO replace with Iterator
     public Iterable<Attribute<?>> getAllAttributes() {
         return attributes.keySet();
+    }
+
+    public long size() {
+        long result = 0;
+        for (Attribute<?> attr : getAllAttributes()) {
+            result += attr.size();
+        }
+        return result;
     }
 
     /**

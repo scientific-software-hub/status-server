@@ -43,11 +43,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Engine should never fail during its work. It may fail during initialization.
@@ -68,7 +67,6 @@ public class Engine {
      * This one is used as a multiplicator for Math.random in {@link this#scheduler}
      */
     public static final int MAX_INITIAL_DELAY = 1000;
-    public static final long MAX_DELAY = 1000L;
 
     private final //TODO use guava concurrency
             ScheduledExecutorService scheduler;
@@ -79,27 +77,38 @@ public class Engine {
     private volatile Activity crtActivity = Activity.IDLE;
     private final ActivityContext activityCtx = new ActivityContext();
 
-    private /*final*/ PersistentStorageTask persister;
+    private final PersistentStorageTask persister;
+    private volatile ScheduledFuture<?> persisterTask;
+
     /**
      * @param clientsManager
      * @param attributesManager
+     * @param persister
      * @param threads           how many thread will be utilized by the engine
      */
-    public Engine(ClientsManager clientsManager, AttributesManager attributesManager, int threads) {
+    public Engine(ClientsManager clientsManager, AttributesManager attributesManager, @Nullable PersistentStorageTask persister, int threads) {
         this.clientsManager = clientsManager;
         this.attributesManager = attributesManager;
+        this.persister = persister;
 
         this.scheduler = Executors.newScheduledThreadPool(threads);
     }
 
     public Engine(EngineInitializationContext ctx) {
-        this(ctx.clientsManager, ctx.attributesManager, ctx.properties.engineCpus);
-        this.persister = ctx.persistentStorageTask;
-
+        this(ctx.clientsManager, ctx.attributesManager, ctx.persistentStorageTask, ctx.properties.engineCpus);
         submitPollingTasks(ctx.pollingTasks);
         submitEventTasks(ctx.eventTasks);
 
-        scheduler.scheduleWithFixedDelay(ctx.persistentStorageTask, ctx.properties.persistentDelay, ctx.properties.persistentDelay, TimeUnit.MILLISECONDS);
+        startPersister(ctx.properties.persistentDelay);
+    }
+
+    public void startPersister(long persistentDelay) {
+        if (persister == null) throw new IllegalStateException("persister should not be null at this point");
+        persisterTask = scheduler.scheduleWithFixedDelay(persister, persistentDelay, persistentDelay, TimeUnit.MILLISECONDS);
+    }
+
+    public void stopPersister() {
+        persisterTask.cancel(false);
     }
 
 

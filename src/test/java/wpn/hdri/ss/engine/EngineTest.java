@@ -79,11 +79,6 @@ public class EngineTest {
     }
 
     @Test
-    public void test() throws Exception {
-        //TODO
-    }
-
-    @Test
     public void testTolerateExceptionsDuringWork() throws Exception {
         final Client client = mock(Client.class);
 
@@ -108,10 +103,10 @@ public class EngineTest {
 
         AttributesManager attributesManager = initializer.initializeAttributes(clientsManager);
 
-        Engine engine = new Engine(clientsManager, attributesManager, 2);
+        Engine engine = new Engine(clientsManager, attributesManager, null, 2);
         engine.submitPollingTasks(initializer.initializePollTasks(clientsManager, attributesManager));
 
-        engine.start(1);
+        engine.start(0);
         Thread.sleep(7000);
         engine.stop();
 
