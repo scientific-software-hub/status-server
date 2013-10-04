@@ -35,8 +35,17 @@ import com.google.common.collect.Iterables;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
+import org.simpleframework.xml.transform.Matcher;
+import org.simpleframework.xml.transform.Transform;
+import wpn.hdri.ss.data.Interpolation;
+import wpn.hdri.ss.data.Method;
 
 import javax.annotation.concurrent.Immutable;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.List;
 
 /**
@@ -46,6 +55,38 @@ import java.util.List;
 @Immutable
 @Root(name = "StatusServer", strict = false)
 public final class StatusServerConfiguration {
+    public static final Serializer XML_SERIALIZER = new Persister(new Matcher() {
+        @Override
+        public Transform match(Class type) throws Exception {
+            if (Method.class.isAssignableFrom(type)) {
+                return new Transform<Method>() {
+                    @Override
+                    public Method read(String value) throws Exception {
+                        return Method.valueOf(value.toUpperCase());
+                    }
+
+                    @Override
+                    public String write(Method value) throws Exception {
+                        return value.name();
+                    }
+                };
+            } else if (Interpolation.class.isAssignableFrom(type)) {
+                return new Transform<Interpolation>() {
+                    @Override
+                    public Interpolation read(String value) throws Exception {
+                        return Interpolation.valueOf(value.toUpperCase());
+                    }
+
+                    @Override
+                    public String write(Interpolation value) throws Exception {
+                        return value.name();
+                    }
+                };
+            }
+            return null;
+        }
+    });
+
     @Attribute(name = "server-name")
     private final String serverName;
     @Attribute(name = "instance-name")
@@ -79,6 +120,17 @@ public final class StatusServerConfiguration {
         this.attributes = attributes;
     }
 
+    public static StatusServerConfiguration fromXml(String pathToXml) throws ConfigurationException {
+        if (!new File(pathToXml).exists()) {
+            throw new IllegalArgumentException(pathToXml + " does not exist.");
+        }
+        try {
+            return XML_SERIALIZER.read(StatusServerConfiguration.class, new BufferedReader(new FileReader(pathToXml)));
+        } catch (Exception e) {
+            throw new ConfigurationException(e);
+        }
+    }
+
     public String getServerName() {
         return serverName;
     }
@@ -109,7 +161,7 @@ public final class StatusServerConfiguration {
     }
 
 
-    //TODO
+    //TODO issue 6
     public DeviceAttribute getDeviceAttribute(final String deviceName, final String name) {
         return Iterables.filter(Iterables.filter(devices, new Predicate<Device>() {
             @Override

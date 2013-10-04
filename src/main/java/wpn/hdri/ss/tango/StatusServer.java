@@ -9,7 +9,6 @@ import fr.esrf.Tango.*;
 import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
-import org.tango.orb.ServerRequestInterceptor;
 import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
@@ -20,7 +19,6 @@ import org.tango.server.device.DeviceManager;
 import org.tango.server.dynamic.DynamicManager;
 import org.tango.server.servant.DeviceImpl;
 import wpn.hdri.ss.StatusServerProperties;
-import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.Timestamp;
@@ -32,9 +30,10 @@ import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,7 +47,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class StatusServer implements StatusServerStub {
     private static String XML_CONFIG_PATH;
     private final static String DEFAULT_ATTR_GROUP = "default";
-    private final Multimap <String, String> attributesGroupsMap = HashMultimap.create();
+    private final Multimap<String, String> attributesGroupsMap = HashMultimap.create();
+
     public static void setXmlConfigPath(String v) {
         XML_CONFIG_PATH = v;
     }
@@ -116,7 +116,7 @@ public class StatusServer implements StatusServerStub {
     @DeviceManagement
     private DeviceManager deviceManager;
 
-    public void setDeviceManager(DeviceManager deviceManager){
+    public void setDeviceManager(DeviceManager deviceManager) {
         this.deviceManager = deviceManager;
     }
     // ====================
@@ -126,7 +126,7 @@ public class StatusServer implements StatusServerStub {
     @StateMachine(endState = DeviceState.ON)
     public void init() throws Exception {
         Preconditions.checkNotNull(XML_CONFIG_PATH, "Path to xml configuration is not set.");
-        StatusServerConfiguration configuration = new ConfigurationBuilder().fromXml(XML_CONFIG_PATH);
+        StatusServerConfiguration configuration = StatusServerConfiguration.fromXml(XML_CONFIG_PATH);
 
         StatusServerProperties properties = PropertiesParser.createInstance(StatusServerProperties.class).parseProperties();
 
@@ -181,14 +181,15 @@ public class StatusServer implements StatusServerStub {
     @Attribute
     public void setGroup(String attributesGroup) throws Exception {
         String cid = getClientId();
-        if(!attributesGroupsMap.get(cid).contains(attributesGroup))
+        if (!attributesGroupsMap.get(cid).contains(attributesGroup))
             throw new IllegalArgumentException("No such group exists: " + attributesGroup);
         RequestContext ctx = getContext();
-        if(attributesGroup.equals(DEFAULT_ATTR_GROUP))
+        if (attributesGroup.equals(DEFAULT_ATTR_GROUP))
             attributesGroup = DEFAULT_ATTR_GROUP;
         RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
     }
+
     @Attribute
     public String getGroup() throws Exception {
         RequestContext cxt = getContext();
@@ -196,9 +197,9 @@ public class StatusServer implements StatusServerStub {
     }
 
     private AttributeFilter getFilter() throws Exception {
-          if (getGroup() == DEFAULT_ATTR_GROUP){
-              return AttributeFilters.none();
-          }
+        if (getGroup() == DEFAULT_ATTR_GROUP) {
+            return AttributeFilters.none();
+        }
         return AttributeFilters.byGroup(getGroup());
     }
 
@@ -206,14 +207,14 @@ public class StatusServer implements StatusServerStub {
     //TODO attributes
     @Attribute
     @Override
-    public void setUseAliases(boolean v) throws Exception{
+    public void setUseAliases(boolean v) throws Exception {
         String cid = getClientId();
         RequestContext old = getContext();
-        RequestContext ctx = new RequestContext(v,old.encode,old.outputType,old.lastTimestamp, old.attributesGroup);
-        ctxs.put(cid,ctx);
+        RequestContext ctx = new RequestContext(v, old.encode, old.outputType, old.lastTimestamp, old.attributesGroup);
+        ctxs.put(cid, ctx);
     }
 
-    private boolean isUseAliases() throws Exception{
+    private boolean isUseAliases() throws Exception {
         return getContext().useAliases;
     }
 
@@ -225,7 +226,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Attribute
-    public String[] getData() throws Exception{
+    public String[] getData() throws Exception {
         RequestContext ctx = getContext();
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, getFilter());
 
@@ -236,7 +237,7 @@ public class StatusServer implements StatusServerStub {
     private String[] processResult(AttributeValuesView view) throws Exception {
         RequestContext ctx = getContext();
         String[] result = new String[0];
-        switch (ctx.outputType){
+        switch (ctx.outputType) {
             case PLAIN:
                 result = view.toStringArray();
                 break;
@@ -244,7 +245,7 @@ public class StatusServer implements StatusServerStub {
                 result = new String[]{view.toJsonString()};
                 break;
         }
-        if(ctx.encode){
+        if (ctx.encode) {
             for (int i = 0, resultLength = result.length; i < resultLength; i++) {
                 String string = result[i];
 
@@ -257,7 +258,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Attribute
-    public String[] getUpdates() throws Exception{
+    public String[] getUpdates() throws Exception {
         RequestContext ctx = getContext();
         final Timestamp oldTimestamp = ctx.lastTimestamp;
         final Timestamp timestamp = Timestamp.now();
@@ -336,7 +337,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command
-    public String[] getLatestSnapshot() throws Exception{
+    public String[] getLatestSnapshot() throws Exception {
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(getFilter());
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
@@ -347,7 +348,7 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command
-    public String[] getSnapshot(long value) throws Exception{
+    public String[] getSnapshot(long value) throws Exception {
         Timestamp timestamp = new Timestamp(value);
         Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, getFilter());
 
@@ -365,7 +366,7 @@ public class StatusServer implements StatusServerStub {
         String attributesGroup = args[0];
         RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
-        attributesGroupsMap.put(cid,attributesGroup);
+        attributesGroupsMap.put(cid, attributesGroup);
         engine.createAttributesGroup(attributesGroup, Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
     }
 
@@ -385,28 +386,28 @@ public class StatusServer implements StatusServerStub {
         ServerManager.getInstance().start(args, StatusServer.class);
     }
 
-    private RequestContext getContext() throws Exception{
+    private RequestContext getContext() throws Exception {
         String cid = getClientId();
         RequestContext context = ctxs.get(cid);
-        if(context == null) {
+        if (context == null) {
             ctxs.put(cid, context = new RequestContext());
-            attributesGroupsMap.put(cid,DEFAULT_ATTR_GROUP);
+            attributesGroupsMap.put(cid, DEFAULT_ATTR_GROUP);
         }
         return context;
     }
 
-    private void setContext(RequestContext context) throws Exception{
+    private void setContext(RequestContext context) throws Exception {
         String cid = getClientId();
-        ctxs.put(cid,context);
+        ctxs.put(cid, context);
     }
 
     //TODO avoid this dirty hack
-    private String getClientId() throws Exception{
+    private String getClientId() throws Exception {
         Field deviceImpl = this.deviceManager.getClass().getDeclaredField("device");
         deviceImpl.setAccessible(true);
-        ClntIdent clientIdentity = ((DeviceImpl)deviceImpl.get(this.deviceManager)).getClientIdentity();
+        ClntIdent clientIdentity = ((DeviceImpl) deviceImpl.get(this.deviceManager)).getClientIdentity();
         LockerLanguage discriminator = clientIdentity.discriminator();
-        switch (discriminator.value()){
+        switch (discriminator.value()) {
             case LockerLanguage._JAVA:
                 JavaClntIdent java_clnt = clientIdentity.java_clnt();
                 return java_clnt.MainClass;
@@ -416,7 +417,7 @@ public class StatusServer implements StatusServerStub {
         throw new AssertionError("Should not happen");
     }
 
-    private static enum OutputType{
+    private static enum OutputType {
         PLAIN,
         JSON
     }

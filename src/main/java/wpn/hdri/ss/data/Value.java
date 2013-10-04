@@ -77,7 +77,15 @@ public class Value<T> {
 
     @Override
     public String toString() {
-        return ValueHelper.format(this);
+        if (v == null) {
+            return ValueFormatters.getNullFormatter().format(null);
+        }
+        ValueFormatter<T> formatter = ValueFormatters.getFormatter((Class<T>) v.getClass());
+        if (formatter != null) {
+            return formatter.format(v);
+        } else {
+            return asString();
+        }
     }
 
     private static final ConcurrentMap<Object, Value> CACHE = new ConcurrentHashMap<Object, Value>();

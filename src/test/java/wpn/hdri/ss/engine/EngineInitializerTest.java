@@ -3,7 +3,7 @@ package wpn.hdri.ss.engine;
 import org.junit.Test;
 import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.ClientFactory;
-import wpn.hdri.ss.configuration.ConfigurationBuilder;
+import wpn.hdri.ss.configuration.StatusServerConfiguration;
 
 import static junit.framework.Assert.assertTrue;
 
@@ -21,7 +21,7 @@ public class EngineInitializerTest {
      */
     @Test
     public void testBadClient() throws Exception {
-        EngineInitializer instance = new EngineInitializer(new ConfigurationBuilder().fromXml(xmlConfigPath), new StatusServerProperties());
+        EngineInitializer instance = new EngineInitializer(StatusServerConfiguration.fromXml(xmlConfigPath), new StatusServerProperties());
 
         ClientsManager result = instance.initializeClients();
 

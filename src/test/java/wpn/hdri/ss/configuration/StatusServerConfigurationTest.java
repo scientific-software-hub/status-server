@@ -30,10 +30,6 @@
 package wpn.hdri.ss.configuration;
 
 import org.junit.Test;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.core.Persister;
-import org.simpleframework.xml.transform.Matcher;
-import org.simpleframework.xml.transform.Transform;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
@@ -48,42 +44,9 @@ import static junit.framework.Assert.assertSame;
  * @since 26.04.12
  */
 public class StatusServerConfigurationTest {
-
-    private Serializer persister = new Persister(new Matcher() {
-        @Override
-        public Transform match(Class type) throws Exception {
-            if (Method.class.isAssignableFrom(type)) {
-                return new Transform<Method>() {
-                    @Override
-                    public Method read(String value) throws Exception {
-                        return Method.forAlias(value);
-                    }
-
-                    @Override
-                    public String write(Method value) throws Exception {
-                        return value.getAlias();
-                    }
-                };
-            } else if (Interpolation.class.isAssignableFrom(type)) {
-                return new Transform<Interpolation>() {
-                    @Override
-                    public Interpolation read(String value) throws Exception {
-                        return Interpolation.forAlias(value);
-                    }
-
-                    @Override
-                    public String write(Interpolation value) throws Exception {
-                        return value.getAlias();
-                    }
-                };
-            }
-            return null;
-        }
-    });
-
     @Test
     public void test() throws Exception {
-        StatusServerConfiguration conf = persister.read(StatusServerConfiguration.class, StatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.xml"));
+        StatusServerConfiguration conf = StatusServerConfiguration.XML_SERIALIZER.read(StatusServerConfiguration.class, StatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.xml"));
 
         assertEquals("StatusServer", conf.getServerName());
         assertEquals("Development", conf.getInstanceName());
@@ -109,6 +72,6 @@ public class StatusServerConfigurationTest {
 
     @Test(expected = InvocationTargetException.class)
     public void test_bad() throws Exception {
-        StatusServerConfiguration conf = persister.read(StatusServerConfiguration.class, StatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.BAD.xml"));
+        StatusServerConfiguration conf = StatusServerConfiguration.XML_SERIALIZER.read(StatusServerConfiguration.class, StatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.BAD.xml"));
     }
 }

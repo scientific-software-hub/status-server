@@ -29,40 +29,13 @@
 
 package wpn.hdri.ss.data;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
+ * Defines the method how attribute value is being get by StatusServer
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 26.04.12
  */
 public enum Method {
-    POLL("poll"),
-    EVENT("event");
-
-    private final String alias;
-
-    private Method(String alias) {
-        this.alias = alias;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    private static final Map<String, Method> aliases = new HashMap<String, Method>();
-
-    static {
-        for (Method v : Method.values()) {
-            aliases.put(v.getAlias(), v);
-        }
-    }
-
-    /**
-     * @param alias alias.
-     * @return {@link Method} or null.
-     */
-    public static Method forAlias(String alias) {
-        return aliases.get(alias);
-    }
+    POLL,
+    EVENT
 }

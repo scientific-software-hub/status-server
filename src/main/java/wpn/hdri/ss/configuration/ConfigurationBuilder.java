@@ -34,16 +34,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.core.Persister;
-import org.simpleframework.xml.transform.Matcher;
-import org.simpleframework.xml.transform.Transform;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,50 +47,7 @@ import java.util.List;
  * @since 27.04.12
  */
 public class ConfigurationBuilder {
-    private final Serializer serializer = new Persister(new Matcher() {
-        @Override
-        public Transform match(Class type) throws Exception {
-            if (Method.class.isAssignableFrom(type)) {
-                return new Transform<Method>() {
-                    @Override
-                    public Method read(String value) throws Exception {
-                        return Method.forAlias(value);
-                    }
-
-                    @Override
-                    public String write(Method value) throws Exception {
-                        return value.getAlias();
-                    }
-                };
-            } else if (Interpolation.class.isAssignableFrom(type)) {
-                return new Transform<Interpolation>() {
-                    @Override
-                    public Interpolation read(String value) throws Exception {
-                        return Interpolation.forAlias(value);
-                    }
-
-                    @Override
-                    public String write(Interpolation value) throws Exception {
-                        return value.getAlias();
-                    }
-                };
-            }
-            return null;
-        }
-    });
-
     public ConfigurationBuilder() {
-    }
-
-    public StatusServerConfiguration fromXml(String pathToXml) throws ConfigurationException {
-        if (!new File(pathToXml).exists()) {
-            throw new IllegalArgumentException(pathToXml + " does not exist.");
-        }
-        try {
-            return serializer.read(StatusServerConfiguration.class, new BufferedReader(new FileReader(pathToXml)));
-        } catch (Exception e) {
-            throw new ConfigurationException(e);
-        }
     }
 
     private String serverName;
@@ -110,7 +60,7 @@ public class ConfigurationBuilder {
         return this;
     }
 
-    public ConfigurationBuilder setUseAliases(boolean useAliases){
+    public ConfigurationBuilder setUseAliases(boolean useAliases) {
         this.useAliases = useAliases;
         return this;
     }
@@ -130,8 +80,8 @@ public class ConfigurationBuilder {
             addDevice(deviceName);
         }
 
-        Method method = Method.forAlias(methodAlias);
-        Interpolation interpolation = Interpolation.forAlias(interpolationAlias);
+        Method method = Method.valueOf(methodAlias.toUpperCase());
+        Interpolation interpolation = Interpolation.valueOf(interpolationAlias.toUpperCase());
 
 
         DeviceAttribute attribute = new DeviceAttribute();

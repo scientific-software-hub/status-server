@@ -36,7 +36,6 @@ import hzg.wpn.properties.PropertiesParser;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.tango.server.ServerManager;
-import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.tango.StatusServer;
 
@@ -53,35 +52,35 @@ public class Launcher {
     public static final String CPUS_PROPERTY = "hzg.wpn.ss.engine.available_cpus";
 
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         LOG.info("Parsing cli arguments...");
-            CliOptions cliOptions = parseCl(args);
+        CliOptions cliOptions = parseCl(args);
         LOG.info("Done.");
 
         LOG.info("Parsing properties...");
-            StatusServerProperties properties = parseProperties();
+        StatusServerProperties properties = parseProperties();
         LOG.info("Done.");
 
         LOG.info("Max thread pool value for Engine: " + properties.engineCpus);
 
         LOG.info("Setting System settings...");
         Util.set_serial_model(TangoConst.NO_SYNC);
-        setSystemProperties(properties.jacorbMinCpus,properties.jacorbMaxCpus);
+        setSystemProperties(properties.jacorbMinCpus, properties.jacorbMaxCpus);
         LOG.info("Done.");
 
         LOG.info("Parsing configuration...");
-            StatusServerConfiguration configuration = new ConfigurationBuilder().fromXml(cliOptions.pathToConfiguration);
+        StatusServerConfiguration configuration = StatusServerConfiguration.fromXml(cliOptions.pathToConfiguration);
         LOG.info("Done.");
 
-            if(cliOptions.verbose){
-                LOG.info("Setting verbose level to DEBUG...");
-                Logger.getRootLogger().setLevel(Level.DEBUG);
-                LOG.info("Done.");
-            }
+        if (cliOptions.verbose) {
+            LOG.info("Setting verbose level to DEBUG...");
+            Logger.getRootLogger().setLevel(Level.DEBUG);
+            LOG.info("Done.");
+        }
 
         LOG.info("Initialize and start Tango server instance...");
-            StatusServer.setXmlConfigPath(cliOptions.pathToConfiguration);
-            ServerManager.getInstance().start(new String[]{configuration.getInstanceName()}, StatusServer.class);
+        StatusServer.setXmlConfigPath(cliOptions.pathToConfiguration);
+        ServerManager.getInstance().start(new String[]{configuration.getInstanceName()}, StatusServer.class);
         LOG.info("Done.");
     }
 

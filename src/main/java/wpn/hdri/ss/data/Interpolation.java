@@ -35,15 +35,13 @@ import wpn.hdri.ss.data.attribute.AttributeValueFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 26.04.12
  */
 public enum Interpolation {
-    LINEAR("linear") {
+    LINEAR {
         /**
          * Calculates a value between two points using the following formula:
          * y=y0+((x-x0)(y1-y0))/x1-x0, where xi - time, yi - values
@@ -111,14 +109,14 @@ public enum Interpolation {
             }
         }
     },
-    LAST("last") {
+    LAST {
         @Override
         protected <T> AttributeValue<T> interpolateInternal(AttributeValue<T> left, AttributeValue<T> right, Timestamp timestamp) {
             checkPreconditions(left);
             return left;
         }
     },
-    NEAREST("nearest") {
+    NEAREST {
         /**
          * Assume a = ceil, b = floor, c = timestamp. Returns floor if (c - a) >= (b - c) otherwise ceil.
          *
@@ -146,31 +144,6 @@ public enum Interpolation {
             }
         }
     };
-    private final String alias;
-
-    private Interpolation(String alias) {
-        this.alias = alias;
-    }
-
-    public String getAlias() {
-        return alias;
-    }
-
-    private final static Map<String, Interpolation> aliases = new HashMap<String, Interpolation>();
-
-    static {
-        for (Interpolation v : Interpolation.values()) {
-            aliases.put(v.getAlias(), v);
-        }
-    }
-
-    /**
-     * @param alias alias.
-     * @return {@link Interpolation} or null
-     */
-    public static Interpolation forAlias(String alias) {
-        return aliases.get(alias);
-    }
 
     /**
      * If both left and right are nulls throws NPE

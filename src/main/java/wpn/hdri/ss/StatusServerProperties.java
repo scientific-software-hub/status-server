@@ -10,11 +10,11 @@ import hzg.wpn.properties.Property;
 @Properties(file = "StatusServer.properties")
 public class StatusServerProperties {
     @Property("engine.thread_pool_max")
-    public int engineCpus = Runtime.getRuntime().availableProcessors() * 2;
+    public int engineCpus = Runtime.getRuntime().availableProcessors();
     @Property("jacorb.poa.thread_pool_min")
     public int jacorbMinCpus = 1;
     @Property("jacorb.poa.thread_pool_max")
-    public int jacorbMaxCpus = Runtime.getRuntime().availableProcessors() * 2;
+    public int jacorbMaxCpus = Runtime.getRuntime().availableProcessors();
     @Property("persistent.threshold")
     public long persistentThreshold = 100;
     @Property("persistent.delay")
