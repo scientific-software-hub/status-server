@@ -113,7 +113,7 @@ public abstract class Attribute<T> {
     /**
      * Returns the latest stored value.
      * <p/>
-     * Performance comparable to O(log n) due to underlying SkipList.
+     * Constant time performance due to underlying AtomicReference.
      *
      * @return the latest value
      */
