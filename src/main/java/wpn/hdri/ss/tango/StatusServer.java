@@ -26,7 +26,10 @@ import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.attribute.AttributeName;
 import wpn.hdri.ss.data.attribute.AttributeValue;
 import wpn.hdri.ss.data.attribute.AttributeValuesView;
-import wpn.hdri.ss.engine.*;
+import wpn.hdri.ss.engine.AttributesManager;
+import wpn.hdri.ss.engine.Engine;
+import wpn.hdri.ss.engine.EngineInitializationContext;
+import wpn.hdri.ss.engine.EngineInitializer;
 import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
@@ -47,7 +50,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @Device
 public class StatusServer implements StatusServerStub {
     private static String XML_CONFIG_PATH;
-    private final static String DEFAULT_ATTR_GROUP = "default";
     private final Multimap<String, String> attributesGroupsMap = HashMultimap.create();
 
     public static void setXmlConfigPath(String v) {
@@ -182,11 +184,11 @@ public class StatusServer implements StatusServerStub {
     @Attribute
     public void setGroup(String attributesGroup) throws Exception {
         String cid = getClientId();
-        if (!attributesGroupsMap.get(cid).contains(attributesGroup))
-            throw new IllegalArgumentException("No such group exists: " + attributesGroup);
+        Preconditions.checkArgument(attributesGroupsMap.get(cid).contains(attributesGroup), "No such group exists: " + attributesGroup);
+
         RequestContext ctx = getContext();
-        if (attributesGroup.equals(DEFAULT_ATTR_GROUP))
-            attributesGroup = DEFAULT_ATTR_GROUP;
+        if (attributesGroup.equals(AttributesManager.DEFAULT_ATTR_GROUP))
+            attributesGroup = AttributesManager.DEFAULT_ATTR_GROUP;
         RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
     }
@@ -196,14 +198,6 @@ public class StatusServer implements StatusServerStub {
         RequestContext cxt = getContext();
         return cxt.attributesGroup;
     }
-
-    private AttributeFilter getAttributesFilter() throws Exception {
-        if (getGroup() == DEFAULT_ATTR_GROUP) {
-            return AttributeFilters.none();
-        }
-        return AttributeFilters.byGroup(getGroup());
-    }
-
 
     //TODO attributes
     @Attribute
@@ -229,7 +223,7 @@ public class StatusServer implements StatusServerStub {
     @Attribute
     public String[] getData() throws Exception {
         RequestContext ctx = getContext();
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, getAttributesFilter());
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, ctx.attributesGroup);
 
         AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
         return processResult(view);
@@ -267,7 +261,7 @@ public class StatusServer implements StatusServerStub {
         RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
         setContext(updated);
 
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, getAttributesFilter());
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, ctx.attributesGroup);
 
         AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
 
@@ -344,7 +338,9 @@ public class StatusServer implements StatusServerStub {
         Timestamp from = new Timestamp(fromTo[0]);
         Timestamp to = new Timestamp(fromTo[1]);
 
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getValuesRange(from, to, getAttributesFilter());
+        RequestContext ctx = getContext();
+
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getValuesRange(from, to, ctx.attributesGroup);
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
@@ -355,7 +351,8 @@ public class StatusServer implements StatusServerStub {
     @Override
     @Command
     public String[] getLatestSnapshot() throws Exception {
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(getAttributesFilter());
+        RequestContext ctx = getContext();
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(ctx.attributesGroup);
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
@@ -367,7 +364,8 @@ public class StatusServer implements StatusServerStub {
     @Command
     public String[] getSnapshot(long value) throws Exception {
         Timestamp timestamp = new Timestamp(value);
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, getAttributesFilter());
+        RequestContext ctx = getContext();
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, ctx.attributesGroup);
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
@@ -408,7 +406,7 @@ public class StatusServer implements StatusServerStub {
         RequestContext context = ctxs.get(cid);
         if (context == null) {
             ctxs.put(cid, context = new RequestContext());
-            attributesGroupsMap.put(cid, DEFAULT_ATTR_GROUP);
+            attributesGroupsMap.put(cid, AttributesManager.DEFAULT_ATTR_GROUP);
         }
         return context;
     }
@@ -458,7 +456,7 @@ public class StatusServer implements StatusServerStub {
          * Creates default context
          */
         private RequestContext() {
-            this(false, false, OutputType.PLAIN, Timestamp.DEEP_PAST, DEFAULT_ATTR_GROUP);
+            this(false, false, OutputType.PLAIN, Timestamp.DEEP_PAST, AttributesManager.DEFAULT_ATTR_GROUP);
         }
 
 

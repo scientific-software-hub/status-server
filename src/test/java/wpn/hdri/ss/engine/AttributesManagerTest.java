@@ -30,6 +30,7 @@
 package wpn.hdri.ss.engine;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 import wpn.hdri.ss.configuration.Device;
@@ -38,9 +39,10 @@ import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.attribute.Attribute;
 import wpn.hdri.ss.data.attribute.AttributeFactory;
+import wpn.hdri.ss.data.attribute.AttributeName;
+import wpn.hdri.ss.data.attribute.AttributeValue;
 
 import java.math.BigDecimal;
-import java.util.Collection;
 
 import static junit.framework.Assert.assertTrue;
 
@@ -53,6 +55,17 @@ public class AttributesManagerTest {
     public static final String TEST_ATTR = "test-attr";
 
     private final AttributesManager instance = new AttributesManager(new AttributeFactory());
+    private final DeviceAttribute attr0 = new DeviceAttribute();
+
+    {
+        attr0.setName(TEST_ATTR + "-0");
+        attr0.setAlias(null);
+        attr0.setMethod(Method.POLL);
+        attr0.setInterpolation(Interpolation.LAST);
+        attr0.setDelay(20L);
+        attr0.setPrecision(BigDecimal.ZERO);
+    }
+
     private final DeviceAttribute attr = new DeviceAttribute();
 
     {
@@ -64,16 +77,16 @@ public class AttributesManagerTest {
         attr.setPrecision(BigDecimal.ZERO);
     }
 
-    private final Device dev = new Device("Test", Lists.newArrayList(attr));
+    private final Device dev = new Device("Test", Lists.newArrayList(attr0, attr));
 
     @Test
     public void testAttributesGroup() {
+        instance.initializeAttribute(attr0, dev.getName(), null, Double.class, false);
         Attribute<?> initializedAttribute = instance.initializeAttribute(attr, dev.getName(), null, Double.class, false);
         instance.createAttributesGroup("group1", Sets.newHashSet(initializedAttribute.getFullName()));
 
-        Collection<Attribute<?>> result = instance.getAttributesByGroup("group1");
+        Multimap<AttributeName, AttributeValue<?>> result = instance.takeLatestSnapshot("group1");
 
         assertTrue(result.size() == 1);
-        assertTrue(result.contains(initializedAttribute));
     }
 }

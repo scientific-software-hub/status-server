@@ -116,26 +116,26 @@ public class Engine {
      * Returns all attributes values which were written after a timestamp
      *
      * @param timestamp older value will be discarded. May be null - all stored values will be returned
-     * @param filter
+     * @param group
      * @return a multimap: attribute full name -> attribute values
      */
-    public Multimap<AttributeName, AttributeValue<?>> getAllAttributeValues(@Nullable Timestamp timestamp, AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> getAllAttributeValues(@Nullable Timestamp timestamp, String group) {
         if (timestamp == null) {
             timestamp = Timestamp.DEEP_PAST;
         }
-        return attributesManager.takeAllAttributeValues(timestamp, filter);
+        return attributesManager.takeAllAttributeValues(timestamp, group);
     }
 
     /**
      * Returns values bounded by timestamp
      *
      * @param timestamp
-     * @param filter
+     * @param group
      * @return attribute full name -> attribute value @ timestamp
      * @throws NullPointerException if any of arguments is null
      */
-    public Multimap<AttributeName, AttributeValue<?>> getValues(Timestamp timestamp, AttributeFilter filter) {
-        return attributesManager.takeSnapshot(timestamp, filter);
+    public Multimap<AttributeName, AttributeValue<?>> getValues(Timestamp timestamp, String group) {
+        return attributesManager.takeSnapshot(timestamp, group);
     }
 
     /**
@@ -230,8 +230,8 @@ public class Engine {
         attributesManager.createAttributesGroup(groupName, attrFullNames);
     }
 
-    public Multimap<AttributeName, AttributeValue<?>> getLatestValues(AttributeFilter filter) {
-        return attributesManager.takeLatestSnapshot(filter);
+    public Multimap<AttributeName, AttributeValue<?>> getLatestValues(String group) {
+        return attributesManager.takeLatestSnapshot(group);
     }
 
     public <T> void writeAttributeValue(String attrName, T data, Timestamp timestamp) {
@@ -255,7 +255,7 @@ public class Engine {
         return attributesManager.getAttributeClasses();
     }
 
-    public Multimap<AttributeName, AttributeValue<?>> getValuesRange(Timestamp from, Timestamp to, AttributeFilter filter) {
-        return attributesManager.takeAttributeValues(from, to, filter);
+    public Multimap<AttributeName, AttributeValue<?>> getValuesRange(Timestamp from, Timestamp to, String group) {
+        return attributesManager.takeAttributeValues(from, to, group);
     }
 }

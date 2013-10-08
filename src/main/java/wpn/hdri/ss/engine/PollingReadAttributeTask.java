@@ -63,6 +63,7 @@ public class PollingReadAttributeTask implements Runnable {
                 long delay = getDelay() + tries.get() * getDelay();
                 logger.warn("Next try in " + delay);
                 try {
+                    //TODO check that this does not prevent other tasks from executing
                     Thread.sleep(delay);
                 } catch (InterruptedException e1) {
                     Thread.currentThread().interrupt();

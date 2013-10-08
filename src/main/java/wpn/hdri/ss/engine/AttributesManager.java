@@ -46,11 +46,14 @@ import java.util.*;
 import java.util.Map.Entry;
 
 /**
+ * Facade implements common operations on {@link Attribute}s
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 30.04.12
  */
 @ThreadSafe
 public class AttributesManager {
+    public final static String DEFAULT_ATTR_GROUP = "default";
     // Thread Locals
     private final ThreadLocal<AttributesSnapshot> snapshotLocal = new ThreadLocal<AttributesSnapshot>() {
         @Override
@@ -69,8 +72,8 @@ public class AttributesManager {
     // Different combinations of attributes
     private final Map<Attribute<?>, Client> attributes = Maps.newIdentityHashMap();
     private final Map<AttributeName, Class<?>> attributeClasses = Maps.newIdentityHashMap();
-    private final Multimap<Method, Attribute<?>> attributesByMethod = HashMultimap.create();
     private final BiMap<String, Attribute<?>> attributesByFullName = HashBiMap.create();
+    private final Multimap<Method, Attribute<?>> attributesByMethod = HashMultimap.create();
     private final Multimap<String, Attribute<?>> attributesByGroup =
             Multimaps.newListMultimap(new HashMap<String, Collection<Attribute<?>>>(), new Supplier<List<Attribute<?>>>() {
                 @Override
@@ -103,6 +106,7 @@ public class AttributesManager {
      * @return unmodifiable collection
      */
     public Collection<Attribute<?>> getAttributesByMethod(Method method) {
+        //we do need this filtering because attribute does not contain method so we can not remove it in reportBadAttribute
         return Collections2.filter(attributesByMethod.get(method), new Predicate<Attribute<?>>() {
             @Override
             public boolean apply(Attribute<?> input) {
@@ -117,13 +121,13 @@ public class AttributesManager {
 
     /**
      * @param timestamp
-     * @param filter
+     * @param group
      * @return collection of attributes managed by this manager
      */
-    public Multimap<AttributeName, AttributeValue<?>> takeAllAttributeValues(Timestamp timestamp, AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> takeAllAttributeValues(Timestamp timestamp, String group) {
         AttributeValues attributeValues = attributeValuesLocal.get();
         attributeValues.clear();
-        attributeValues.update(timestamp, filter);
+        attributeValues.update(timestamp, group);
 
         return attributeValues.getValues();
     }
@@ -140,7 +144,7 @@ public class AttributesManager {
      * @param message  reason
      */
     public void reportBadAttribute(String fullName, String message) {
-        Attribute<?> attribute = attributesByFullName.get(fullName);
+        Attribute<?> attribute = attributesByFullName.remove(fullName);
         attributes.remove(attribute);
         badAttributes.put(fullName, message);
     }
@@ -174,31 +178,29 @@ public class AttributesManager {
         attributesByGroup.putAll(groupName, Iterables.filter(attributesByFullName.values(), new Predicate<Attribute<?>>() {
             @Override
             public boolean apply(Attribute<?> input) {
-                return attrNames.contains(input.getName().getFullName()) && !badAttributes.containsKey(input.getName().getFullName());
+                assert !badAttributes.containsKey(input.getName().getFullName()) : "attributesByFullName contains only live attributes at this point";
+                return attrNames.contains(input.getName().getFullName());
             }
         }));
     }
 
-    public Collection<Attribute<?>> getAttributesByGroup(String groupName) {
-        Collection<Attribute<?>> collection = attributesByGroup.get(groupName);
-        if (collection == null) {
-            return Collections.emptySet();
-        }
-        return collection;
+    private Collection<Attribute<?>> getAttributesByGroup(String groupName) {
+        if (groupName == DEFAULT_ATTR_GROUP || groupName == null) return attributes.keySet();
+        return attributesByGroup.get(groupName);
     }
 
-    public Multimap<AttributeName, AttributeValue<?>> takeSnapshot(Timestamp timestamp, final AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> takeSnapshot(Timestamp timestamp, final String group) {
         AttributesSnapshot snapshot = snapshotLocal.get();
         snapshot.clear();
-        snapshot.update(timestamp, filter);
+        snapshot.update(timestamp, group);
 
         return snapshot.getValues();
     }
 
-    public Multimap<AttributeName, AttributeValue<?>> takeLatestSnapshot(AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> takeLatestSnapshot(String group) {
         AttributesSnapshot snapshot = snapshotLocal.get();
         snapshot.clear();
-        snapshot.update(filter);
+        snapshot.update(group);
 
         return snapshot.getValues();
     }
@@ -220,13 +222,10 @@ public class AttributesManager {
         return result;
     }
 
-    public Multimap<AttributeName, AttributeValue<?>> takeAttributeValues(Timestamp from, Timestamp to, AttributeFilter filter) {
+    public Multimap<AttributeName, AttributeValue<?>> takeAttributeValues(Timestamp from, Timestamp to, String group) {
         Multimap<AttributeName, AttributeValue<?>> result = HashMultimap.create();
-        for (Attribute<?> attr : getAllAttributes()) {
-            if (filter.apply(this, attr)) {
-                result.putAll(attr.getName(), attr.getAttributeValues(from, to));
-            }
-
+        for (Attribute<?> attr : getAttributesByGroup(group)) {
+            result.putAll(attr.getName(), attr.getAttributeValues(from, to));
         }
         return result;
     }
@@ -241,17 +240,15 @@ public class AttributesManager {
             values.clear();
         }
 
-        void update(Timestamp timestamp, AttributeFilter filter) {
-            for (Attribute<?> attr : attributes.keySet()) {
-                if (filter.apply(AttributesManager.this, attr))
-                    values.put(attr.getName(), attr.getAttributeValue(timestamp));
+        void update(Timestamp timestamp, String group) {
+            for (Attribute<?> attr : AttributesManager.this.getAttributesByGroup(group)) {
+                values.put(attr.getName(), attr.getAttributeValue(timestamp));
             }
         }
 
-        void update(AttributeFilter filter) {
-            for (Attribute<?> attr : attributes.keySet()) {
-                if (filter.apply(AttributesManager.this, attr))
-                    values.put(attr.getName(), attr.getAttributeValue());
+        void update(String group) {
+            for (Attribute<?> attr : AttributesManager.this.getAttributesByGroup(group)) {
+                values.put(attr.getName(), attr.getAttributeValue());
             }
         }
 
@@ -366,10 +363,9 @@ public class AttributesManager {
             values.clear();
         }
 
-        void update(Timestamp timestamp, AttributeFilter filter) {
-            for (Attribute<?> attr : attributes.keySet()) {
-                if (filter.apply(AttributesManager.this, attr))
-                    values.putAll(attr.getName(), attr.getAttributeValues(timestamp));
+        void update(Timestamp timestamp, String group) {
+            for (Attribute<?> attr : AttributesManager.this.getAttributesByGroup(group)) {
+                values.putAll(attr.getName(), attr.getAttributeValues(timestamp));
             }
         }
 

@@ -51,7 +51,7 @@ public class PersistentStorageTask implements Runnable {
 
     public void persist() {
         try {
-            Multimap<AttributeName, AttributeValue<?>> values = attributesManager.takeAllAttributeValues(lastTimestamp.getAndSet(Timestamp.now()), AttributeFilters.none());
+            Multimap<AttributeName, AttributeValue<?>> values = attributesManager.takeAllAttributeValues(lastTimestamp.getAndSet(Timestamp.now()), AttributesManager.DEFAULT_ATTR_GROUP);
             AttributeValuesView view = new AttributeValuesView(values);
 
             Files.write(output, Arrays.asList(view.toStringArray()), Charset.forName("UTF-8"), StandardOpenOption.CREATE, StandardOpenOption.APPEND);

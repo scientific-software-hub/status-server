@@ -110,7 +110,7 @@ public class EngineTest {
         Thread.sleep(7000);
         engine.stop();
 
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributeFilters.none());
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(AttributesManager.DEFAULT_ATTR_GROUP);
 
         assertSame(Value.NULL, Iterables.getFirst(values.asMap().get(new AttributeName("Test.Device", "Test.Attribute", null)), null).getValue());
 //        this produces NPE because event based attribute has never been updated
