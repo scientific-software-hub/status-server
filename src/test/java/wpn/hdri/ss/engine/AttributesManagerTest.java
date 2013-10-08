@@ -86,7 +86,9 @@ public class AttributesManagerTest {
         instance.createAttributesGroup("group1", Sets.newHashSet(initializedAttribute.getFullName()));
 
         Multimap<AttributeName, AttributeValue<?>> result = instance.takeLatestSnapshot("group1");
-
         assertTrue(result.size() == 1);
+
+        Multimap<AttributeName, AttributeValue<?>> result0 = instance.takeLatestSnapshot(null);
+        assertTrue(result0.size() == 2);
     }
 }
