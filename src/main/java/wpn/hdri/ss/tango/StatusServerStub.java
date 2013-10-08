@@ -30,6 +30,12 @@ public interface StatusServerStub {
     @Attribute
     long getCrtTimestamp();
 
+    @Attribute
+    void setEncode(boolean encode) throws Exception;
+
+    @Attribute
+    void setOutputType(String outputType) throws Exception;
+
     @Command
     String[] getUpdates() throws Exception;
 

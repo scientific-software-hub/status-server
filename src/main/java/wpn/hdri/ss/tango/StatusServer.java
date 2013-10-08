@@ -1,10 +1,7 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.google.common.primitives.Longs;
 import fr.esrf.Tango.*;
 import hzg.wpn.properties.PropertiesParser;
@@ -38,6 +35,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -62,6 +60,9 @@ public class StatusServer implements StatusServerStub {
         String LIGHT_POLLING_AT_FIXED_RATE = "LIGHT_POLLING_AT_FIXED_RATE";
         String HEAVY_DUTY = "HEAVY_DUTY";
     }
+
+    private static final Set<String> SUPPORTED_OUTPUT_TYPES = Sets.newHashSet("JSON", "PLAIN");
+
 
     /**
      * This field tracks ctxs of the clients and is used in getXXXUpdates methods
@@ -217,6 +218,24 @@ public class StatusServer implements StatusServerStub {
     @Attribute
     public long getCrtTimestamp() {
         return System.currentTimeMillis();
+    }
+
+    @Attribute
+    @Override
+    public void setEncode(boolean encode) throws Exception {
+        RequestContext ctx = getContext();
+        RequestContext updated = new RequestContext(ctx.useAliases, encode, ctx.outputType, ctx.lastTimestamp, ctx.attributesGroup);
+        setContext(updated);
+    }
+
+    @Attribute
+    @AttributeProperties(description = "defines output type. Valid values are: PLAIN, JSON")
+    @Override
+    public void setOutputType(String outputType) throws Exception {
+        OutputType type = OutputType.valueOf(outputType.toUpperCase());
+        RequestContext ctx = getContext();
+        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, type, ctx.lastTimestamp, ctx.attributesGroup);
+        setContext(updated);
     }
 
     @Override
