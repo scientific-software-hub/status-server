@@ -1,12 +1,12 @@
 package wpn.hdri.ss;
 
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import wpn.hdri.ss.tango.StatusServerStub;
 import wpn.hdri.tango.proxy.TangoProxy;
 
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 import static org.junit.Assert.assertTrue;
@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 public class ITClientServerTest {
     private final static ExecutorService STATUS_SERVER_EXECUTOR = Executors.newSingleThreadExecutor(new ThreadFactory() {
         private final ThreadFactory decorated = Executors.defaultThreadFactory();
+
         @Override
         public Thread newThread(Runnable r) {
             Thread thread = decorated.newThread(r);
@@ -28,13 +29,13 @@ public class ITClientServerTest {
     });
 
     @BeforeClass
-    public static void before() throws Exception{
+    public static void before() throws Exception {
         final CountDownLatch start = new CountDownLatch(1);
         STATUS_SERVER_EXECUTOR.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Launcher.main(new String[]{"development","-v","-c=src/main/conf/StatusServer.configuration.xml"});
+                    Launcher.main(new String[]{"development", "-v", "-c=src/main/conf/StatusServer.configuration.xml"});
                     start.countDown();
                 } catch (Exception e) {
                     assertTrue(false);
@@ -46,7 +47,7 @@ public class ITClientServerTest {
     }
 
     @AfterClass
-    public static void after(){
+    public static void after() {
         STATUS_SERVER_EXECUTOR.shutdownNow();
     }
 
@@ -57,9 +58,9 @@ public class ITClientServerTest {
         //TODO class cast exception
 //        System.out.println(instance.getState());
         String status = instance.getStatus();
-        System.out.println(status);
+        System.out.println(instance.getStatus());
 
-        if(status.equals("IDLE"))
+        if (status.equals("IDLE"))
             instance.startCollectData();
 
         instance.setUseAliases(true);
@@ -70,10 +71,12 @@ public class ITClientServerTest {
             instance.getLatestSnapshot();
         }
 
+        long startMillis = System.currentTimeMillis();
         long start = System.nanoTime();
         for (int i = 0; i < 10000; ++i) {
             instance.getLatestSnapshot();
         }
+        long endMillis = System.currentTimeMillis();
         long end = System.nanoTime();
 
         long delta = end - start;
@@ -86,7 +89,11 @@ public class ITClientServerTest {
         System.out.println("Average time in getLatestValues (millis) = " + TimeUnit.NANOSECONDS.toMillis(average));
         System.out.println("Average time in getLatestValues (seconds) = " + TimeUnit.NANOSECONDS.toSeconds(average));
 
-        if(status.equals("HEAVY_DUTY"))
+        System.out.println("Start in millis:" + startMillis);
+        System.out.println(Arrays.toString(instance.getDataRange(new long[]{startMillis, endMillis})));
+        System.out.println("End in millis:" + endMillis);
+
+        if (instance.getStatus().equals("HEAVY_DUTY"))
             instance.stopCollectData();
 
 //        System.out.println(instance.getCrtActivity());
@@ -94,7 +101,7 @@ public class ITClientServerTest {
 //        assertTrue(average < 100000);
     }
 
-//    @Test
+    //    @Test
     public void testMultithreading() throws Exception {
         ExecutorService exec = Executors.newFixedThreadPool(2);
 

@@ -5,6 +5,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.primitives.Longs;
 import fr.esrf.Tango.*;
 import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
@@ -196,7 +197,7 @@ public class StatusServer implements StatusServerStub {
         return cxt.attributesGroup;
     }
 
-    private AttributeFilter getFilter() throws Exception {
+    private AttributeFilter getAttributesFilter() throws Exception {
         if (getGroup() == DEFAULT_ATTR_GROUP) {
             return AttributeFilters.none();
         }
@@ -228,7 +229,7 @@ public class StatusServer implements StatusServerStub {
     @Attribute
     public String[] getData() throws Exception {
         RequestContext ctx = getContext();
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, getFilter());
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(null, getAttributesFilter());
 
         AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
         return processResult(view);
@@ -266,7 +267,7 @@ public class StatusServer implements StatusServerStub {
         RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
         setContext(updated);
 
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, getFilter());
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, getAttributesFilter());
 
         AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
 
@@ -337,8 +338,24 @@ public class StatusServer implements StatusServerStub {
 
     @Override
     @Command
+    public String[] getDataRange(long[] fromTo) throws Exception {
+        Preconditions.checkArgument(fromTo.length == 2, "Two elements are expected here: 0 - from timestamp; 1 - to timestamp");
+        Preconditions.checkArgument(Longs.compare(fromTo[0], fromTo[1]) < 0, "'from' should be less than 'to'!");
+        Timestamp from = new Timestamp(fromTo[0]);
+        Timestamp to = new Timestamp(fromTo[1]);
+
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getValuesRange(from, to, getAttributesFilter());
+
+        AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
+
+        String[] output = view.toStringArray();
+        return output;
+    }
+
+    @Override
+    @Command
     public String[] getLatestSnapshot() throws Exception {
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(getFilter());
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(getAttributesFilter());
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
@@ -350,7 +367,7 @@ public class StatusServer implements StatusServerStub {
     @Command
     public String[] getSnapshot(long value) throws Exception {
         Timestamp timestamp = new Timestamp(value);
-        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, getFilter());
+        Multimap<AttributeName, AttributeValue<?>> values = engine.getValues(timestamp, getAttributesFilter());
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 

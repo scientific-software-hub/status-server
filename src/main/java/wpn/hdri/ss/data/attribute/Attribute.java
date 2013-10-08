@@ -225,4 +225,8 @@ public abstract class Attribute<T> {
         size.addAndGet(-head.size());
         head.clear();
     }
+
+    public Iterable<AttributeValue<T>> getAttributeValues(Timestamp from, Timestamp to) {
+        return values.subMap(from, true, to, true).values();
+    }
 }

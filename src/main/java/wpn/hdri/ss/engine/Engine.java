@@ -103,7 +103,7 @@ public class Engine {
     }
 
     public void startPersister(long persistentDelay) {
-        if (persister == null) throw new IllegalStateException("persister should not be null at this point");
+        Preconditions.checkState(persister != null, "persister should not be null at this point");
         persisterTask = scheduler.scheduleWithFixedDelay(persister, persistentDelay, persistentDelay, TimeUnit.MILLISECONDS);
     }
 
@@ -135,8 +135,6 @@ public class Engine {
      * @throws NullPointerException if any of arguments is null
      */
     public Multimap<AttributeName, AttributeValue<?>> getValues(Timestamp timestamp, AttributeFilter filter) {
-        Preconditions.checkNotNull(timestamp);
-        Preconditions.checkNotNull(filter);
         return attributesManager.takeSnapshot(timestamp, filter);
     }
 
@@ -233,7 +231,6 @@ public class Engine {
     }
 
     public Multimap<AttributeName, AttributeValue<?>> getLatestValues(AttributeFilter filter) {
-        Preconditions.checkNotNull(filter);
         return attributesManager.takeLatestSnapshot(filter);
     }
 
@@ -256,5 +253,9 @@ public class Engine {
 
     public Iterable<Map.Entry<AttributeName, Class<?>>> getAttributeClasses() {
         return attributesManager.getAttributeClasses();
+    }
+
+    public Multimap<AttributeName, AttributeValue<?>> getValuesRange(Timestamp from, Timestamp to, AttributeFilter filter) {
+        return attributesManager.takeAttributeValues(from, to, filter);
     }
 }

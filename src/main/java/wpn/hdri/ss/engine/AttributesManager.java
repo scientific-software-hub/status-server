@@ -220,6 +220,17 @@ public class AttributesManager {
         return result;
     }
 
+    public Multimap<AttributeName, AttributeValue<?>> takeAttributeValues(Timestamp from, Timestamp to, AttributeFilter filter) {
+        Multimap<AttributeName, AttributeValue<?>> result = HashMultimap.create();
+        for (Attribute<?> attr : getAllAttributes()) {
+            if (filter.apply(this, attr)) {
+                result.putAll(attr.getName(), attr.getAttributeValues(from, to));
+            }
+
+        }
+        return result;
+    }
+
     /**
      * Designed to be thread confinement
      */

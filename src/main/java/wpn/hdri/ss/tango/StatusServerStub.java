@@ -1,9 +1,10 @@
 package wpn.hdri.ss.tango;
 
 import org.tango.DeviceState;
-import org.tango.server.annotation.*;
-
-import java.io.IOException;
+import org.tango.server.annotation.Attribute;
+import org.tango.server.annotation.Command;
+import org.tango.server.annotation.Init;
+import org.tango.server.annotation.StateMachine;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -54,6 +55,9 @@ public interface StatusServerStub {
     @Command
     @StateMachine(endState = DeviceState.ON)
     void stopCollectData();
+
+    @Command
+    String[] getDataRange(long[] fromTo) throws Exception;
 
     @Command
     String[] getLatestSnapshot() throws Exception;
