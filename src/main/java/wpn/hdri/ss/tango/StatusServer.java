@@ -363,8 +363,7 @@ public class StatusServer implements StatusServerStub {
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
-        String[] output = view.toStringArray();
-        return output;
+        return processResult(view);
     }
 
     @Override
@@ -373,10 +372,10 @@ public class StatusServer implements StatusServerStub {
         RequestContext ctx = getContext();
         Multimap<AttributeName, AttributeValue<?>> values = engine.getLatestValues(ctx.attributesGroup);
 
+
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
-        String[] output = view.toStringArray();
-        return output;
+        return processResult(view);
     }
 
     @Override
@@ -388,8 +387,7 @@ public class StatusServer implements StatusServerStub {
 
         AttributeValuesView view = new AttributeValuesView(values, isUseAliases());
 
-        String[] output = view.toStringArray();
-        return output;
+        return processResult(view);
     }
 
     @Override
