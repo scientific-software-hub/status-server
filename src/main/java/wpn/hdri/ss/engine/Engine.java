@@ -104,7 +104,7 @@ public class Engine {
 
     public void startPersister(long persistentDelay) {
         Preconditions.checkState(persister != null, "persister should not be null at this point");
-        persisterTask = scheduler.scheduleWithFixedDelay(persister, persistentDelay, persistentDelay, TimeUnit.MILLISECONDS);
+        persisterTask = scheduler.scheduleWithFixedDelay(persister, persistentDelay, persistentDelay, TimeUnit.SECONDS);
     }
 
     public void stopPersister() {

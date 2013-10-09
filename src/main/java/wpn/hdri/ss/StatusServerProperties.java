@@ -18,7 +18,7 @@ public class StatusServerProperties {
     @Property("persistent.threshold")
     public long persistentThreshold = 100;
     @Property("persistent.delay")
-    public long persistentDelay = 10;
+    public long persistentDelay = 1;
     @Property("persistent.root")
     public String persistentRoot = ".";
 }
