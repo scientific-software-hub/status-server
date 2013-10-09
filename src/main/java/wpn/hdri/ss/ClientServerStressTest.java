@@ -1,6 +1,5 @@
 package wpn.hdri.ss;
 
-import org.junit.Test;
 import wpn.hdri.ss.tango.StatusServerStub;
 import wpn.hdri.tango.proxy.TangoProxy;
 
@@ -12,7 +11,12 @@ import java.util.concurrent.*;
  * @since 20.06.13
  */
 public class ClientServerStressTest {
-    @Test
+    public static void main(String... args) throws Exception {
+        ClientServerStressTest instance = new ClientServerStressTest();
+
+        instance.test();
+    }
+
     public void test() throws Exception {
         StatusServerStub instance = TangoProxy.proxy("tango://hzgharwi3:10000/development/1.0.1-SNAPSHOT/0", StatusServerStub.class);
 
