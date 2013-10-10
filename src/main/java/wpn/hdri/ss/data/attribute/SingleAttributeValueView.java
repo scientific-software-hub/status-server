@@ -20,7 +20,7 @@ public class SingleAttributeValueView {
         bld.append('{');
 
         bld.append("'value':");
-        Class<?> valueClass = value.getValue().get().getClass();
+        Class<?> valueClass = value.getValue().getValueClass();
         if (valueClass == String.class || valueClass.isArray())
             bld.append('\'');
         bld.append(value.getValueAsString());

@@ -113,4 +113,10 @@ public class Value<T> {
             return oldValue == null ? newValue : oldValue;
         }
     }
+
+    @SuppressWarnings("unchecked")
+    public Class<?> getValueClass() {
+        if (this == Value.NULL) return String.class;
+        return v.getClass();
+    }
 }
