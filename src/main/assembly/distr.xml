@@ -63,10 +63,10 @@
         </fileSet>
     </fileSets>
     <files>
-        <file>
+        <!--<file>
             <source>StatusServerUserManual.pdf</source>
             <outputDirectory>/</outputDirectory>
-        </file>
+        </file>-->
         <file>
             <source>StatusServer.properties</source>
             <outputDirectory>/bin</outputDirectory>
