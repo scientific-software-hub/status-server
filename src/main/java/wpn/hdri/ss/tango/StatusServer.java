@@ -204,10 +204,9 @@ public class StatusServer implements StatusServerStub {
     @Attribute
     @Override
     public void setUseAliases(boolean v) throws Exception {
-        String cid = getClientId();
         RequestContext old = getContext();
         RequestContext ctx = new RequestContext(v, old.encode, old.outputType, old.lastTimestamp, old.attributesGroup);
-        ctxs.put(cid, ctx);
+        setContext(ctx);
     }
 
     private boolean isUseAliases() throws Exception {
