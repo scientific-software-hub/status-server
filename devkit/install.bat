@@ -3,7 +3,7 @@
 set TINE_VER=4.3.9
 echo TINE_VER=%TINE_VER%
 
-set JTANGO_VER=1.0.2-alpha-all
+set JTANGO_VER=1.1.0-all
 echo JTANGO_VER=%JTANGO_VER%
 
 call mvn install:install-file -Dfile=tineJAVA-%TINE_VER%.jar -DgroupId=de.desy.tine -DartifactId=tineJAVA -Dversion=%TINE_VER% -Dpackaging=jar -DgeneratePom=true
