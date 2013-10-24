@@ -1,7 +1,10 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
 import fr.esrf.Tango.*;
 import hzg.wpn.properties.PropertiesParser;
@@ -15,7 +18,6 @@ import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.IAttributeBehavior;
 import org.tango.server.device.DeviceManager;
 import org.tango.server.dynamic.DynamicManager;
-import org.tango.server.servant.DeviceImpl;
 import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
@@ -31,11 +33,9 @@ import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
 import wpn.hdri.tango.data.type.TangoDataType;
 import wpn.hdri.tango.data.type.TangoDataTypes;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -60,9 +60,6 @@ public class StatusServer implements StatusServerStub {
         String LIGHT_POLLING_AT_FIXED_RATE = "LIGHT_POLLING_AT_FIXED_RATE";
         String HEAVY_DUTY = "HEAVY_DUTY";
     }
-
-    private static final Set<String> SUPPORTED_OUTPUT_TYPES = Sets.newHashSet("JSON", "PLAIN");
-
 
     /**
      * This field tracks ctxs of the clients and is used in getXXXUpdates methods
@@ -432,11 +429,8 @@ public class StatusServer implements StatusServerStub {
         ctxs.put(cid, context);
     }
 
-    //TODO avoid this dirty hack
     private String getClientId() throws Exception {
-        Field deviceImpl = this.deviceManager.getClass().getDeclaredField("device");
-        deviceImpl.setAccessible(true);
-        ClntIdent clientIdentity = ((DeviceImpl) deviceImpl.get(this.deviceManager)).getClientIdentity();
+        ClntIdent clientIdentity = this.deviceManager.getClientIdentity();
         LockerLanguage discriminator = clientIdentity.discriminator();
         switch (discriminator.value()) {
             case LockerLanguage._JAVA:
