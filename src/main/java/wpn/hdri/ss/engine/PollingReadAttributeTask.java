@@ -7,7 +7,6 @@ import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.data.attribute.Attribute;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -25,11 +24,11 @@ public class PollingReadAttributeTask implements Runnable {
     /**
      * After each failed read attempt this will be multiplied by delay to get a delay before next attempt
      */
-    private final AtomicLong tries = new AtomicLong(0L);
+    private volatile byte tries = 0;
     /**
      * Defines a number of tries this read task will attempt before throw an exception
      */
-    public final static long MAX_TRIES = 10L;
+    public final static byte MAX_TRIES = 10;
 
 
     public PollingReadAttributeTask(Attribute<?> attribute, Client devClient, long delay, boolean append, Logger logger) {
@@ -56,18 +55,11 @@ public class PollingReadAttributeTask implements Runnable {
             else
                 attribute.replaceValue(Timestamp.now(), Value.getInstance(data), result.getValue());
 
-            tries.set(0L);
+            if (tries != 0)
+                tries = 0;
         } catch (Exception e) {
-            if (tries.incrementAndGet() < MAX_TRIES) {
-                logger.warn("An attempt to read attribute " + attribute.getFullName() + " has failed. Tries left: " + (MAX_TRIES - tries.get()), e);
-                long delay = getDelay() + tries.get() * getDelay();
-                logger.warn("Next try in " + delay);
-                try {
-                    //TODO check that this does not prevent other tasks from executing
-                    Thread.sleep(delay);
-                } catch (InterruptedException e1) {
-                    Thread.currentThread().interrupt();
-                }
+            if (++tries < MAX_TRIES) {
+                logger.warn("An attempt to read attribute " + attribute.getFullName() + " has failed. Tries left: " + (MAX_TRIES - tries), e);
             } else {
                 logger.warn("All attempts to read attribute " + attribute.getFullName() + " failed. Writing null.", e);
 
