@@ -21,7 +21,7 @@ rm -r $INSTALL_DIR
 
 $M2_HOME/bin/mvn install:install-file -Dfile=tineJAVA-$TINE_VER.jar -DgroupId=de.desy.tine -DartifactId=tineJAVA -Dversion=4.3.9 -Dpackaging=jar -DgeneratePom=true
 
-$M2_HOME/bin/mvn install:install-file -Dfile=JTangoServer-$JTANGO_VER.jar -DgroupId=org.tango -DartifactId=JTangoServer -Dversion=1.0.2-alpha-all -Dpackaging=jar -DgeneratePom=true -Dpackaging=jar
+$M2_HOME/bin/mvn install:install-file -Dfile=JTangoServer-$JTANGO_VER.jar -DgroupId=org.tango -DartifactId=JTangoServer -Dversion=$JTANGO_VER -Dpackaging=jar -DgeneratePom=true -Dpackaging=jar
 
 _install "utils" "0.0.1"
 
