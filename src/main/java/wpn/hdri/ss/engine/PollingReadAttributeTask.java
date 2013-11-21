@@ -65,6 +65,7 @@ public class PollingReadAttributeTask implements Runnable {
 
                 Timestamp now = Timestamp.now();
                 attribute.addValue(now, Value.NULL, now);
+                tries = 0;
             }
         }
     }
