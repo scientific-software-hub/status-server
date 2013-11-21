@@ -219,7 +219,7 @@ public class TineClient extends Client {
         Future<TLink> futureLink = tlinks.remove(attrName);
         try {
             final TLink link = futureLink.get();
-            int rc = link.cancel();
+            int rc = link.close();
             if (rc < 0) {
                 throw new ClientException(link.getLastError(), null);
             }
