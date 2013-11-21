@@ -1,6 +1,6 @@
 @echo off
 
-set TINE_VER=4.3.9
+set TINE_VER=4.3.12
 echo TINE_VER=%TINE_VER%
 
 set JTANGO_VER=1.1.0-all
