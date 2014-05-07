@@ -86,10 +86,10 @@
         <dependency>
             <groupId>hzg.wpn</groupId>
             <artifactId>TangoAPI</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.8</version>
             <exclusions>
                 <exclusion>
-                    <groupId>fr.esrf.tango</groupId>
+                    <groupId>org.tango</groupId>
                     <artifactId>TangORB</artifactId>
                 </exclusion>
             </exclusions>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>1.1.0-all</version>
+            <version>1.1.4</version>
         </dependency>
         <dependency>
             <groupId>hzg.wpn</groupId>

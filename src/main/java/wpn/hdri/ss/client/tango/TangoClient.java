@@ -48,10 +48,10 @@ import java.util.Map;
  */
 @NotThreadSafe
 public class TangoClient extends Client {
-    private final TangoProxyWrapper proxy;
+    private final TangoProxy proxy;
     private Map<String, Integer> listeners = new HashMap<String, Integer>();
 
-    public TangoClient(String deviceName, TangoProxyWrapper proxy) {
+    public TangoClient(String deviceName, TangoProxy proxy) {
         super(deviceName);
         this.proxy = proxy;
     }
