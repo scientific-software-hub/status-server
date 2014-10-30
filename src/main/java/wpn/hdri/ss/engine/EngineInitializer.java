@@ -1,6 +1,7 @@
 package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
+import org.tango.client.ez.data.type.UnknownTangoDataType;
 import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
@@ -15,8 +16,8 @@ import wpn.hdri.ss.data.attribute.Attribute;
 import wpn.hdri.ss.data.attribute.AttributeFactory;
 import wpn.hdri.ss.engine.exception.ClientInitializationException;
 import wpn.hdri.ss.engine.exception.EngineInitializationException;
-import wpn.hdri.tango.data.type.TangoDataType;
-import wpn.hdri.tango.data.type.TangoDataTypes;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -113,10 +114,14 @@ public class EngineInitializer {
         //initialize StatusServer embedded attributes
         for (StatusServerAttribute attr : configuration.getStatusServerAttributes()) {
             LOGGER.info("Initializing embedded attribute " + attr.getName());
-            TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
-            //create and add default value - null
-            attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false);
-            LOGGER.info("Initialization succeed.");
+            try {
+                TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
+                //create and add default value - null
+                attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false);
+                LOGGER.info("Initialization succeed.");
+            } catch (UnknownTangoDataType unknownTangoDataType) {
+                LOGGER.warn("Initialization has failed.");
+            }
         }
         return attributesManager;
     }

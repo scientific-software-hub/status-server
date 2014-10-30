@@ -1,18 +1,11 @@
 @echo off
 
-set TINE_VER=4.3.12
+set TINE_VER=4.5.0
 echo TINE_VER=%TINE_VER%
-
-set JTANGO_VER=1.1.0-all
-echo JTANGO_VER=%JTANGO_VER%
 
 call mvn install:install-file -Dfile=tineJAVA-%TINE_VER%.jar -DgroupId=de.desy.tine -DartifactId=tineJAVA -Dversion=%TINE_VER% -Dpackaging=jar -DgeneratePom=true
 
-call mvn install:install-file -Dfile=JTangoServer-%JTANGO_VER%.jar -DgroupId=org.tango -DartifactId=JTangoServer -Dversion=%JTANGO_VER% -Dpackaging=jar -DgeneratePom=true -Dpackaging=jar
-
 call :install "utils" "0.0.1"
-
-call :install "TangoApi" "1.0.4"
 
 GOTO:EOF
 

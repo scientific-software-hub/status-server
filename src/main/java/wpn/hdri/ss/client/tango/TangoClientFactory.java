@@ -32,9 +32,9 @@ package wpn.hdri.ss.client.tango;
 import com.google.common.collect.Sets;
 import wpn.hdri.ss.client.AbsClientFactory;
 import wpn.hdri.ss.client.Client;
-import wpn.hdri.tango.proxy.TangoProxies;
-import wpn.hdri.tango.proxy.TangoProxy;
-import wpn.hdri.tango.proxy.TangoProxyException;
+import org.tango.client.ez.proxy.TangoProxies;
+import org.tango.client.ez.proxy.TangoProxy;
+import org.tango.client.ez.proxy.TangoProxyException;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

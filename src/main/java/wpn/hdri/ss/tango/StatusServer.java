@@ -10,6 +10,7 @@ import fr.esrf.Tango.*;
 import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
+import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
@@ -29,9 +30,9 @@ import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.engine.EngineInitializationContext;
 import wpn.hdri.ss.engine.EngineInitializer;
-import wpn.hdri.tango.data.type.ScalarTangoDataTypes;
-import wpn.hdri.tango.data.type.TangoDataType;
-import wpn.hdri.tango.data.type.TangoDataTypes;
+import org.tango.client.ez.data.type.ScalarTangoDataTypes;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
 
 import java.util.Arrays;
 import java.util.List;
@@ -152,11 +153,15 @@ public class StatusServer implements StatusServerStub {
                 public AttributeConfiguration getConfiguration() throws DevFailed {
                     AttributeConfiguration configuration = new AttributeConfiguration();
                     configuration.setName(wrapped.getName());
-                    TangoDataType<?> dataType = TangoDataTypes.forString(wrapped.getType());
-                    configuration.setTangoType(dataType.getAlias(), AttrDataFormat.SCALAR);
-                    configuration.setType(dataType.getDataType());
-                    configuration.setWritable(AttrWriteType.READ_WRITE);
-                    return configuration;
+                    try {
+                        TangoDataType<?> dataType = TangoDataTypes.forString(wrapped.getType());
+                        configuration.setTangoType(dataType.getAlias(), AttrDataFormat.SCALAR);
+                        configuration.setType(dataType.getDataType());
+                        configuration.setWritable(AttrWriteType.READ_WRITE);
+                        return configuration;
+                    } catch (UnknownTangoDataType unknownTangoDataType) {
+                        throw new RuntimeException(unknownTangoDataType);
+                    }
                 }
 
                 @Override
@@ -292,11 +297,14 @@ public class StatusServer implements StatusServerStub {
         String[] result = new String[Iterables.size(data)];
         int i = 0;
         for (Map.Entry<AttributeName, Class<?>> entry : data) {
-            TangoDataType<?> dataType = TangoDataTypes.forClass(entry.getValue());
-            //TODO TINE has completely different types, i.e. NAME64
-            if (dataType == null)
-                dataType = ScalarTangoDataTypes.STRING;
-            result[i++] = entry.getKey().getFullName() + "->" + dataType.toString();
+            try {
+                TangoDataType<?> dataType = TangoDataTypes.forClass(entry.getValue());
+                //TODO TINE has completely different types, i.e. NAME64
+                if (dataType == null)
+                    dataType = ScalarTangoDataTypes.STRING;
+                result[i++] = entry.getKey().getFullName() + "->" + dataType.toString();
+            } catch (UnknownTangoDataType ignored) {
+            }
         }
 
         return result;

@@ -81,12 +81,12 @@
         <dependency>
             <groupId>de.desy.tine</groupId>
             <artifactId>tineJAVA</artifactId>
-            <version>4.3.12</version>
+            <version>4.5.0</version>
         </dependency>
         <dependency>
-            <groupId>hzg.wpn</groupId>
-            <artifactId>TangoAPI</artifactId>
-            <version>1.0.8</version>
+            <groupId>org.tango</groupId>
+            <artifactId>ezTangORB</artifactId>
+            <version>1.1.7</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.tango</groupId>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>JTangoServer</artifactId>
-            <version>1.1.4</version>
+            <version>1.1.5</version>
         </dependency>
         <dependency>
             <groupId>hzg.wpn</groupId>

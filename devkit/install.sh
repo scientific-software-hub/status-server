@@ -2,11 +2,8 @@
 
 echo M2_HOME=$M2_HOME
 
-TINE_VER=4.3.12
+TINE_VER=4.5.0
 echo TINE_VER=$TINE_VER
-
-JTANGO_VER=1.1.0-all
-echo JTANGO_VER=$JTANGO_VER
 
 function _install {
 export ARTIFACT=$1
@@ -21,9 +18,4 @@ rm -r $INSTALL_DIR
 
 $M2_HOME/bin/mvn install:install-file -Dfile=tineJAVA-$TINE_VER.jar -DgroupId=de.desy.tine -DartifactId=tineJAVA -Dversion=$TINE_VER -Dpackaging=jar -DgeneratePom=true
 
-$M2_HOME/bin/mvn install:install-file -Dfile=JTangoServer-$JTANGO_VER.jar -DgroupId=org.tango -DartifactId=JTangoServer -Dversion=$JTANGO_VER -Dpackaging=jar -DgeneratePom=true -Dpackaging=jar
-
 _install "utils" "0.0.1"
-
-_install "TangoAPI" "1.0.4"
-

@@ -34,8 +34,8 @@ import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
 import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.tango.data.format.SpectrumTangoDataFormat;
-import wpn.hdri.tango.proxy.*;
+import org.tango.client.ez.data.format.SpectrumTangoDataFormat;
+import org.tango.client.ez.proxy.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
@@ -49,7 +49,7 @@ import java.util.Map;
 @NotThreadSafe
 public class TangoClient extends Client {
     private final TangoProxy proxy;
-    private Map<String, Integer> listeners = new HashMap<String, Integer>();
+    private Map<String, TangoEventListener<?>> listeners = new HashMap<>();
 
     public TangoClient(String deviceName, TangoProxy proxy) {
         super(deviceName);
@@ -85,16 +85,21 @@ public class TangoClient extends Client {
 
     @Override
     public boolean isArrayAttribute(String attrName) throws ClientException {
-        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
-        if (attributeInfo == null)
-            throw new ClientException("Can not execute query!", new NullPointerException("attributeInfo is null"));
-        return SpectrumTangoDataFormat.class.isAssignableFrom(attributeInfo.getFormat().getClass());
+        try {
+            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+            if (attributeInfo == null)
+                throw new ClientException("Can not execute query!", new NullPointerException("attributeInfo is null"));
+            return SpectrumTangoDataFormat.class.isAssignableFrom(attributeInfo.getFormat().getClass());
+        } catch (TangoProxyException e) {
+            throw new ClientException("Can not execute query!", e);
+        }
     }
 
     @Override
     public void subscribeEvent(final String attrName, final EventCallback cbk) throws ClientException {
         try {
-            int eventId = proxy.subscribeEvent(attrName, TangoEvent.CHANGE, new TangoEventCallback<Object>() {
+            proxy.subscribeToEvent(attrName, TangoEvent.CHANGE);
+            TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
                     cbk.onEvent(new wpn.hdri.ss.client.EventData(data.getValue(), data.getTime()));
@@ -104,8 +109,10 @@ public class TangoClient extends Client {
                 public void onError(Throwable cause) {
                     cbk.onError(cause);
                 }
-            });
-            listeners.put(attrName, eventId);
+            };
+            proxy.addEventListener(attrName, TangoEvent.CHANGE, listener);
+
+            listeners.put(attrName, listener);
         } catch (TangoProxyException devFailed) {
             throw new ClientException("Exception in " + proxy.getName(), devFailed);
         }
@@ -117,22 +124,30 @@ public class TangoClient extends Client {
      */
     @Override
     public boolean checkAttribute(String attrName) {
-        return proxy.checkAttribute(attrName);
+        try {
+            return proxy.hasAttribute(attrName);
+        } catch (TangoProxyException e) {
+            return false;
+        }
     }
 
     @Override
     public Class<?> getAttributeClass(String attrName) throws ClientException {
-        TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
-        if (attributeInfo == null)
-            throw new ClientException("Exception in " + proxy.getName(), new NullPointerException("attributeInfo is null"));
-        return attributeInfo.getClazz();
+        try {
+            TangoAttributeInfoWrapper attributeInfo = proxy.getAttributeInfo(attrName);
+            if (attributeInfo == null)
+                throw new ClientException("Exception in " + proxy.getName(), new NullPointerException("attributeInfo is null"));
+            return attributeInfo.getClazz();
+        } catch (TangoProxyException e) {
+            throw new ClientException("Exception in " + proxy.getName(), e);
+        }
     }
 
     @Override
     public void unsubscribeEvent(String attrName) throws ClientException {
-        int eventId = listeners.get(attrName);
+        listeners.remove(attrName);
         try {
-            proxy.unsubscribeEvent(eventId);
+            proxy.unsubscribeFromEvent(attrName, TangoEvent.CHANGE);
         } catch (TangoProxyException devFailed) {
             throw new ClientException("Can not unsubscribe event for " + attrName, devFailed);
         }
@@ -140,14 +155,15 @@ public class TangoClient extends Client {
 
     @Override
     public void printAttributeInfo(String name, Logger logger) {
-        TangoAttributeInfoWrapper info = proxy.getAttributeInfo(name);
-        if (info == null)
-            logger.warn("Can not print attribute info for " + name + ". Reason - info is null.");
-        else {
+        TangoAttributeInfoWrapper info = null;
+        try {
+            info = proxy.getAttributeInfo(name);
             logger.info("Information for attribute " + proxy.getName() + "/" + name);
             logger.info("Data format:" + info.getFormat().toString());
             logger.info("Data type:" + info.getType().toString());
             logger.info("Java data type match:" + info.getClazz().getSimpleName());
+        } catch (TangoProxyException e) {
+            logger.warn("Can not print attribute info for " + name + ". Reason - info is null.");
         }
     }
 }
