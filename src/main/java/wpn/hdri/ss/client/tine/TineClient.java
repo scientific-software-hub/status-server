@@ -84,7 +84,7 @@ public class TineClient extends Client {
             TLink tLink = futureLink.get();
             int rc = tLink.execute();
             if (rc != TErrorList.success) {
-                throw new IllegalStateException("Can not execute TLink.");
+                throw new RuntimeException("TLink has failed: " + TErrorList.getErrorString(rc));
             }
             TDataType dout = tLink.dOutput;
             long time = tLink.getLastTimeStamp();
@@ -157,11 +157,11 @@ public class TineClient extends Client {
             int rc = link.attach(TMode.CM_DATACHANGE, new TCallback() {
                 @Override
                 public void callback(int LinkIndex, int LinkStatus) {
-                    if (LinkStatus == TErrorList.success) {
+                    if (TErrorList.isLinkSuccess(LinkStatus)) {
                         long time = link.getLastTimeStamp();
                         cbk.onEvent(new EventData<Object>(getDataObject(dout), time));
                     } else {
-                        cbk.onError(new Exception("LinkStatus is non-zero."));
+                        cbk.onError(new Exception(TErrorList.getErrorString(LinkStatus)));
                     }
                 }
             });
