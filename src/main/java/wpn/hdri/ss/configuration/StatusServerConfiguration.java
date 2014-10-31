@@ -124,8 +124,8 @@ public final class StatusServerConfiguration {
         if (!new File(pathToXml).exists()) {
             throw new IllegalArgumentException(pathToXml + " does not exist.");
         }
-        try {
-            return XML_SERIALIZER.read(StatusServerConfiguration.class, new BufferedReader(new FileReader(pathToXml)));
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(pathToXml))){
+            return XML_SERIALIZER.read(StatusServerConfiguration.class, bufferedReader);
         } catch (Exception e) {
             throw new ConfigurationException(e);
         }
