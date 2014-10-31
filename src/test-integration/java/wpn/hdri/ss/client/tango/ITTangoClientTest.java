@@ -47,40 +47,12 @@ import static org.junit.Assert.assertArrayEquals;
 public class ITTangoClientTest {
     private final String name = "Test.Device";
 
-    //TODO move following tests to integration tests as they are environment depended
-    @Test
-    public void testReadImageAttr() throws Exception {
-        ClientFactory factory = new ClientFactory();
-        Client client = factory.createClient("sys/tg_test/1");
-
-        client.<float[][]>writeAttribute("float_image", new float[][]{{0.1F, 0.3F}, {0.2F, 0.4F}, {0.5F, 0.7F}});
-
-        Map.Entry<float[][], Timestamp> value = client.<float[][]>readAttribute("float_image");
-        float[][] result = value.getKey();
-
-        assertArrayEquals(new float[]{0.1F, 0.3F}, result[0], 0.01F);
-        assertArrayEquals(new float[]{0.2F, 0.4F}, result[1], 0.01F);
-        assertArrayEquals(new float[]{0.5F, 0.7F}, result[2], 0.01F);
-    }
-
     @Test(expected = ClientException.class)
     public void testReadAttr_Failed() throws Exception {
         ClientFactory factory = new ClientFactory();
         Client client = factory.createClient("sys/tg_test/1");
 
         client.readAttribute("throw_exception");
-    }
-
-    @Test
-    public void testReadSpectrumAttr() throws Exception {
-        ClientFactory factory = new ClientFactory();
-        Client client = factory.createClient("sys/tg_test/1");
-
-        client.writeAttribute("double_spectrum", new double[]{0.1D, 0.9D, 0.8D, 0.4D});
-
-        double[] result = client.<double[]>readAttribute("double_spectrum").getKey();
-
-        assertArrayEquals(new double[]{0.1D, 0.9D, 0.8D, 0.4D}, result, 0.0D);
     }
 
     //@Test
@@ -91,18 +63,6 @@ public class ITTangoClientTest {
             Map.Entry<Double, Timestamp> result = client.<Double>readAttribute("Position");
             System.out.println(result.getKey());
         }
-    }
-
-    //@Test
-    public void testWriteAttribute() throws Exception {
-        ClientFactory factory = new ClientFactory();
-        Client client = factory.createClient("production/json/0");
-        assertNotNull(client);
-        client.writeAttribute("CRT_USER_NAME", "khokhria");
-
-        String result = client.<String>readAttribute("CRT_USER_NAME").getKey();
-
-        assertEquals("khokhria", result);
     }
 
     @Test

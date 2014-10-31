@@ -103,11 +103,6 @@ public class ClientFactory extends AbsClientFactory {
         }
 
         @Override
-        public void writeAttribute(String attrName, Object value) throws ClientException {
-            throw new ClientException("This method is not supported in BadClient", null);
-        }
-
-        @Override
         public void subscribeEvent(String attrName, EventCallback cbk) throws ClientException {
             cbk.onError(new IllegalStateException("Illegal attempt of subscription to attribute " + attrName + " in BadClient"));
         }

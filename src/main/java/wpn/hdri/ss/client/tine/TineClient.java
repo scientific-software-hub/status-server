@@ -95,11 +95,6 @@ public class TineClient extends Client {
         }
     }
 
-    @Override
-    public <T> void writeAttribute(String attrName, T value) throws ClientException {
-        throw new ClientException("Not yet implemented", new UnsupportedOperationException());
-    }
-
     private Future<TLink> getFutureLink(final String attrName) {
         Future<TLink> futureLink = tlinks.get(attrName);
         if (futureLink == null) {

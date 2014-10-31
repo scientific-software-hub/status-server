@@ -76,16 +76,6 @@ public abstract class Client {
     public abstract <T> Map.Entry<T, Timestamp> readAttribute(String attrName) throws ClientException;
 
     /**
-     * Writes a value to an attribute.
-     *
-     * @param attrName attribute name
-     * @param value    value
-     * @param <T>      type of value
-     * @throws ClientException if write failed
-     */
-    public abstract <T> void writeAttribute(String attrName, T value) throws ClientException;
-
-    /**
      * Subscribes to attribute change event. When new value is available cbk#onRead will be called.
      * In case any error cbk#onError will be called and cause will be passed.
      *
