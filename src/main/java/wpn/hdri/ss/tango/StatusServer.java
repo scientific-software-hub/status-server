@@ -437,7 +437,8 @@ public class StatusServer implements StatusServerStub {
         ctxs.put(cid, context);
     }
 
-    private String getClientId() throws Exception {
+    @Attribute
+    public String getClientId() throws Exception {
         ClntIdent clientIdentity = this.deviceManager.getClientIdentity();
         LockerLanguage discriminator = clientIdentity.discriminator();
         switch (discriminator.value()) {
