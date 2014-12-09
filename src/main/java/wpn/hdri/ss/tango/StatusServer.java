@@ -1,5 +1,6 @@
 package wpn.hdri.ss.tango;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
@@ -10,6 +11,8 @@ import fr.esrf.Tango.*;
 import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
@@ -30,9 +33,6 @@ import wpn.hdri.ss.engine.AttributesManager;
 import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.engine.EngineInitializationContext;
 import wpn.hdri.ss.engine.EngineInitializer;
-import org.tango.client.ez.data.type.ScalarTangoDataTypes;
-import org.tango.client.ez.data.type.TangoDataType;
-import org.tango.client.ez.data.type.TangoDataTypes;
 
 import java.util.Arrays;
 import java.util.List;
@@ -294,20 +294,12 @@ public class StatusServer implements StatusServerStub {
     public String[] getMeta() {
         Iterable<Map.Entry<AttributeName, Class<?>>> data = engine.getAttributeClasses();
 
-        String[] result = new String[Iterables.size(data)];
-        int i = 0;
-        for (Map.Entry<AttributeName, Class<?>> entry : data) {
-            try {
-                TangoDataType<?> dataType = TangoDataTypes.forClass(entry.getValue());
-                //TODO TINE has completely different types, i.e. NAME64
-                if (dataType == null)
-                    dataType = ScalarTangoDataTypes.STRING;
-                result[i++] = entry.getKey().getFullName() + "->" + dataType.toString();
-            } catch (UnknownTangoDataType ignored) {
+        return Iterables.toArray(Iterables.transform(data, new Function<Map.Entry<AttributeName, Class<?>>, String>() {
+            @Override
+            public String apply(Map.Entry<AttributeName, Class<?>> input) {
+                return input.getKey().getFullName() + "->" + input.getValue().getName();
             }
-        }
-
-        return result;
+        }), String.class);
     }
 
     //TODO commands

@@ -30,12 +30,12 @@
 package wpn.hdri.ss.client.tango;
 
 import org.apache.log4j.Logger;
+import org.tango.client.ez.data.format.SpectrumTangoDataFormat;
+import org.tango.client.ez.proxy.*;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
 import wpn.hdri.ss.data.Timestamp;
-import org.tango.client.ez.data.format.SpectrumTangoDataFormat;
-import org.tango.client.ez.proxy.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
@@ -71,15 +71,6 @@ public class TangoClient extends Client {
             return new AbstractMap.SimpleImmutableEntry<T, Timestamp>(entry.getKey(), new Timestamp(entry.getValue()));
         } catch (TangoProxyException devFailed) {
             throw new ClientException("Exception in " + proxy.getName(), devFailed);
-        }
-    }
-
-    @Override
-    public <T> void writeAttribute(String attrName, T value) throws ClientException {
-        try {
-            proxy.writeAttribute(attrName, value);
-        } catch (TangoProxyException devFailed) {
-            throw new ClientException("Failed to write value[" + value.toString() + "] to " + proxy.getName() + "/" + attrName, devFailed);
         }
     }
 

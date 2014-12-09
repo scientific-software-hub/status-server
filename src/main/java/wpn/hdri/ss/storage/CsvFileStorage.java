@@ -45,12 +45,9 @@ public class CsvFileStorage implements Storage {
      */
     @Override
     public void save(final String dataName, final Iterable<String> header, final Iterable<Iterable<String>> body) throws StorageException {
-        Writer writer = null;
-        try {
-            File file = new File(root, dataName);
-            file.getParentFile().mkdirs();
-            writer = new BufferedWriter(new FileWriter(file, true));
-
+        File file = new File(root, dataName);
+        file.getParentFile().mkdirs();
+        try(Writer writer = new BufferedWriter(new FileWriter(file, true))) {
             if (file.length() == 0)
                 writeHeader(writer, header);
 
@@ -60,8 +57,6 @@ public class CsvFileStorage implements Storage {
 
         } catch (IOException e) {
             throw new StorageException(e);
-        } finally {
-            Closeables.closeQuietly(writer);
         }
     }
 
