@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 17.06.13
  */
-@Device
+@Device(transactionType = TransactionType.NONE)
 public class StatusServer implements StatusServerStub {
     private static String XML_CONFIG_PATH;
     private final Multimap<String, String> attributesGroupsMap = HashMultimap.create();
