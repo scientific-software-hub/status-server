@@ -37,7 +37,7 @@
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
     </description>
-    <version>1.0.6</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -208,7 +208,7 @@
                                     <directory>src/test-integration/resources</directory>
                                 </resource>
                                 <resource>
-                                    <directory>src/main/resources</directory>
+                                    <directory>src/test-integration/resources</directory>
                                 </resource>
                             </resources>
                         </configuration>
