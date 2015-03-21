@@ -79,30 +79,34 @@
             <version>2.6.2</version>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
         </dependency>
         <dependency>
             <groupId>de.desy.tine</groupId>
             <artifactId>tineJAVA</artifactId>
-            <version>4.5.0</version>
+            <version>4.5.4</version>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
             <artifactId>ezTangORB</artifactId>
+            <version>1.1.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tango</groupId>
+            <artifactId>JTangoServer</artifactId>
             <version>1.1.7</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.tango</groupId>
                     <artifactId>TangORB</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.tango</groupId>
-            <artifactId>JTangoServer</artifactId>
-            <version>1.1.5</version>
         </dependency>
         <dependency>
             <groupId>hzg.wpn</groupId>
@@ -118,8 +122,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>

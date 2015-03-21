@@ -33,8 +33,8 @@ import fr.esrf.TangoDs.TangoConst;
 import fr.esrf.TangoDs.Util;
 import hzg.wpn.cli.CliEntryPoint;
 import hzg.wpn.properties.PropertiesParser;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.server.ServerManager;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
@@ -45,7 +45,7 @@ import wpn.hdri.ss.tango.StatusServer;
  * @since 26.04.12
  */
 public class Launcher {
-    public static final Logger LOG = Logger.getLogger(Launcher.class);
+    public static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
 
     /**
      * This property should be set before creating Engine
@@ -69,11 +69,11 @@ public class Launcher {
         setSystemProperties(configuration.getProperties().jacorbMinCpus, configuration.getProperties().jacorbMaxCpus);
         LOG.info("Done.");
 
-        if (cliOptions.verbose) {
-            LOG.info("Setting verbose level to DEBUG...");
-            Logger.getRootLogger().setLevel(Level.DEBUG);
-            LOG.info("Done.");
-        }
+//        if (cliOptions.verbose) {
+//            LOG.info("Setting verbose level to DEBUG...");
+//            Logger.getRootLogger().setLevel(Level.DEBUG);
+//            LOG.info("Done.");
+//        }
 
         LOG.info("Initialize and start Tango server instance...");
         StatusServer.setXmlConfigPath(cliOptions.pathToConfiguration);
