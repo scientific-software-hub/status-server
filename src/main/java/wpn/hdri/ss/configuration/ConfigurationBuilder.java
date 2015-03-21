@@ -47,12 +47,14 @@ import java.util.List;
  * @since 27.04.12
  */
 public class ConfigurationBuilder {
-    public ConfigurationBuilder() {
-    }
-
+    private final List<String> devices = new ArrayList<String>();
+    private final Multimap<String, DeviceAttribute> attributes = HashMultimap.create();
     private String serverName;
     private String instanceName;
     private boolean useAliases;
+
+    public ConfigurationBuilder() {
+    }
 
     public ConfigurationBuilder setServerName(String serverName, String instanceName) {
         this.serverName = Preconditions.checkNotNull(serverName);
@@ -65,14 +67,10 @@ public class ConfigurationBuilder {
         return this;
     }
 
-    private final List<String> devices = new ArrayList<String>();
-
     public ConfigurationBuilder addDevice(String deviceName) {
         devices.add(Preconditions.checkNotNull(deviceName));
         return this;
     }
-
-    private final Multimap<String, DeviceAttribute> attributes = HashMultimap.create();
 
     public ConfigurationBuilder addAttributeToDevice(String deviceName, String attrName, String methodAlias,
                                                      String interpolationAlias, long delay, double precision) {
@@ -103,6 +101,6 @@ public class ConfigurationBuilder {
                             public Device apply(String input) {
                                 return new Device(input, new ArrayList<DeviceAttribute>(attributes.get(input)));
                             }
-                        })), Collections.<StatusServerAttribute>emptyList());
+                        })), Collections.<StatusServerAttribute>emptyList(), new StatusServerProperties());
     }
 }

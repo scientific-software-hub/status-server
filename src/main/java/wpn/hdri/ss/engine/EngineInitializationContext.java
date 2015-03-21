@@ -1,6 +1,6 @@
 package wpn.hdri.ss.engine;
 
-import wpn.hdri.ss.StatusServerProperties;
+import wpn.hdri.ss.configuration.StatusServerProperties;
 
 import java.util.List;
 

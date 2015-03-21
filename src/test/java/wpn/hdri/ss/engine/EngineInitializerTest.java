@@ -1,9 +1,9 @@
 package wpn.hdri.ss.engine;
 
 import org.junit.Test;
-import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.configuration.StatusServerProperties;
 
 import static junit.framework.Assert.assertTrue;
 

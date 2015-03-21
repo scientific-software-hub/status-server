@@ -37,6 +37,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.tango.server.ServerManager;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.tango.StatusServer;
 
 /**
@@ -57,19 +58,15 @@ public class Launcher {
         CliOptions cliOptions = parseCl(args);
         LOG.info("Done.");
 
-        LOG.info("Parsing properties...");
-        StatusServerProperties properties = parseProperties();
+        LOG.info("Parsing configuration...");
+        StatusServerConfiguration configuration = StatusServerConfiguration.fromXml(cliOptions.pathToConfiguration);
         LOG.info("Done.");
 
-        LOG.info("Max thread pool value for Engine: " + properties.engineCpus);
+        LOG.info("Max thread pool value for Engine: " + configuration.getProperties().engineCpus);
 
         LOG.info("Setting System settings...");
         Util.set_serial_model(TangoConst.NO_SYNC);
-        setSystemProperties(properties.jacorbMinCpus, properties.jacorbMaxCpus);
-        LOG.info("Done.");
-
-        LOG.info("Parsing configuration...");
-        StatusServerConfiguration configuration = StatusServerConfiguration.fromXml(cliOptions.pathToConfiguration);
+        setSystemProperties(configuration.getProperties().jacorbMinCpus, configuration.getProperties().jacorbMaxCpus);
         LOG.info("Done.");
 
         if (cliOptions.verbose) {

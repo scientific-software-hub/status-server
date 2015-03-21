@@ -8,7 +8,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
 import fr.esrf.Tango.*;
-import hzg.wpn.properties.PropertiesParser;
 import hzg.wpn.util.compressor.Compressor;
 import org.tango.DeviceState;
 import org.tango.client.ez.data.type.TangoDataType;
@@ -22,9 +21,9 @@ import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.IAttributeBehavior;
 import org.tango.server.device.DeviceManager;
 import org.tango.server.dynamic.DynamicManager;
-import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.attribute.AttributeName;
 import wpn.hdri.ss.data.attribute.AttributeValue;
@@ -50,25 +49,20 @@ import java.util.concurrent.atomic.AtomicReference;
 public class StatusServer implements StatusServerStub {
     private static String XML_CONFIG_PATH;
     private final Multimap<String, String> attributesGroupsMap = HashMultimap.create();
-
-    public static void setXmlConfigPath(String v) {
-        XML_CONFIG_PATH = v;
-    }
-
-    private static interface Status {
-        String IDLE = "IDLE";
-        String LIGHT_POLLING = "LIGHT_POLLING";
-        String LIGHT_POLLING_AT_FIXED_RATE = "LIGHT_POLLING_AT_FIXED_RATE";
-        String HEAVY_DUTY = "HEAVY_DUTY";
-    }
-
     /**
      * This field tracks ctxs of the clients and is used in getXXXUpdates methods
      */
     private final ConcurrentMap<String, RequestContext> ctxs = Maps.newConcurrentMap();
-
-
     private Engine engine;
+    // ==== Tango API specific
+    @State
+    private DeviceState state = DeviceState.OFF;
+    @org.tango.server.annotation.Status
+    private String status = Status.IDLE;
+    @DynamicManagement
+    private DynamicManager dynamicManagement;
+    @DeviceManagement
+    private DeviceManager deviceManager;
 
     public StatusServer() {
         System.out.println("Create instance");
@@ -83,9 +77,13 @@ public class StatusServer implements StatusServerStub {
         this.engine = engine;
     }
 
-    // ==== Tango API specific
-    @State
-    private DeviceState state = DeviceState.OFF;
+    public static void setXmlConfigPath(String v) {
+        XML_CONFIG_PATH = v;
+    }
+
+    public static void main(String... args) throws Exception {
+        ServerManager.getInstance().start(args, StatusServer.class);
+    }
 
     @Override
     public DeviceState getState() {
@@ -96,27 +94,18 @@ public class StatusServer implements StatusServerStub {
         this.state = state;
     }
 
-    @org.tango.server.annotation.Status
-    private String status = Status.IDLE;
-
-    public void setStatus(String v) {
-        this.status = v;
-    }
-
     @Override
     public String getStatus() {
         return this.status;
     }
 
-    @DynamicManagement
-    private DynamicManager dynamicManagement;
+    public void setStatus(String v) {
+        this.status = v;
+    }
 
     public void setDynamicManagement(DynamicManager dynamicManagement) {
         this.dynamicManagement = dynamicManagement;
     }
-
-    @DeviceManagement
-    private DeviceManager deviceManager;
 
     public void setDeviceManager(DeviceManager deviceManager) {
         this.deviceManager = deviceManager;
@@ -130,7 +119,7 @@ public class StatusServer implements StatusServerStub {
         Preconditions.checkNotNull(XML_CONFIG_PATH, "Path to xml configuration is not set.");
         StatusServerConfiguration configuration = StatusServerConfiguration.fromXml(XML_CONFIG_PATH);
 
-        StatusServerProperties properties = PropertiesParser.createInstance(StatusServerProperties.class).parseProperties();
+        StatusServerProperties properties = configuration.getProperties();
 
         EngineInitializer initializer = new EngineInitializer(configuration, properties);
 
@@ -185,6 +174,12 @@ public class StatusServer implements StatusServerStub {
     }
 
     @Attribute
+    public String getGroup() throws Exception {
+        RequestContext cxt = getContext();
+        return cxt.attributesGroup;
+    }
+
+    @Attribute
     public void setGroup(String attributesGroup) throws Exception {
         String cid = getClientId();
         Preconditions.checkArgument(attributesGroupsMap.get(cid).contains(attributesGroup), "No such group exists: " + attributesGroup);
@@ -196,10 +191,8 @@ public class StatusServer implements StatusServerStub {
         setContext(updated);
     }
 
-    @Attribute
-    public String getGroup() throws Exception {
-        RequestContext cxt = getContext();
-        return cxt.attributesGroup;
+    private boolean isUseAliases() throws Exception {
+        return getContext().useAliases;
     }
 
     //TODO attributes
@@ -209,10 +202,6 @@ public class StatusServer implements StatusServerStub {
         RequestContext old = getContext();
         RequestContext ctx = new RequestContext(v, old.encode, old.outputType, old.lastTimestamp, old.attributesGroup);
         setContext(ctx);
-    }
-
-    private boolean isUseAliases() throws Exception {
-        return getContext().useAliases;
     }
 
     @Override
@@ -410,10 +399,6 @@ public class StatusServer implements StatusServerStub {
         engine.shutdown();
     }
 
-    public static void main(String... args) throws Exception {
-        ServerManager.getInstance().start(args, StatusServer.class);
-    }
-
     private RequestContext getContext() throws Exception {
         String cid = getClientId();
         RequestContext context = ctxs.get(cid);
@@ -446,6 +431,13 @@ public class StatusServer implements StatusServerStub {
     private static enum OutputType {
         PLAIN,
         JSON
+    }
+
+    private static interface Status {
+        String IDLE = "IDLE";
+        String LIGHT_POLLING = "LIGHT_POLLING";
+        String LIGHT_POLLING_AT_FIXED_RATE = "LIGHT_POLLING_AT_FIXED_RATE";
+        String HEAVY_DUTY = "HEAVY_DUTY";
     }
 
     private static class RequestContext {

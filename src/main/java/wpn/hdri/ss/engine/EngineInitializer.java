@@ -1,23 +1,19 @@
 package wpn.hdri.ss.engine;
 
 import org.apache.log4j.Logger;
+import org.tango.client.ez.data.type.TangoDataType;
+import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
-import wpn.hdri.ss.StatusServerProperties;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.ClientFactory;
-import wpn.hdri.ss.configuration.Device;
-import wpn.hdri.ss.configuration.DeviceAttribute;
-import wpn.hdri.ss.configuration.StatusServerAttribute;
-import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.configuration.*;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.data.attribute.Attribute;
 import wpn.hdri.ss.data.attribute.AttributeFactory;
 import wpn.hdri.ss.engine.exception.ClientInitializationException;
 import wpn.hdri.ss.engine.exception.EngineInitializationException;
-import org.tango.client.ez.data.type.TangoDataType;
-import org.tango.client.ez.data.type.TangoDataTypes;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
