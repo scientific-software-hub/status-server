@@ -47,8 +47,8 @@ import java.util.List;
  * @since 27.04.12
  */
 public class ConfigurationBuilder {
-    private final List<String> devices = new ArrayList<String>();
-    private final Multimap<String, DeviceAttribute> attributes = HashMultimap.create();
+    private List<String> devices = new ArrayList<String>();
+    private Multimap<String, DeviceAttribute> attributes = HashMultimap.create();
     private String serverName;
     private String instanceName;
     private boolean useAliases;

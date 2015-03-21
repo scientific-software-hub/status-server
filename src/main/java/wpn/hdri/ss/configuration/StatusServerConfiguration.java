@@ -39,7 +39,6 @@ import org.simpleframework.xml.transform.Transform;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
-import javax.annotation.concurrent.Immutable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -49,7 +48,6 @@ import java.util.List;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 26.04.12
  */
-@Immutable
 @Root(name = "StatusServer", strict = false)
 public final class StatusServerConfiguration {
     public static final Serializer XML_SERIALIZER = new Persister(new Matcher() {
@@ -85,17 +83,17 @@ public final class StatusServerConfiguration {
     });
 
     @Attribute(name = "server-name")
-    private final String serverName;
+    private String serverName;
     @Attribute(name = "instance-name")
-    private final String instanceName;
+    private String instanceName;
     @Attribute(name = "use-aliases")
-    private final boolean useAliases;
+    private boolean useAliases;
     @ElementList(name = "devices")
-    private final List<Device> devices;
+    private List<Device> devices;
     @ElementList(name = "attributes")
-    private final List<StatusServerAttribute> attributes;
+    private List<StatusServerAttribute> attributes;
     @Element(name = "properties")
-    private final StatusServerProperties properties;
+    private StatusServerProperties properties;
 
     /**
      * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.

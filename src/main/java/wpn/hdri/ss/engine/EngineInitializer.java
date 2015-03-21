@@ -26,8 +26,8 @@ import java.util.List;
 public class EngineInitializer {
     public static final Logger LOGGER = Logger.getLogger(EngineInitializer.class);
 
-    private final StatusServerConfiguration configuration;
-    private final StatusServerProperties properties;
+    private StatusServerConfiguration configuration;
+    private StatusServerProperties properties;
 
     public EngineInitializer(StatusServerConfiguration configuration, StatusServerProperties properties) {
         this.configuration = configuration;

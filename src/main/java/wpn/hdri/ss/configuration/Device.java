@@ -46,9 +46,9 @@ import java.util.List;
 @Element(name = "device")
 public final class Device {
     @Attribute(name = "name")
-    private final String name;
+    private String name;
     @ElementList(name = "attributes")
-    private final List<DeviceAttribute> attributes;
+    private List<DeviceAttribute> attributes;
 
     public Device(
             @Attribute(name = "name") String name,

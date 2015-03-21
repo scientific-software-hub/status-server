@@ -10,11 +10,11 @@ import org.simpleframework.xml.Root;
 @Root(name = "attribute")
 public class StatusServerAttribute {
     @Attribute(name = "name")
-    private final String name;
+    private String name;
     @Attribute(name = "alias")
-    private final String alias;
+    private String alias;
     @Attribute(name = "type")
-    private final String type;
+    private String type;
 
     public StatusServerAttribute(
             @Attribute(name = "name") String name,

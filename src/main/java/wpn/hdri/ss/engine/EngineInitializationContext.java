@@ -2,12 +2,15 @@ package wpn.hdri.ss.engine;
 
 import wpn.hdri.ss.configuration.StatusServerProperties;
 
+import javax.annotation.concurrent.Immutable;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.06.13
  */
+@Immutable
 public class EngineInitializationContext {
     public final ClientsManager clientsManager;
     public final AttributesManager attributesManager;
@@ -20,8 +23,8 @@ public class EngineInitializationContext {
         this.clientsManager = clientsManager;
         this.attributesManager = attributesManager;
         this.properties = properties;
-        this.pollingTasks = pollingTasks;
-        this.eventTasks = eventTasks;
+        this.pollingTasks = Collections.unmodifiableList(pollingTasks);
+        this.eventTasks = Collections.unmodifiableList(eventTasks);
         this.persistentStorageTask = persistentStorageTask;
     }
 }
