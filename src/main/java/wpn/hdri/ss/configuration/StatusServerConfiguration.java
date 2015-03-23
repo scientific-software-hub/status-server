@@ -90,10 +90,17 @@ public final class StatusServerConfiguration {
     private boolean useAliases;
     @ElementList(name = "devices")
     private List<Device> devices;
-    @ElementList(name = "attributes")
+    @ElementList(name = "attributes", required = false)
     private List<StatusServerAttribute> attributes;
-    @Element(name = "properties")
+    @Element(name = "properties", required = false)
     private StatusServerProperties properties;
+
+    /**
+     * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.
+     */
+    public StatusServerConfiguration() {
+
+    }
 
     /**
      * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.

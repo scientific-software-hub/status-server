@@ -54,7 +54,7 @@
                 interpolation=[last|nearest|linear];
                 delay - polling frequency in millis. Note: delay for event=0; polling delay >= 20
                 precision for numeric attributes -->
-                <attribute name="long_scalar_w" alias="long" method="event" interpolation="nearest" delay="0"/>
+                <attribute name="long_scalar" alias="long" method="event" interpolation="nearest" delay="0"/>
                 <attribute name="float_scalar" alias="float" method="poll" interpolation="linear" precision="0.5"
                            delay="200"/>
                 <attribute name="short_scalar" alias="short" method="poll" interpolation="linear" precision="0.125"
