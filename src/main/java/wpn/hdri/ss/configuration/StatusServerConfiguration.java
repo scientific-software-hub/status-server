@@ -42,6 +42,7 @@ import wpn.hdri.ss.data.Method;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -91,9 +92,9 @@ public final class StatusServerConfiguration {
     @ElementList(name = "devices")
     private List<Device> devices;
     @ElementList(name = "attributes", required = false)
-    private List<StatusServerAttribute> attributes;
+    private List<StatusServerAttribute> attributes = new ArrayList<>();
     @Element(name = "properties", required = false)
-    private StatusServerProperties properties;
+    private StatusServerProperties properties = new StatusServerProperties();
 
     /**
      * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.

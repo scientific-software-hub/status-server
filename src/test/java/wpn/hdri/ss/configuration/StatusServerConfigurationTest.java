@@ -36,8 +36,7 @@ import wpn.hdri.ss.data.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.*;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -50,6 +49,10 @@ public class StatusServerConfigurationTest {
 
         assertEquals("StatusServer", conf.getServerName());
         assertEquals("Development", conf.getInstanceName());
+
+        assertEquals(1, conf.getProperties().jacorbMinCpus);
+
+        assertTrue(conf.getStatusServerAttributes().isEmpty());
 
         Device dev = conf.getDevices().get(0);
 
