@@ -44,7 +44,7 @@ public class EventReadAttributeTask implements EventCallback<Object> {
      *
      * @param ex cause
      */
-    public final void onError(Throwable ex) {
+    public final void onError(Exception ex) {
         logger.warn("Can not read from " + attribute.getFullName(), ex);
 //        Timestamp timestamp = Timestamp.now();
 //

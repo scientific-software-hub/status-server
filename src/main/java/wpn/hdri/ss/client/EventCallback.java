@@ -7,5 +7,5 @@ package wpn.hdri.ss.client;
 public interface EventCallback<T> {
     void onEvent(EventData<T> data);
 
-    void onError(Throwable ex);
+    void onError(Exception ex);
 }

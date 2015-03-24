@@ -112,6 +112,12 @@ public class StatusServer implements StatusServerStub {
     }
     // ====================
 
+
+    @Attribute
+    public String getImplementationVersion() {
+        return getClass().getPackage().getImplementationVersion();
+    }
+
     @Override
     @Init
     @StateMachine(endState = DeviceState.ON)

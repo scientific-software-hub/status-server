@@ -97,7 +97,7 @@ public class TangoClient extends Client {
                 }
 
                 @Override
-                public void onError(Throwable cause) {
+                public void onError(Exception cause) {
                     cbk.onError(cause);
                 }
             };
