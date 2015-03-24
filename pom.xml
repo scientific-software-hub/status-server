@@ -37,7 +37,7 @@
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
     </description>
-    <version>1.0.8</version>
+    <version>1.0.9-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
