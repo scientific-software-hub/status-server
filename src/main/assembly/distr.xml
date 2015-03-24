@@ -54,10 +54,6 @@
             <outputDirectory>/conf</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>src/main/properties</directory>
-            <outputDirectory>/bin</outputDirectory>
-        </fileSet>
-        <fileSet>
             <directory>src/main/logs</directory>
             <outputDirectory>/logs</outputDirectory>
         </fileSet>
