@@ -62,14 +62,4 @@
             <outputDirectory>/logs</outputDirectory>
         </fileSet>
     </fileSets>
-    <files>
-        <!--<file>
-            <source>StatusServerUserManual.pdf</source>
-            <outputDirectory>/</outputDirectory>
-        </file>-->
-        <file>
-            <source>StatusServer.properties</source>
-            <outputDirectory>/bin</outputDirectory>
-        </file>
-    </files>
 </assembly>
