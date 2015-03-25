@@ -142,6 +142,8 @@ public class StatusServer implements StatusServerStub {
 
 
         StatusServerProperties properties = configuration.getProperties();
+        //split each instance persistent root
+        properties.persistentRoot += "/" + devName;
         logProperties(properties);
 
         logger.info("Setting System settings...");
