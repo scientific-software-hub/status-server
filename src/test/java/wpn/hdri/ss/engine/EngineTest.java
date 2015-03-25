@@ -44,6 +44,8 @@ import wpn.hdri.ss.data.attribute.AttributeName;
 import wpn.hdri.ss.data.attribute.AttributeValue;
 import wpn.hdri.ss.storage.Storage;
 
+import java.util.Collections;
+
 import static junit.framework.Assert.assertSame;
 import static org.mockito.Mockito.*;
 
@@ -99,7 +101,7 @@ public class EngineTest {
             }
         };
 
-        EngineInitializer initializer = new EngineInitializer(StatusServerConfiguration.fromXml(xmlConfigPath), new StatusServerProperties());
+        EngineInitializer initializer = new EngineInitializer(StatusServerConfiguration.fromXml(xmlConfigPath), new StatusServerProperties(Collections.emptyList()));
 
         AttributesManager attributesManager = initializer.initializeAttributes(clientsManager);
 

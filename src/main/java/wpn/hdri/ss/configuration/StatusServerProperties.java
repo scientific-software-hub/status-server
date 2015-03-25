@@ -1,6 +1,7 @@
 package wpn.hdri.ss.configuration;
 
 import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Root;
 
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 18.06.13
  */
-@ElementList(name = "properties")
+@Root
 public class StatusServerProperties {
     public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
     public int engineCpus = AVAILABLE_PROCESSORS;
@@ -21,10 +22,6 @@ public class StatusServerProperties {
     public String persistentRoot = ".";
     @ElementList(name = "properties", inline = true)
     private List<StatusServerProperty> properties;
-
-    //default values
-    public StatusServerProperties() {
-    }
 
     public StatusServerProperties(@ElementList(name = "properties", inline = true) List<StatusServerProperty> properties) {
         this.properties = properties;
@@ -50,5 +47,4 @@ public class StatusServerProperties {
             }
         }
     }
-
 }

@@ -48,6 +48,7 @@ public class StatusServerConfigurationTest {
         StatusServerConfiguration conf = StatusServerConfiguration.XML_SERIALIZER.read(StatusServerConfiguration.class, StatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.xml"));
 
         assertEquals(1, conf.getProperties().jacorbMinCpus);
+        assertEquals("target/storage", conf.getProperties().persistentRoot);
 
         assertTrue(conf.getStatusServerAttributes().isEmpty());
 
