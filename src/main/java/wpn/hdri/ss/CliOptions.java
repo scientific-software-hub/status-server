@@ -36,6 +36,8 @@ import hzg.wpn.cli.CliOption;
  * @since 14.05.12
  */
 public class CliOptions {
+    @CliOption(opt = "i",longOpt = "instance", hasArg = true, description = "Tango server instance name")
+    public String instanceName;
     @CliOption(opt = "c", longOpt = "config", hasArg = true, description = "path to configuration xml")
     public String pathToConfiguration;
     @CliOption(opt = "v", longOpt = "verbose", hasArg = false, description = "sets logger level to DEBUG")

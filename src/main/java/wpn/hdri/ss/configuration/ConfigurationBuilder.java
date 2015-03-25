@@ -49,17 +49,9 @@ import java.util.List;
 public class ConfigurationBuilder {
     private List<String> devices = new ArrayList<String>();
     private Multimap<String, DeviceAttribute> attributes = HashMultimap.create();
-    private String serverName;
-    private String instanceName;
     private boolean useAliases;
 
     public ConfigurationBuilder() {
-    }
-
-    public ConfigurationBuilder setServerName(String serverName, String instanceName) {
-        this.serverName = Preconditions.checkNotNull(serverName);
-        this.instanceName = Preconditions.checkNotNull(instanceName);
-        return this;
     }
 
     public ConfigurationBuilder setUseAliases(boolean useAliases) {
@@ -94,7 +86,7 @@ public class ConfigurationBuilder {
     }
 
     public StatusServerConfiguration build() {
-        return new StatusServerConfiguration(serverName, instanceName, useAliases,
+        return new StatusServerConfiguration(useAliases,
                 new ArrayList<Device>(
                         Collections2.<String, Device>transform(devices, new Function<String, Device>() {
                             @Override

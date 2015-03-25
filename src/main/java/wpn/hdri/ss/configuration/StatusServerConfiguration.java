@@ -83,10 +83,6 @@ public final class StatusServerConfiguration {
         }
     });
 
-    @Attribute(name = "server-name")
-    private String serverName;
-    @Attribute(name = "instance-name")
-    private String instanceName;
     @Attribute(name = "use-aliases")
     private boolean useAliases;
     @ElementList(name = "devices")
@@ -106,21 +102,15 @@ public final class StatusServerConfiguration {
     /**
      * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.
      *
-     * @param serverName
-     * @param instanceName
      * @param useAliases
      * @param devices
      * @param attributes
      */
     public StatusServerConfiguration(
-            @Attribute(name = "server-name") String serverName,
-            @Attribute(name = "instance-name") String instanceName,
             @Attribute(name = "use-aliases") boolean useAliases,
             @ElementList(name = "devices") List<Device> devices,
             @ElementList(name = "attributes") List<StatusServerAttribute> attributes,
             @Element(name = "properties") StatusServerProperties properties) {
-        this.serverName = serverName;
-        this.instanceName = instanceName;
         this.useAliases = useAliases;
         this.devices = devices;
         this.attributes = attributes;
@@ -136,14 +126,6 @@ public final class StatusServerConfiguration {
         } catch (Exception e) {
             throw new ConfigurationException(e);
         }
-    }
-
-    public String getServerName() {
-        return serverName;
-    }
-
-    public String getInstanceName() {
-        return instanceName;
     }
 
     public boolean isUseAliases() {
@@ -165,8 +147,6 @@ public final class StatusServerConfiguration {
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("serverName", serverName)
-                .add("instanceName", instanceName)
                 .add("devices", devices)
                 .toString();
     }

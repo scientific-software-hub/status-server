@@ -116,7 +116,7 @@
     </dependencies>
 
     <build>
-        <finalName>StatusServer-${version}</finalName>
+        <finalName>StatusServer-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

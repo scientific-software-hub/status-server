@@ -29,7 +29,7 @@
   -->
 
 <!-- server-name - a tango server name for this server; instance-name - a tango instance name for this server-->
-<StatusServer server-name="StatusServer" instance-name="development" use-aliases="true">
+<StatusServer use-aliases="true">
     <properties>
         <property name="jacorb.poa.thread_pool_min" value="1"/>
         <property name="jacorb.poa.thread_pool_max" value="10"/>

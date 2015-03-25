@@ -9,11 +9,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
 import fr.esrf.Tango.*;
 import hzg.wpn.util.compressor.Compressor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.DeviceState;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
-import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
 import org.tango.server.annotation.Device;
@@ -33,6 +34,9 @@ import wpn.hdri.ss.engine.Engine;
 import wpn.hdri.ss.engine.EngineInitializationContext;
 import wpn.hdri.ss.engine.EngineInitializer;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +51,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Device(transactionType = TransactionType.NONE)
 public class StatusServer implements StatusServerStub {
-    private static String XML_CONFIG_PATH;
+    private static final Logger logger = LoggerFactory.getLogger(StatusServer.class);
+
+    public static final String CONFIG_ROOT_PROP = "hzg.wpn.ss.config_root";
     private final Multimap<String, String> attributesGroupsMap = HashMultimap.create();
     /**
      * This field tracks ctxs of the clients and is used in getXXXUpdates methods
@@ -75,14 +81,6 @@ public class StatusServer implements StatusServerStub {
      */
     StatusServer(Engine engine) {
         this.engine = engine;
-    }
-
-    public static void setXmlConfigPath(String v) {
-        XML_CONFIG_PATH = v;
-    }
-
-    public static void main(String... args) throws Exception {
-        ServerManager.getInstance().start(args, StatusServer.class);
     }
 
     @Override
@@ -118,14 +116,37 @@ public class StatusServer implements StatusServerStub {
         return getClass().getPackage().getImplementationVersion();
     }
 
+    private static void setSystemProperties(int minCpus, int maxCpus) {
+        //jacORB tuning
+        logger.info("Tuning jacORB thread pool:");
+        logger.info("jacorb.poa.thread_pool_min=" + Integer.toString(minCpus));
+        System.setProperty("jacorb.poa.thread_pool_min", Integer.toString(minCpus));
+
+        logger.info("jacorb.poa.thread_pool_max=" + Integer.toString(maxCpus));
+        System.setProperty("jacorb.poa.thread_pool_max", Integer.toString(maxCpus));
+    }
+
     @Override
     @Init
     @StateMachine(endState = DeviceState.ON)
     public void init() throws Exception {
-        Preconditions.checkNotNull(XML_CONFIG_PATH, "Path to xml configuration is not set.");
-        StatusServerConfiguration configuration = StatusServerConfiguration.fromXml(XML_CONFIG_PATH);
+        String devName = deviceManager.getName().split("/")[2];
+
+        Path configXml = Paths.get(System.getProperty(CONFIG_ROOT_PROP) + "/StatusServer." + devName + ".xml");
+
+        Preconditions.checkArgument(Files.exists(configXml), "XML configuration [" + configXml.toAbsolutePath().toString() + "] does not exist!");
+
+        logger.info("Parsing configuration...");
+        StatusServerConfiguration configuration = StatusServerConfiguration.fromXml(configXml.toAbsolutePath().toString());
+        logger.info("Done.");
+
 
         StatusServerProperties properties = configuration.getProperties();
+        logProperties(properties);
+
+        logger.info("Setting System settings...");
+        setSystemProperties(properties.jacorbMinCpus, properties.jacorbMaxCpus);
+        logger.info("Done.");
 
         EngineInitializer initializer = new EngineInitializer(configuration, properties);
 
@@ -135,6 +156,14 @@ public class StatusServer implements StatusServerStub {
 
         this.engine = new Engine(ctx);
         setStatus(Status.IDLE);
+    }
+
+    private static void logProperties(StatusServerProperties properties) {
+        logger.info("StatusServer properties:");
+        logger.info("persistent.threshold=" + properties.persistentThreshold);
+        logger.info("persistent.delay=" + properties.persistentDelay);
+        logger.info("persistent.root=" + properties.persistentRoot);
+        logger.info(" = = = = = = = = = = = = ");
     }
 
     private void initializeDynamicAttributes(List<StatusServerAttribute> statusServerAttributes, DynamicManager dynamicManagement) throws DevFailed {
