@@ -87,6 +87,8 @@
             <groupId>de.desy.tine</groupId>
             <artifactId>tineJAVA</artifactId>
             <version>4.5.4</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/tineJAVA-4.5.4.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.tango</groupId>
