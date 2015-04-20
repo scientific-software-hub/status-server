@@ -1,0 +1,1 @@
+This package contains all the dependencies required for the project. Since they are not available from maven central one needs to install them. To do it just run install.bat/sh
