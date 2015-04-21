@@ -29,6 +29,8 @@
 
 package wpn.hdri.ss.data.attribute;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Timestamp;
 
@@ -46,6 +48,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 @NotThreadSafe
 public final class NumericAttribute<T extends Number> extends Attribute<T> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Attribute.class);
 
     public static final double DEFAULT_PRECISION = 0.;
 
@@ -101,7 +104,8 @@ public final class NumericAttribute<T extends Number> extends Attribute<T> {
         try {
             decimal = new BigDecimal(text);
         } catch (NumberFormatException e) {
-            LOGGER.error(e);
+            LOGGER.warn("Can not parse value: " + text);
+            LOGGER.warn(e.getMessage(), e);
             return false;
         }
 

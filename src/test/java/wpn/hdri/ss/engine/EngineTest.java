@@ -31,9 +31,10 @@ package wpn.hdri.ss.engine;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
@@ -62,22 +63,7 @@ public class EngineTest {
     @Before
     public void before() {
         mockStorage = mock(Storage.class);
-        mockLogger = spy(new Logger(EngineTest.class.getSimpleName()) {
-            @Override
-            public void info(Object message) {
-                System.out.println(message);
-            }
-
-            @Override
-            public void error(Object message, Throwable t) {
-                System.err.println(message);
-            }
-
-            @Override
-            public void error(Object message) {
-                System.err.println(message);
-            }
-        });
+        mockLogger = spy(LoggerFactory.getLogger(EngineTest.class.getSimpleName()));
     }
 
     @Test

@@ -1,9 +1,10 @@
 package wpn.hdri.ss.engine;
 
-import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.EngineTestBootstrap;
 import wpn.hdri.ss.data.Timestamp;
 
@@ -21,22 +22,7 @@ public class ITEngineStressTest {
     public static final int _10K = 10000;
     public static final int _100K = 100000;
 
-    private final Logger mockLogger = spy(new Logger(ITEngineStressTest.class.getSimpleName()) {
-        @Override
-        public void info(Object message) {
-            System.out.println(message);
-        }
-
-        @Override
-        public void error(Object message, Throwable t) {
-            System.err.println(message);
-        }
-
-        @Override
-        public void error(Object message) {
-            System.err.println(message);
-        }
-    });
+    private final Logger mockLogger = spy(LoggerFactory.getLogger(ITEngineStressTest.class.getSimpleName()));
 
     private Engine engine;
 

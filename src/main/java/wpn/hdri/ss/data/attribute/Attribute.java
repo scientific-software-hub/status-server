@@ -31,7 +31,8 @@ package wpn.hdri.ss.data.attribute;
 
 import com.google.common.base.Objects;
 import hzg.wpn.collection.Maps;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
@@ -54,7 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @ThreadSafe
 public abstract class Attribute<T> {
-    protected static final Logger LOGGER = Logger.getLogger(Attribute.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Attribute.class);
 
     private final AttributeName name;
 

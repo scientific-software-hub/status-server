@@ -1,6 +1,7 @@
 package wpn.hdri.ss.engine;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
@@ -24,7 +25,7 @@ import java.util.List;
  * Encapsulates initialization logic of this engine.
  */
 public class EngineInitializer {
-    public static final Logger LOGGER = Logger.getLogger(EngineInitializer.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(EngineInitializer.class);
 
     private StatusServerConfiguration configuration;
     private StatusServerProperties properties;
@@ -36,7 +37,7 @@ public class EngineInitializer {
 
     public EngineInitializationContext initialize() throws EngineInitializationException {
         try {
-            LOGGER.info(new SimpleDateFormat("dd MMM yy HH:mm").format(new Date()) + " Engine initialization process started.");
+            LOGGER.trace(new SimpleDateFormat("dd MMM yy HH:mm").format(new Date()) + " Engine initialization process started.");
             ClientsManager clientsManager = initializeClients();
 
             AttributesManager attributesManager = initializeAttributes(clientsManager);
@@ -46,7 +47,7 @@ public class EngineInitializer {
 
             PersistentStorageTask persistentStorageTask = new PersistentStorageTask(attributesManager, properties.persistentThreshold, properties.persistentRoot);
 
-            LOGGER.info("Finish engine initialization process.");
+            LOGGER.trace("Finish engine initialization process.");
             return new EngineInitializationContext(clientsManager, attributesManager, properties, pollingTasks, eventTasks, persistentStorageTask);
         } catch (Exception e) {
             LOGGER.error("Unable to initialize Engine:", e);
@@ -59,7 +60,7 @@ public class EngineInitializer {
         for (Device dev : configuration.getDevices()) {
             String devName = dev.getName();
             try {
-                LOGGER.info("Initializing client " + devName);
+                LOGGER.trace("Initializing client " + devName);
                 clientsManager.initializeClient(devName);
             } catch (ClientInitializationException e) {
                 LOGGER.warn("Client initialization failed.", e);
@@ -87,19 +88,19 @@ public class EngineInitializer {
 
             for (DeviceAttribute attr : dev.getAttributes()) {
                 final String fullName = devName + "/" + attr.getName();
-                LOGGER.info("Initializing attribute " + fullName);
+                LOGGER.trace("Initializing attribute " + fullName);
                 boolean isAttrOk = devClient.checkAttribute(attr.getName());
                 if (!isAttrOk) {
                     LOGGER.warn("DevClient reports bad attribute: " + fullName);
                     attributesManager.reportBadAttribute(fullName, "Attribute initialization failed.");
                     continue;
                 }
-                devClient.printAttributeInfo(attr.getName(), LOGGER);
+                devClient.printAttributeInfo(attr.getName());
                 try {
                     Class<?> attributeClass = devClient.getAttributeClass(attr.getName());
                     boolean isArray = devClient.isArrayAttribute(attr.getName());
                     attributesManager.initializeAttribute(attr, dev.getName(), devClient, attributeClass, isArray);
-                    LOGGER.info("Initialization succeed.");
+                    LOGGER.trace("Initialization succeed.");
                 } catch (ClientException e) {
                     LOGGER.warn("Attribute initialization failed.", e);
                     attributesManager.reportBadAttribute(fullName, e.getMessage());
@@ -109,14 +110,14 @@ public class EngineInitializer {
 
         //initialize StatusServer embedded attributes
         for (StatusServerAttribute attr : configuration.getStatusServerAttributes()) {
-            LOGGER.info("Initializing embedded attribute " + attr.getName());
+            LOGGER.trace("Initializing embedded attribute " + attr.getName());
             try {
                 TangoDataType<?> dataType = TangoDataTypes.forString(attr.getType());
                 //create and add default value - null
                 attributesManager.initializeAttribute(attr.asDeviceAttribute(), "", null, dataType.getDataType(), false);
-                LOGGER.info("Initialization succeed.");
+                LOGGER.trace("Initialization succeed.");
             } catch (UnknownTangoDataType unknownTangoDataType) {
-                LOGGER.warn("Initialization has failed.");
+                LOGGER.warn("Initialization has failed.", unknownTangoDataType);
             }
         }
         return attributesManager;

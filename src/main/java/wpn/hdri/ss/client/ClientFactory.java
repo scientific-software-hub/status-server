@@ -31,7 +31,6 @@ package wpn.hdri.ss.client;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import org.apache.log4j.Logger;
 import wpn.hdri.ss.client.tango.TangoClientFactory;
 import wpn.hdri.ss.client.tine.TineClientFactory;
 import wpn.hdri.ss.data.Timestamp;
@@ -128,7 +127,7 @@ public class ClientFactory extends AbsClientFactory {
         }
 
         @Override
-        public void printAttributeInfo(String name, Logger logger) {
+        public void printAttributeInfo(String name) {
         }
     }
 }

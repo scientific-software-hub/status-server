@@ -3,6 +3,8 @@ package wpn.hdri.ss.data.attribute;
 import com.google.common.collect.Iterables;
 import hzg.wpn.util.conveter.TypeConverter;
 import hzg.wpn.util.conveter.TypeConverters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.storage.TypeFactory;
@@ -12,6 +14,8 @@ import wpn.hdri.ss.storage.TypeFactory;
  * @since 23.04.13
  */
 public class AttributeValueFactory<T> implements TypeFactory<AttributeValue<T>> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AttributeValueFactory.class);
+
     public static <T> AttributeValue<T> newAttributeValue(String fullName, String alias, Value<? super T> value, Timestamp readTimestamp, Timestamp writeTimestamp) {
         return new AttributeValue<T>(fullName, alias, value, readTimestamp, writeTimestamp);
     }
@@ -32,7 +36,7 @@ public class AttributeValueFactory<T> implements TypeFactory<AttributeValue<T>> 
 
             TypeConverter<String, T> converter = TypeConverters.lookupStringToTypeConverter(clazz);
             if (converter == null) {
-                //TODO log
+                LOGGER.warn(String.format("Can not convert value [%s] to type [%s]! No converter was found.", value, clazz.getSimpleName()));
                 return null;
             }
 
@@ -43,7 +47,7 @@ public class AttributeValueFactory<T> implements TypeFactory<AttributeValue<T>> 
 
             return newAttributeValue(dataName, alias, val, read, write);
         } catch (ClassNotFoundException e) {
-            //TODO log
+            LOGGER.warn(e.getMessage(), e);
             return null;
         }
     }

@@ -29,7 +29,7 @@
 
 package wpn.hdri.ss.client;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import wpn.hdri.ss.data.Timestamp;
 
 import java.util.Map;
@@ -118,5 +118,5 @@ public abstract class Client {
      */
     public abstract void unsubscribeEvent(String attrName) throws ClientException;
 
-    public abstract void printAttributeInfo(String name, Logger logger);
+    public abstract void printAttributeInfo(String name);
 }

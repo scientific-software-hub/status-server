@@ -37,7 +37,8 @@ import de.desy.tine.definitions.TErrorList;
 import de.desy.tine.definitions.TMode;
 import de.desy.tine.queryUtils.TPropertyQuery;
 import de.desy.tine.queryUtils.TQuery;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
@@ -231,8 +232,17 @@ public class TineClient extends Client {
         return result[0];
     }
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(TineClient.class);
+
     @Override
-    public void printAttributeInfo(String name, Logger logger) {
-        //TODO
+    public void printAttributeInfo(String name) {
+        try {
+            LOGGER.info("Information for attribute " + deviceName);
+            LOGGER.info("Data format: TINE data format");
+            LOGGER.info("Data type: TINE data type");
+            LOGGER.info("Java data type match:" + getAttributeClass(name).getSimpleName());
+        } catch (ClientException e) {
+            LOGGER.warn("Can not print attribute info for " + name, e);
+        }
     }
 }

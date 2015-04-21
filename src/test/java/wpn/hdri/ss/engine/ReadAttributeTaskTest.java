@@ -29,8 +29,8 @@
 
 package wpn.hdri.ss.engine;
 
-import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.slf4j.Logger;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.attribute.Attribute;

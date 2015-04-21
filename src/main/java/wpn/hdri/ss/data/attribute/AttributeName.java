@@ -1,6 +1,6 @@
 package wpn.hdri.ss.data.attribute;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * This is a container class for attribute's full name and its alias.
@@ -9,7 +9,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 03.06.13
  */
-@ThreadSafe
+@Immutable
 public class AttributeName {
     private final String deviceName;
     private final String name;

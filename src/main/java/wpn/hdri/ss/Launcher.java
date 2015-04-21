@@ -48,19 +48,19 @@ public class Launcher {
     private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
 
     public static void main(String[] args) throws Exception {
-            logger.info("Parsing cli arguments...");
+            logger.trace("Parsing cli arguments...");
             CliOptions cliOptions = parseCl(args);
-            logger.info("Done.");
+            logger.trace("Done.");
 
-            logger.info("Setting CONFIG_ROOT="+cliOptions.pathToConfiguration);
+            logger.trace("Setting CONFIG_ROOT=" + cliOptions.pathToConfiguration);
             System.setProperty(StatusServer.CONFIG_ROOT_PROP, cliOptions.pathToConfiguration);
-
+            logger.trace("Done.");
             Util.set_serial_model(TangoConst.NO_SYNC);
-            logger.info("Done.");
 
-            logger.info("Initialize and start Tango server instance...");
+
+            logger.trace("Initialize and start Tango server instance...");
             ServerManager.getInstance().start(new String[]{cliOptions.instanceName}, StatusServer.class);
-            logger.info("Done.");
+            logger.trace("Done.");
     }
 
     private static CliOptions parseCl(String[] args) {

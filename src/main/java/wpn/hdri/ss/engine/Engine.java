@@ -31,7 +31,8 @@ package wpn.hdri.ss.engine;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.data.attribute.Attribute;
@@ -62,7 +63,7 @@ public class Engine {
     /**
      * By default engine's logger stores log in {APP_ROOT}/logs/engine.out
      */
-    public static final Logger LOGGER = Logger.getLogger(Engine.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(Engine.class);
     /**
      * This one is used as a multiplicator for Math.random in {@link this#scheduler}
      */

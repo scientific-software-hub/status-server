@@ -29,7 +29,8 @@
 
 package wpn.hdri.ss.client.tango;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.format.SpectrumTangoDataFormat;
 import org.tango.client.ez.proxy.*;
 import wpn.hdri.ss.client.Client;
@@ -48,6 +49,8 @@ import java.util.Map;
  */
 @NotThreadSafe
 public class TangoClient extends Client {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TangoClient.class);
+
     private final TangoProxy proxy;
     private Map<String, TangoEventListener<?>> listeners = new HashMap<>();
 
@@ -145,16 +148,16 @@ public class TangoClient extends Client {
     }
 
     @Override
-    public void printAttributeInfo(String name, Logger logger) {
+    public void printAttributeInfo(String name) {
         TangoAttributeInfoWrapper info = null;
         try {
             info = proxy.getAttributeInfo(name);
-            logger.info("Information for attribute " + proxy.getName() + "/" + name);
-            logger.info("Data format:" + info.getFormat().toString());
-            logger.info("Data type:" + info.getType().toString());
-            logger.info("Java data type match:" + info.getClazz().getSimpleName());
+            LOGGER.info("Information for attribute " + proxy.getName() + "/" + name);
+            LOGGER.info("Data format:" + info.getFormat().toString());
+            LOGGER.info("Data type:" + info.getType().toString());
+            LOGGER.info("Java data type match:" + info.getClazz().getSimpleName());
         } catch (TangoProxyException e) {
-            logger.warn("Can not print attribute info for " + name + ". Reason - info is null.");
+            LOGGER.warn("Can not print attribute info for " + name, e);
         }
     }
 }
