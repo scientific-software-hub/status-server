@@ -45,6 +45,11 @@
             <fileMode>0777</fileMode>
         </fileSet>
         <fileSet>
+            <directory>lib</directory>
+            <outputDirectory>/lib/StatusServer</outputDirectory>
+            <fileMode>0777</fileMode>
+        </fileSet>
+        <fileSet>
             <directory>conf</directory>
             <outputDirectory>/etc/StatusServer/conf</outputDirectory>
         </fileSet>
