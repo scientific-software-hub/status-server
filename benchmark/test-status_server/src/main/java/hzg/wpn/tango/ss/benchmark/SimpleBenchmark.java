@@ -32,6 +32,7 @@
 package hzg.wpn.tango.ss.benchmark;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Measurement;
 import org.tango.client.ez.proxy.TangoProxies;
 import org.tango.client.ez.proxy.TangoProxy;
 
@@ -50,6 +51,7 @@ public class SimpleBenchmark {
 
 
     @Benchmark
+    @Measurement(iterations = 1000)
     public String[] test_getLatestSnapshot() throws Exception {
         String[] data = ss.executeCommand("getLatestSnapshot", null);
 
