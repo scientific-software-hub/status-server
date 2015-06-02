@@ -93,6 +93,6 @@ public class ConfigurationBuilder {
                             public Device apply(String input) {
                                 return new Device(input, new ArrayList<DeviceAttribute>(attributes.get(input)));
                             }
-                        })), Collections.<StatusServerAttribute>emptyList(), new StatusServerProperties(Collections.emptyList()));
+                        })), Collections.<StatusServerAttribute>emptyList(), new StatusServerProperties(Collections.<StatusServerProperty>emptyList()));
     }
 }

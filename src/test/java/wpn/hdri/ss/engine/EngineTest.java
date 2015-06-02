@@ -40,6 +40,7 @@ import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
+import wpn.hdri.ss.configuration.StatusServerProperty;
 import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.data.attribute.AttributeName;
 import wpn.hdri.ss.data.attribute.AttributeValue;
@@ -87,7 +88,7 @@ public class EngineTest {
             }
         };
 
-        EngineInitializer initializer = new EngineInitializer(StatusServerConfiguration.fromXml(xmlConfigPath), new StatusServerProperties(Collections.emptyList()));
+        EngineInitializer initializer = new EngineInitializer(StatusServerConfiguration.fromXml(xmlConfigPath), new StatusServerProperties(Collections.<StatusServerProperty>emptyList()));
 
         AttributesManager attributesManager = initializer.initializeAttributes(clientsManager);
 

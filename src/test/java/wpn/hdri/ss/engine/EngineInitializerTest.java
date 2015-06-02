@@ -4,6 +4,7 @@ import org.junit.Test;
 import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
+import wpn.hdri.ss.configuration.StatusServerProperty;
 
 import java.util.Collections;
 
@@ -23,7 +24,7 @@ public class EngineInitializerTest {
      */
     @Test
     public void testBadClient() throws Exception {
-        EngineInitializer instance = new EngineInitializer(StatusServerConfiguration.fromXml(xmlConfigPath), new StatusServerProperties(Collections.emptyList()));
+        EngineInitializer instance = new EngineInitializer(StatusServerConfiguration.fromXml(xmlConfigPath), new StatusServerProperties(Collections.<StatusServerProperty>emptyList()));
 
         ClientsManager result = instance.initializeClients();
 
