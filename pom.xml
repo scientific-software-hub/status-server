@@ -126,6 +126,7 @@
             <groupId>hzg.wpn.tango</groupId>
             <artifactId>server-commons</artifactId>
             <version>${commons.version}</version>
+            <scope>provided</scope>
             <type>pom</type>
         </dependency>
     </dependencies>
@@ -184,7 +185,7 @@
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <useReleaseProfile>true</useReleaseProfile>
+                    <useReleaseProfile>false</useReleaseProfile>
                     <releaseProfiles>release</releaseProfiles>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                 </configuration>
@@ -194,25 +195,13 @@
 
     <profiles>
         <profile>
-            <id>release</id>
-            <build>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <configuration>
-                        <additionalparam>-Xdoclint:none</additionalparam>
-                    </configuration>
-                </plugin>
-            </plugins>
-            </build>
+            <id>standalone</id>
             <dependencies>
                 <dependency>
                     <groupId>hzg.wpn.tango</groupId>
                     <artifactId>server-commons</artifactId>
                     <version>${commons.version}</version>
                     <type>pom</type>
-                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
