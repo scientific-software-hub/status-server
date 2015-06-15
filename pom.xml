@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ The main contributor to this project is Institute of Materials Research,
+  ~ Helmholtz-Zentrum Geesthacht,
+  ~ Germany.
+  ~
+  ~ This project is a contribution of the Helmholtz Association Centres and
+  ~ Technische Universitaet Muenchen to the ESS Design Update Phase.
+  ~
+  ~ The project's funding reference is FKZ05E11CG1.
+  ~
+  ~ Copyright (c) 2012. Institute of Materials Research,
+  ~ Helmholtz-Zentrum Geesthacht,
+  ~ Germany.
+  ~
+  ~ This program is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU General Public License
+  ~ as published by the Free Software Foundation; either version 2
+  ~ of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>hzg.wpn</groupId>
+    <artifactId>StatusServer</artifactId>
+    <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
+    </description>
+    <version>1.1.4</version>
+    <packaging>jar</packaging>
+
+    <developers>
+        <developer>
+            <id>khokhria</id>
+            <name>Igor Khokhriakov</name>
+            <email>igor.khokhriakov@hzg.de</email>
+            <organization>Helmholtz-Zentrum Geesthacht</organization>
+            <organizationUrl>hzg.de</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:hg:https://bitbucket.org/hzgwpn/statusserver</connection>
+        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/statusserver</developerConnection>
+        <url>ssh://hg@bitbucket.org/hzgwpn/statusserver</url>
+        <tag>StatusServer-1.1.4</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-hzg</id>
+            <url>https://api.bintray.com/maven/hzgde/hzg-wpn-projects/status_server</url>
+        </repository>
+    </distributionManagement>
+
+    <properties>
+        <commons.version>1.0</commons.version>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.simpleframework</groupId>
+            <artifactId>simple-xml</artifactId>
+            <version>2.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>de.desy.tine</groupId>
+            <artifactId>tineJAVA</artifactId>
+            <version>4.5.4</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/tineJAVA-4.5.4.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.tango</groupId>
+            <artifactId>ezTangORB</artifactId>
+            <version>1.1.14</version>
+        </dependency>
+        <dependency>
+            <groupId>hzg.wpn</groupId>
+            <artifactId>utils</artifactId>
+            <version>0.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>hzg.wpn.tango</groupId>
+            <artifactId>server-commons</artifactId>
+            <version>${commons.version}</version>
+            <type>pom</type>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>StatusServer-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>jar-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/distr.xml</descriptor>
+                            </descriptors>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <useReleaseProfile>true</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <additionalparam>-Xdoclint:none</additionalparam>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>hzg.wpn.tango</groupId>
+                    <artifactId>server-commons</artifactId>
+                    <version>${commons.version}</version>
+                    <type>pom</type>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-release</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-plugins</id>
+            <name>bintray-plugins</name>
+            <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>
