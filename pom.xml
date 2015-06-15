@@ -195,6 +195,9 @@
     <profiles>
         <profile>
             <id>release</id>
+            <properties>
+                <additionalparam>-Xdoclint:none</additionalparam>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>hzg.wpn.tango</groupId>
