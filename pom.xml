@@ -35,7 +35,7 @@
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
     </description>
-    <version>1.1.8-SNAPSHOT</version>
+    <version>1.1.8</version>
     <packaging>jar</packaging>
 
     <developers>
@@ -52,7 +52,7 @@
         <connection>scm:hg:https://bitbucket.org/hzgwpn/statusserver</connection>
         <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/statusserver</developerConnection>
         <url>ssh://hg@bitbucket.org/hzgwpn/statusserver</url>
-        <tag>${version}</tag>
+        <tag>StatusServer-1.1.8</tag>
     </scm>
 
     <distributionManagement>
