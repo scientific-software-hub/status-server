@@ -31,6 +31,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>hzg.wpn.tango</groupId>
+        <artifactId>server-parent</artifactId>
+        <version>1.4</version>
+    </parent>
+
     <groupId>hzg.wpn</groupId>
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
@@ -38,48 +44,12 @@
     <version>1.1.10-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <developers>
-        <developer>
-            <id>khokhria</id>
-            <name>Igor Khokhriakov</name>
-            <email>igor.khokhriakov@hzg.de</email>
-            <organization>Helmholtz-Zentrum Geesthacht</organization>
-            <organizationUrl>hzg.de</organizationUrl>
-        </developer>
-    </developers>
-
-    <scm>
-        <connection>scm:hg:https://bitbucket.org/hzgwpn/statusserver</connection>
-        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/statusserver</developerConnection>
-        <url>ssh://hg@bitbucket.org/hzgwpn/statusserver</url>
-        <tag>${version}</tag>
-    </scm>
-
-    <distributionManagement>
-        <repository>
-            <id>bintray-hzg</id>
-            <url>https://api.bintray.com/maven/hzgde/hzg-wpn-projects/status_server</url>
-        </repository>
-    </distributionManagement>
-
     <properties>
-        <commons.version>1.3</commons.version>
+        <scm.project.name>statusserver</scm.project.name>
+        <distribution.project.name>status_server</distribution.project.name>
     </properties>
 
-
     <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.10</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>1.9.0</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -117,90 +87,19 @@
             <artifactId>utils</artifactId>
             <version>0.0.2</version>
         </dependency>
-        <dependency>
-            <groupId>hzg.wpn.tango</groupId>
-            <artifactId>server-commons</artifactId>
-            <version>${commons.version}</version>
-            <scope>provided</scope>
-            <type>pom</type>
-        </dependency>
     </dependencies>
 
     <build>
         <finalName>StatusServer-${project.version}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>jar-distribution</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/distr.xml</descriptor>
-                            </descriptors>
-                            <appendAssemblyId>false</appendAssemblyId>
-                        </configuration>
-                    </execution>
-                </executions>
-
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>release</releaseProfiles>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <skipAssembly>false</skipAssembly>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>standalone</id>
-            <dependencies>
-                <dependency>
-                    <groupId>hzg.wpn.tango</groupId>
-                    <artifactId>server-commons</artifactId>
-                    <version>${commons.version}</version>
-                    <type>pom</type>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
     <repositories>
         <repository>
@@ -212,14 +111,4 @@
             <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
         </repository>
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-plugins</id>
-            <name>bintray-plugins</name>
-            <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
-        </pluginRepository>
-    </pluginRepositories>
 </project>

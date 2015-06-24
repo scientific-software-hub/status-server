@@ -58,14 +58,6 @@ import static org.mockito.Mockito.*;
 public class EngineTest {
     private final String xmlConfigPath = "target/test-classes/conf/StatusServer.test.xml";
     private final ConfigurationBuilder conf = new ConfigurationBuilder();
-    private Storage mockStorage;
-    private Logger mockLogger;
-
-    @Before
-    public void before() {
-        mockStorage = mock(Storage.class);
-        mockLogger = spy(LoggerFactory.getLogger(EngineTest.class.getSimpleName()));
-    }
 
     @Test
     public void testTolerateExceptionsDuringWork() throws Exception {
