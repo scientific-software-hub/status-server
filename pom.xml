@@ -34,7 +34,7 @@
     <parent>
         <groupId>hzg.wpn.tango</groupId>
         <artifactId>server-parent</artifactId>
-        <version>1.4</version>
+        <version>1.6</version>
     </parent>
 
     <groupId>hzg.wpn</groupId>
@@ -48,10 +48,6 @@
         <scm.project.name>statusserver</scm.project.name>
         <distribution.project.name>status_server</distribution.project.name>
     </properties>
-
-    <scm>
-        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/${scm.project.name}</developerConnection>
-    </scm>
 
     <dependencies>
         <dependency>
