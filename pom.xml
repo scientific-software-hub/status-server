@@ -49,6 +49,10 @@
         <distribution.project.name>status_server</distribution.project.name>
     </properties>
 
+    <scm>
+        <developerConnection>${scm.developerConnection.prefix}${scm.project.name}</developerConnection>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
