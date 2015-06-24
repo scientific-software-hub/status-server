@@ -41,7 +41,7 @@
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
     </description>
-    <version>1.1.11</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -51,7 +51,7 @@
 
     <scm>
         <developerConnection>${scm.developerConnection.prefix}${scm.project.name}</developerConnection>
-      <tag>StatusServer-1.1.11</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <dependencies>
