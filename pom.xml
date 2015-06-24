@@ -41,7 +41,7 @@
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
     </description>
-    <version>1.1.10-SNAPSHOT</version>
+    <version>1.1.10</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -111,4 +111,8 @@
             <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
         </repository>
     </repositories>
+
+  <scm>
+    <tag>StatusServer-1.1.10</tag>
+  </scm>
 </project>
