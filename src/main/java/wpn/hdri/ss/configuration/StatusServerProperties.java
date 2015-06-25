@@ -17,9 +17,6 @@ public class StatusServerProperties {
     public int engineCpus = AVAILABLE_PROCESSORS;
     public int jacorbMinCpus = 1;
     public int jacorbMaxCpus = 100;
-    public long persistentThreshold = 1000;
-    public long persistentDelay = 10;
-    public String persistentRoot = ".";
     @ElementList(name = "properties", inline = true)
     private List<StatusServerProperty> properties;
 
@@ -32,15 +29,6 @@ public class StatusServerProperties {
                     break;
                 case "jacorb.poa.thread_pool_max":
                     jacorbMaxCpus = Integer.parseInt(prop.value);
-                    break;
-                case "persistent.threshold":
-                    persistentThreshold = Long.parseLong(prop.value);
-                    break;
-                case "persistent.delay":
-                    persistentDelay = Long.parseLong(prop.value);
-                    break;
-                case "persistent.root":
-                    persistentRoot = prop.value;
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown property: " + prop.name);

@@ -33,12 +33,6 @@
     <properties>
         <property name="jacorb.poa.thread_pool_min" value="1"/>
         <property name="jacorb.poa.thread_pool_max" value="10"/>
-        <!-- #persistent threshold indicates how many records StatusServer will hold in memory -->
-        <property name="persistent.threshold" value="1000"/>
-        <!-- #persistent delay (s) indicates how often records will be flushed -->
-        <property name="persistent.delay" value="1"/>
-        <!-- #where to store persistent files -->
-        <property name="persistent.root" value="./persistent"/>
     </properties>
     <!-- these attributes can be used for writing data directly to StatusServer -->
     <attributes>

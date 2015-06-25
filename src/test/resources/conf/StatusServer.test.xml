@@ -29,7 +29,7 @@
   -->
 <StatusServer use-aliases="false">
     <properties>
-        <property name="persistent.root" value="target/storage"/>
+        <property name="jacorb.poa.thread_pool_min" value="1"/>
     </properties>
     <attributes>
     </attributes>

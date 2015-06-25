@@ -29,10 +29,7 @@ import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.attribute.AttributeName;
 import wpn.hdri.ss.data.attribute.AttributeValue;
 import wpn.hdri.ss.data.attribute.AttributeValuesView;
-import wpn.hdri.ss.engine.AttributesManager;
-import wpn.hdri.ss.engine.Engine;
-import wpn.hdri.ss.engine.EngineInitializationContext;
-import wpn.hdri.ss.engine.EngineInitializer;
+import wpn.hdri.ss.engine.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +38,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -51,14 +50,15 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @Device(transactionType = TransactionType.NONE)
 public class StatusServer implements StatusServerStub {
-    private static final Logger logger = LoggerFactory.getLogger(StatusServer.class);
-
     public static final String CONFIG_ROOT_PROP = "hzg.wpn.ss.config_root";
+    private static final Logger logger = LoggerFactory.getLogger(StatusServer.class);
     private final Multimap<String, String> attributesGroupsMap = HashMultimap.create();
     /**
      * This field tracks ctxs of the clients and is used in getXXXUpdates methods
      */
     private final ConcurrentMap<String, RequestContext> ctxs = Maps.newConcurrentMap();
+    //TODO commands
+    private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private Engine engine;
     // ==== Tango API specific
     @State
@@ -83,6 +83,16 @@ public class StatusServer implements StatusServerStub {
         this.engine = engine;
     }
 
+    private static void setSystemProperties(int minCpus, int maxCpus) {
+        //jacORB tuning
+        logger.info("Tuning jacORB thread pool:");
+        logger.info("jacorb.poa.thread_pool_min=" + Integer.toString(minCpus));
+        System.setProperty("jacorb.poa.thread_pool_min", Integer.toString(minCpus));
+
+        logger.info("jacorb.poa.thread_pool_max=" + Integer.toString(maxCpus));
+        System.setProperty("jacorb.poa.thread_pool_max", Integer.toString(maxCpus));
+    }
+
     @Override
     public DeviceState getState() {
         return state;
@@ -100,6 +110,7 @@ public class StatusServer implements StatusServerStub {
     public void setStatus(String v) {
         this.status = v;
     }
+    // ====================
 
     public void setDynamicManagement(DynamicManager dynamicManagement) {
         this.dynamicManagement = dynamicManagement;
@@ -108,22 +119,10 @@ public class StatusServer implements StatusServerStub {
     public void setDeviceManager(DeviceManager deviceManager) {
         this.deviceManager = deviceManager;
     }
-    // ====================
-
 
     @Attribute
     public String getImplementationVersion() {
         return getClass().getPackage().getImplementationVersion();
-    }
-
-    private static void setSystemProperties(int minCpus, int maxCpus) {
-        //jacORB tuning
-        logger.info("Tuning jacORB thread pool:");
-        logger.info("jacorb.poa.thread_pool_min=" + Integer.toString(minCpus));
-        System.setProperty("jacorb.poa.thread_pool_min", Integer.toString(minCpus));
-
-        logger.info("jacorb.poa.thread_pool_max=" + Integer.toString(maxCpus));
-        System.setProperty("jacorb.poa.thread_pool_max", Integer.toString(maxCpus));
     }
 
     @Override
@@ -142,9 +141,6 @@ public class StatusServer implements StatusServerStub {
 
 
         StatusServerProperties properties = configuration.getProperties();
-        //split each instance persistent root
-        properties.persistentRoot += "/" + devName;
-        logProperties(properties);
 
         logger.info("Setting System settings...");
         setSystemProperties(properties.jacorbMinCpus, properties.jacorbMaxCpus);
@@ -158,14 +154,6 @@ public class StatusServer implements StatusServerStub {
 
         this.engine = new Engine(ctx);
         setStatus(Status.IDLE);
-    }
-
-    private static void logProperties(StatusServerProperties properties) {
-        logger.info("StatusServer properties:");
-        logger.info("persistent.threshold=" + properties.persistentThreshold);
-        logger.info("persistent.delay=" + properties.persistentDelay);
-        logger.info("persistent.root=" + properties.persistentRoot);
-        logger.info(" = = = = = = = = = = = = ");
     }
 
     private void initializeDynamicAttributes(List<StatusServerAttribute> statusServerAttributes, DynamicManager dynamicManagement) throws DevFailed {
@@ -314,7 +302,6 @@ public class StatusServer implements StatusServerStub {
         return processResult(view);
     }
 
-
     @Override
     @Attribute
     public String[] getMeta() {
@@ -328,7 +315,13 @@ public class StatusServer implements StatusServerStub {
         }), String.class);
     }
 
-    //TODO commands
+    @Command
+    public void dumpData(String fileName) {
+        Path file = Paths.get(fileName);
+        Preconditions.checkArgument(!Files.exists(file), "File already exists! Try another one...");
+        new Persister(engine, file).start();
+    }
+
     @Override
     @Command
     @StateMachine(deniedStates = DeviceState.RUNNING)

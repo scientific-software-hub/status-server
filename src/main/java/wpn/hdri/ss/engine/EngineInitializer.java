@@ -45,10 +45,8 @@ public class EngineInitializer {
             List<PollingReadAttributeTask> pollingTasks = initializePollTasks(clientsManager, attributesManager);
             List<EventReadAttributeTask> eventTasks = initializeEventTasks(clientsManager, attributesManager);
 
-            PersistentStorageTask persistentStorageTask = new PersistentStorageTask(attributesManager, properties.persistentThreshold, properties.persistentRoot);
-
             LOGGER.trace("Finish engine initialization process.");
-            return new EngineInitializationContext(clientsManager, attributesManager, properties, pollingTasks, eventTasks, persistentStorageTask);
+            return new EngineInitializationContext(clientsManager, attributesManager, properties, pollingTasks, eventTasks);
         } catch (Exception e) {
             LOGGER.error("Unable to initialize Engine:", e);
             throw new EngineInitializationException("Unable to initialize Engine:", e);
