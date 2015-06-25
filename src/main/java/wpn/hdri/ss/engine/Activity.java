@@ -36,7 +36,7 @@ public enum Activity {
                 logger.info("Scheduling light polling task for " + task.getAttribute().getFullName());
                 runningTasks.add(
                         scheduler.scheduleAtFixedRate(
-                                new PollingReadAttributeTask(task.getAttribute(), client, 1000L, false,logger),
+                                new PollingReadAttributeTask(task.getAttribute(), client, 1000L, false),
                                 rnd.nextInt((int)task.getDelay()),settings == null ? task.getDelay() : settings.getDelay(),TimeUnit.MILLISECONDS));
 
             }
@@ -44,7 +44,7 @@ public enum Activity {
             for (final EventReadAttributeTask task : ctx.getEventTasks()) {
                 try {
                     logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
-                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), new EventReadAttributeTask(task.getAttribute(),task.getDevClient(),false,logger));
+                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), task.getEventType(), task);
                     ctx.addSubscribedTask(task);
                 } catch (ClientException e) {
                     logger.warn("Event subscription failed.", e);
@@ -71,7 +71,7 @@ public enum Activity {
                 try {
                     logger.info("Subscribing for changes from " + task.getAttribute().getFullName());
 
-                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), task);
+                    task.getDevClient().subscribeEvent(task.getAttribute().getName().getName(), task.getEventType(), task);
                     subscribedTasks.add(task);
                 } catch (ClientException e) {
                     logger.warn("Event subscription failed.", e);

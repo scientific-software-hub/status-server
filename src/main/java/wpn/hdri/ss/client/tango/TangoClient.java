@@ -36,10 +36,12 @@ import org.tango.client.ez.proxy.*;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
+import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,13 +52,22 @@ import java.util.Map;
 @NotThreadSafe
 public class TangoClient extends Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(TangoClient.class);
+    private static final EnumMap<Method.EventType, Object> TANGO_EVENT_TYPES = new EnumMap<Method.EventType, Object>(Method.EventType.class);
 
+    static {
+        TANGO_EVENT_TYPES.put(Method.EventType.CHANGE, TangoEvent.CHANGE);
+        TANGO_EVENT_TYPES.put(Method.EventType.PERIODIC, TangoEvent.PERIODIC);
+    }
     private final TangoProxy proxy;
     private Map<String, TangoEventListener<?>> listeners = new HashMap<>();
 
     public TangoClient(String deviceName, TangoProxy proxy) {
         super(deviceName);
         this.proxy = proxy;
+    }
+
+    protected EnumMap<Method.EventType, Object> mapEventTypes() {
+        return TANGO_EVENT_TYPES;
     }
 
     /**
@@ -90,9 +101,9 @@ public class TangoClient extends Client {
     }
 
     @Override
-    public void subscribeEvent(final String attrName, final EventCallback cbk) throws ClientException {
+    public void subscribeEvent(final String attrName, Method.EventType type, final EventCallback cbk) throws ClientException {
         try {
-            proxy.subscribeToEvent(attrName, TangoEvent.CHANGE);
+            proxy.subscribeToEvent(attrName, (TangoEvent) eventTypesMap.get(type));
             TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
@@ -104,7 +115,7 @@ public class TangoClient extends Client {
                     cbk.onError(cause);
                 }
             };
-            proxy.addEventListener(attrName, TangoEvent.CHANGE, listener);
+            proxy.addEventListener(attrName, (TangoEvent) eventTypesMap.get(type), listener);
 
             listeners.put(attrName, listener);
         } catch (TangoProxyException devFailed) {

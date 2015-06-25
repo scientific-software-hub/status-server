@@ -37,7 +37,7 @@
         <device name="Test.Device">
             <attributes>
                 <attribute name="Test.Attribute" method="poll" delay="100" interpolation="linear" precision="0.5"/>
-                <attribute name="Test.Attribute.1" method="event" interpolation="last" delay="0"/>
+                <attribute name="Test.Attribute.1" method="event" interpolation="last" type="change" delay="0"/>
             </attributes>
         </device>
     </devices>

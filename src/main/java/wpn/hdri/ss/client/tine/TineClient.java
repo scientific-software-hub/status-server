@@ -43,10 +43,12 @@ import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
 import wpn.hdri.ss.client.EventData;
+import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 
 import java.lang.reflect.Array;
 import java.util.AbstractMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -57,6 +59,14 @@ import java.util.concurrent.*;
  * @since 27.04.12
  */
 public class TineClient extends Client {
+    private static final EnumMap<Method.EventType, Object> TINE_EVENT_TYPES = new EnumMap<Method.EventType, Object>(Method.EventType.class);
+
+    static {
+        TINE_EVENT_TYPES.put(Method.EventType.CHANGE, TMode.CM_DATACHANGE);
+        TINE_EVENT_TYPES.put(Method.EventType.PERIODIC, TMode.CM_TIMER);
+    }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TineClient.class);
     private final String context;
     private final String serverName;
     private final String deviceName;
@@ -68,6 +78,12 @@ public class TineClient extends Client {
         this.context = deviceInfo[1];//skip leading '/'
         this.serverName = deviceInfo[2];
         this.deviceName = deviceInfo[3];
+    }
+
+    protected EnumMap<Method.EventType, Object> mapEventTypes() {
+
+
+        return TINE_EVENT_TYPES;
     }
 
     /**
@@ -141,7 +157,7 @@ public class TineClient extends Client {
     }
 
     @Override
-    public void subscribeEvent(final String attrName, final EventCallback cbk) throws ClientException {
+    public void subscribeEvent(final String attrName, Method.EventType type, final EventCallback cbk) throws ClientException {
         Future<TLink> futureLink = getFutureLink(attrName);
         try {
             final TLink link = futureLink.get();
@@ -150,7 +166,7 @@ public class TineClient extends Client {
             //read data for the first time
             cbk.onEvent(new EventData<Object>(getDataObject(dout), time));
             //attach event listener
-            int rc = link.attach(TMode.CM_DATACHANGE, new TCallback() {
+            int rc = link.attach((Short) eventTypesMap.get(type), new TCallback() {
                 @Override
                 public void callback(int LinkIndex, int LinkStatus) {
                     if (TErrorList.isLinkSuccess(LinkStatus)) {
@@ -231,8 +247,6 @@ public class TineClient extends Client {
         }
         return result[0];
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TineClient.class);
 
     @Override
     public void printAttributeInfo(String name) {

@@ -1,6 +1,7 @@
 package wpn.hdri.ss.engine;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
@@ -13,30 +14,26 @@ import java.util.Map;
  * @since 17.06.13
  */
 public class PollingReadAttributeTask implements Runnable {
-    private final Attribute<?> attribute;
-    private final Client devClient;
-
-    private final Logger logger;
-
-    private final long delay;
-    private final boolean append;
-
-    /**
-     * After each failed read attempt this will be multiplied by delay to get a delay before next attempt
-     */
-    private volatile byte tries = 0;
     /**
      * Defines a number of tries this read task will attempt before throw an exception
      */
     public final static byte MAX_TRIES = 10;
+    private static final Logger logger = LoggerFactory.getLogger(PollingReadAttributeTask.class);
+    private final Attribute<?> attribute;
+    private final Client devClient;
+    private final long delay;
+    private final boolean append;
+    /**
+     * After each failed read attempt this will be multiplied by delay to get a delay before next attempt
+     */
+    private volatile byte tries = 0;
 
 
-    public PollingReadAttributeTask(Attribute<?> attribute, Client devClient, long delay, boolean append, Logger logger) {
+    public PollingReadAttributeTask(Attribute<?> attribute, Client devClient, long delay, boolean append) {
         this.attribute = attribute;
         this.devClient = devClient;
         this.delay = delay;
         this.append = append;
-        this.logger = logger;
     }
 
     /**

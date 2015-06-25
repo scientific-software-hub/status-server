@@ -33,12 +33,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import wpn.hdri.ss.client.tango.TangoClientFactory;
 import wpn.hdri.ss.client.tine.TineClientFactory;
+import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -97,12 +95,17 @@ public class ClientFactory extends AbsClientFactory {
         }
 
         @Override
+        protected EnumMap<Method.EventType, Object> mapEventTypes() {
+            return null;
+        }
+
+        @Override
         public Map.Entry<String, Timestamp> readAttribute(String attrName) {
             return readAttributeValue;
         }
 
         @Override
-        public void subscribeEvent(String attrName, EventCallback cbk) throws ClientException {
+        public void subscribeEvent(String attrName, Method.EventType type, EventCallback cbk) throws ClientException {
             cbk.onError(new IllegalStateException("Illegal attempt of subscription to attribute " + attrName + " in BadClient"));
         }
 

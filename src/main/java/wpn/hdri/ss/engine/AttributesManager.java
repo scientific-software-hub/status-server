@@ -85,6 +85,7 @@ public class AttributesManager {
     private final Map<String, String> badAttributes = new HashMap<String, String>();
 
     private final AttributeFactory factory;
+    private HashMap<Attribute<?>, Method.EventType> attributesEventTypes = Maps.newHashMap();
 
     public AttributesManager(AttributeFactory factory) {
         this.factory = factory;
@@ -95,6 +96,8 @@ public class AttributesManager {
         attributes.put(attribute, devClient);
         attributeClasses.put(attribute.getName(), attributeClass);
         attributesByMethod.put(attr.getMethod(), attribute);
+        if (attr.getMethod() == Method.EVENT)
+            attributesEventTypes.put(attribute, Method.EventType.valueOf(attr.getEventType().toUpperCase()));
         attributesByFullName.put(attribute.getFullName(), attribute);
         return attribute;
     }
@@ -167,6 +170,10 @@ public class AttributesManager {
         for (Attribute<?> attribute : attributes.keySet()) {
             attribute.eraseHead(timestamp);
         }
+    }
+
+    public Method.EventType getAttributeEventType(Attribute<?> attribute) {
+        return attributesEventTypes.get(attribute);
     }
 
     /**

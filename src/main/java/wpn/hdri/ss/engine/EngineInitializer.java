@@ -125,7 +125,7 @@ public class EngineInitializer {
         List<EventReadAttributeTask> result = new ArrayList<EventReadAttributeTask>();
         for (Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.EVENT)) {
             final Client devClient = clientsManager.getClient(attribute.getName().getDeviceName());
-            result.add(new EventReadAttributeTask(attribute, devClient, true, LOGGER));
+            result.add(new EventReadAttributeTask(attribute, attributesManager.getAttributeEventType(attribute), devClient, true));
         }
         return result;
     }
@@ -135,7 +135,7 @@ public class EngineInitializer {
         for (final Attribute<?> attribute : attributesManager.getAttributesByMethod(Method.POLL)) {
             DeviceAttribute attr = configuration.getDeviceAttribute(attribute.getName().getDeviceName(), attribute.getName().getName());
             final Client devClient = clientsManager.getClient(attribute.getName().getDeviceName());
-            result.add(new PollingReadAttributeTask(attribute, devClient, attr.getDelay(), true, LOGGER));
+            result.add(new PollingReadAttributeTask(attribute, devClient, attr.getDelay(), true));
         }
         return result;
     }

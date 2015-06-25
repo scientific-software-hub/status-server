@@ -37,5 +37,10 @@ package wpn.hdri.ss.data;
  */
 public enum Method {
     POLL,
-    EVENT
+    EVENT;
+
+    public static enum EventType {
+        CHANGE,
+        PERIODIC
+    }
 }

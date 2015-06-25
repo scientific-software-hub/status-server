@@ -1,9 +1,11 @@
 package wpn.hdri.ss.engine;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.EventCallback;
 import wpn.hdri.ss.client.EventData;
+import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
 import wpn.hdri.ss.data.attribute.Attribute;
@@ -13,18 +15,20 @@ import wpn.hdri.ss.data.attribute.Attribute;
  * @since 17.06.13
  */
 public class EventReadAttributeTask implements EventCallback<Object> {
+    private static final Logger logger = LoggerFactory.getLogger(EventReadAttributeTask.class);
+
     private final Attribute<?> attribute;
+
     private final Client devClient;
 
     private final boolean append;
+    private Method.EventType eventType;
 
-    private final Logger logger;
-
-    public EventReadAttributeTask(Attribute<?> attribute, Client devClient, boolean append, Logger logger) {
+    public EventReadAttributeTask(Attribute<?> attribute, Method.EventType eventType, Client devClient, boolean append) {
         this.attribute = attribute;
         this.devClient = devClient;
         this.append = append;
-        this.logger = logger;
+        this.eventType = eventType;
     }
 
     /**
@@ -57,5 +61,9 @@ public class EventReadAttributeTask implements EventCallback<Object> {
 
     public Client getDevClient() {
         return devClient;
+    }
+
+    public Method.EventType getEventType() {
+        return eventType;
     }
 }

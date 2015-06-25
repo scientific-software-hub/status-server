@@ -29,9 +29,10 @@
 
 package wpn.hdri.ss.client;
 
-import org.slf4j.Logger;
+import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 
+import java.util.EnumMap;
 import java.util.Map;
 
 /**
@@ -41,6 +42,7 @@ import java.util.Map;
  * @since 27.04.12
  */
 public abstract class Client {
+    protected final EnumMap<Method.EventType, Object> eventTypesMap;
     /**
      * Fully qualified device name. E.g. for Tango: sys/tg_test/1
      */
@@ -48,7 +50,10 @@ public abstract class Client {
 
     protected Client(String deviceName) {
         this.deviceName = deviceName;
+        this.eventTypesMap = mapEventTypes();
     }
+
+    protected abstract EnumMap<Method.EventType, Object> mapEventTypes();
 
     protected String getDeviceName() {
         return deviceName;
@@ -80,10 +85,10 @@ public abstract class Client {
      * In case any error cbk#onError will be called and cause will be passed.
      *
      * @param attrName attribute
-     * @param cbk      onRead, onError
-     * @throws ClientException if subscription process failed
+     * @param type
+     *@param cbk      onRead, onError  @throws ClientException if subscription process failed
      */
-    public abstract void subscribeEvent(String attrName, EventCallback cbk) throws ClientException;
+    public abstract void subscribeEvent(String attrName, Method.EventType type, EventCallback cbk) throws ClientException;
 
     /**
      * Checks attribute. Most implementations will try to acquire an info from server.

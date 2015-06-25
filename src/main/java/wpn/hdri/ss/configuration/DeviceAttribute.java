@@ -37,7 +37,6 @@ import org.simpleframework.xml.core.Validate;
 import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
-import javax.annotation.concurrent.Immutable;
 import java.math.BigDecimal;
 
 /**
@@ -58,7 +57,8 @@ public final class DeviceAttribute {
     private long delay;
     @Attribute(name = "precision", required = false)
     private BigDecimal precision;
-
+    @Attribute(name = "type", required = false)
+    private String eventType;
 
 
 //        if (method == Method.EVENT) {
@@ -73,6 +73,9 @@ public final class DeviceAttribute {
         if(this.method == Method.POLL){
             Preconditions.checkArgument(this.delay >= 20,"polling delay should be greater than 20");
         }
+        if (this.method == Method.EVENT) {
+            Preconditions.checkArgument(eventType != null && !eventType.isEmpty(), "Please specify type attribute when method = event");
+        }
         if(this.precision == null){
             this.precision = BigDecimal.ZERO;
         }
@@ -82,24 +85,56 @@ public final class DeviceAttribute {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getAlias(){
         return alias;
+    }
+
+    public void setAlias(String alias) {
+        this.alias = alias;
     }
 
     public Method getMethod() {
         return method;
     }
 
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
     public Interpolation getInterpolation() {
         return interpolation;
+    }
+
+    public void setInterpolation(Interpolation interpolation) {
+        this.interpolation = interpolation;
     }
 
     public long getDelay() {
         return delay;
     }
 
+    public void setDelay(long delay) {
+        this.delay = delay;
+    }
+
     public BigDecimal getPrecision() {
         return precision == null ? BigDecimal.ZERO : precision;
+    }
+
+    public void setPrecision(BigDecimal precision) {
+        this.precision = precision;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
     }
 
     @Override
@@ -111,29 +146,5 @@ public final class DeviceAttribute {
                 .add("interpolation", interpolation)
                 .add("delay", delay)
                 .toString();
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
-    }
-
-    public void setMethod(Method method) {
-        this.method = method;
-    }
-
-    public void setInterpolation(Interpolation interpolation) {
-        this.interpolation = interpolation;
-    }
-
-    public void setDelay(long delay) {
-        this.delay = delay;
-    }
-
-    public void setPrecision(BigDecimal precision) {
-        this.precision = precision;
     }
 }
