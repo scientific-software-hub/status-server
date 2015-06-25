@@ -34,7 +34,6 @@ import com.google.common.collect.Multimap;
 import org.junit.Test;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientFactory;
-import wpn.hdri.ss.configuration.ConfigurationBuilder;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.configuration.StatusServerProperty;
@@ -53,7 +52,6 @@ import static org.mockito.Mockito.*;
  */
 public class EngineTest {
     private final String xmlConfigPath = "target/test-classes/conf/StatusServer.test.xml";
-    private final ConfigurationBuilder conf = new ConfigurationBuilder();
 
     @Test
     public void testTolerateExceptionsDuringWork() throws Exception {
