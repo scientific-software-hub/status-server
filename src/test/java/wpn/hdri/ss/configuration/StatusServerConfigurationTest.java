@@ -68,6 +68,13 @@ public class StatusServerConfigurationTest {
         assertEquals(Interpolation.LAST, attr1.getInterpolation());
         assertEquals(0L, attr1.getDelay());
         assertSame(BigDecimal.ZERO, attr1.getPrecision());
+
+        DeviceAttribute attr2 = dev.getAttributes().get(2);
+        assertEquals("Test.Attribute.2", attr2.getName());
+        assertEquals(Method.POLL, attr2.getMethod());
+        assertEquals(Interpolation.LINEAR, attr2.getInterpolation());
+        assertEquals(3000L, attr2.getDelay());
+        assertSame(BigDecimal.ZERO, attr2.getPrecision());
     }
 
     @Test(expected = InvocationTargetException.class)

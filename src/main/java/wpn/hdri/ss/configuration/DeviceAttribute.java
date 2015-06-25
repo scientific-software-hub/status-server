@@ -53,7 +53,7 @@ public final class DeviceAttribute {
     private Method method;
     @Attribute(name = "interpolation")
     private Interpolation interpolation;
-    @Attribute(name = "delay")
+    @Attribute(name = "delay", required = false)
     private long delay;
     @Attribute(name = "precision", required = false)
     private BigDecimal precision;
@@ -70,7 +70,7 @@ public final class DeviceAttribute {
 
     @Validate
     public void validate(){
-        if(this.method == Method.POLL){
+        if (this.method == Method.POLL && this.delay > 0) {
             Preconditions.checkArgument(this.delay >= 20,"polling delay should be greater than 20");
         }
         if (this.method == Method.EVENT) {
@@ -114,7 +114,12 @@ public final class DeviceAttribute {
     }
 
     public long getDelay() {
-        return delay;
+        if (method == Method.POLL && delay > 0)
+            return delay;
+        else if (method == Method.POLL)
+            return 3000L;
+        else
+            return 0L;
     }
 
     public void setDelay(long delay) {
