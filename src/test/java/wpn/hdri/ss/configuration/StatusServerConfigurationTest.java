@@ -64,7 +64,8 @@ public class StatusServerConfigurationTest {
 
         DeviceAttribute attr1 = dev.getAttributes().get(1);
         assertEquals("Test.Attribute.1", attr1.getName());
-        assertEquals(Method.EVENT, attr1.getMethod());
+        assertSame(Method.EVENT, attr1.getMethod());
+        assertEquals("change", attr1.getEventType());
         assertEquals(Interpolation.LAST, attr1.getInterpolation());
         assertEquals(0L, attr1.getDelay());
         assertSame(BigDecimal.ZERO, attr1.getPrecision());
