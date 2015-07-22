@@ -9,7 +9,7 @@
 	</appender>
 
 	<logger name="org.jacorb" level="ERROR" />
-	<logger name="org.tango" level="ERROR" />
+	<logger name="org.tango" level="TRACE"/>
 	<logger name="org.quartz" level="ERROR" />
 	<logger name="net.sf.ehcache" level="ERROR" />
 	<logger name="hzg.hdri.ss" level="DEBUG"/>

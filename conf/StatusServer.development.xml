@@ -60,6 +60,11 @@
                 <!--attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/-->
             </attributes>
         </device>
+        <device name="test/test_server/2">
+            <attributes>
+                <attribute name="long" method="poll" delay="20" interpolation="nearest"/>
+            </attributes>
+        </device>
         <!-- note that tine device names are started with leading '/'-->
         <device name="/TEST/SineServer/#SineGen3">
             <attributes>
