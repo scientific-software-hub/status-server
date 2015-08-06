@@ -2,6 +2,9 @@ package wpn.hdri.ss.data.attribute;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import fr.esrf.TangoApi.DevicePipe;
+import fr.esrf.TangoApi.PipeBlob;
+import fr.esrf.TangoApi.PipeScanner;
 import org.junit.Before;
 import org.junit.Test;
 import wpn.hdri.ss.data.Timestamp;
@@ -74,5 +77,34 @@ public class AttributeValuesViewTest {
         String[] result = instance.toStringArray();
 
         assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void testToPipeBlob() throws Exception {
+        values.put(new AttributeName("Test", "test-int[]", null), new AttributeValue<int[]>("Test/test-int[]", null, Value.getInstance(new int[]{4, 5, 6}), now, now));
+
+        AttributeValuesView instance = new AttributeValuesView(values, false);
+
+        PipeBlob result = instance.toPipeBlob();
+
+        PipeScanner scanner = new DevicePipe("result", result);
+
+        PipeScanner test_double = scanner.nextScanner();
+        assertEquals("Test/test-double", test_double.nextString());
+        assertArrayEquals(new double[]{Math.PI, Math.E}, test_double.nextArray(double[].class), 0.1D);
+        assertArrayEquals(new long[]{now.getValue(), now.getValue()}, test_double.nextArray(long[].class));
+
+        PipeScanner test_string = scanner.nextScanner();
+        assertEquals("Test/test-string", test_string.nextString());
+        assertArrayEquals(new String[]{"Hi"}, test_string.nextArray(String[].class));
+        assertArrayEquals(new long[]{now.getValue()}, test_string.nextArray(long[].class));
+
+        //TODO arrays are not supported in Pipes?
+        PipeScanner test_int_arr = scanner.nextScanner();
+        assertEquals("Test/test-int[]", test_int_arr.nextString());
+        PipeScanner test_int_arr_values = test_int_arr.nextScanner();
+        assertArrayEquals(new int[]{1, 2, 3}, test_int_arr_values.nextArray(int[].class));
+        assertArrayEquals(new int[]{4, 5, 6}, test_int_arr_values.nextArray(int[].class));
+        assertArrayEquals(new long[]{now.getValue(), now.getValue()}, test_int_arr.nextArray(long[].class));
     }
 }

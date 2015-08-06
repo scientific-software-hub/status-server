@@ -1,8 +1,15 @@
 package wpn.hdri.ss.data.attribute;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
+import fr.esrf.TangoApi.PipeBlob;
+import fr.esrf.TangoApi.PipeBlobBuilder;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -17,6 +24,7 @@ import java.util.Map;
 @NotThreadSafe
 public class AttributeValuesView {
     static final Iterable<String> HEADER = Arrays.asList("full_name", "alias", "type", "value", "read", "write");
+    private static final ThreadLocal<String[]> LOCAL_RESULT = new ThreadLocal<String[]>();
     private final SingleAttributeValueView valueView = new SingleAttributeValueView();
     private final Multimap<AttributeName, AttributeValue<?>> values;
     private final boolean useAliases;
@@ -77,8 +85,6 @@ public class AttributeValuesView {
         }
     }
 
-    private static final ThreadLocal<String[]> LOCAL_RESULT = new ThreadLocal<String[]>();
-
     public String[] toStringArray() {
         String[] result = LOCAL_RESULT.get();
         int size = values.keySet().size();
@@ -98,6 +104,47 @@ public class AttributeValuesView {
         }
 
         return result;
+    }
+
+    public PipeBlob toPipeBlob() {
+        PipeBlobBuilder result = new PipeBlobBuilder("status_server");
+
+        for (Iterator<Map.Entry<AttributeName, Collection<AttributeValue<?>>>> it = values.asMap().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry = it.next();
+
+            PipeBlobBuilder bld = new PipeBlobBuilder(resolveAttributeName(entry.getKey()));
+
+            bld.add("attribute", resolveAttributeName(entry.getKey()));
+
+
+            Collection<AttributeValue<?>> attributeValues = entry.getValue();
+            Class<?> valueType = Iterables.getFirst(attributeValues, null).getValue().getValueClass();
+
+            Collection<?> values = Collections2.transform(attributeValues, new Function<AttributeValue<?>, Object>() {
+                @Nullable
+                @Override
+                public Object apply(AttributeValue<?> input) {
+                    return input.getValue().get();
+                }
+            });
+
+            Collection<Long> times = Collections2.transform(attributeValues, new Function<AttributeValue<?>, Long>() {
+                @Nullable
+                @Override
+                public Long apply(@Nullable AttributeValue<?> input) {
+                    return input.getWriteTimestamp().getValue();
+                }
+            });
+
+            bld.add("values", values.toArray((Object[]) Array.newInstance(valueType, values.size())));
+
+            bld.add("times", times.toArray(new Long[times.size()]));
+
+            result.add(resolveAttributeName(entry.getKey()), bld.build());
+        }
+
+
+        return result.build();
     }
 
     private String resolveAttributeName(AttributeName attrName) {

@@ -22,6 +22,7 @@ import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.IAttributeBehavior;
 import org.tango.server.device.DeviceManager;
 import org.tango.server.dynamic.DynamicManager;
+import org.tango.server.pipe.PipeValue;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
@@ -38,8 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -57,8 +56,6 @@ public class StatusServer implements StatusServerStub {
      * This field tracks ctxs of the clients and is used in getXXXUpdates methods
      */
     private final ConcurrentMap<String, RequestContext> ctxs = Maps.newConcurrentMap();
-    //TODO commands
-    private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private Engine engine;
     // ==== Tango API specific
     @State
@@ -69,6 +66,9 @@ public class StatusServer implements StatusServerStub {
     private DynamicManager dynamicManagement;
     @DeviceManagement
     private DeviceManager deviceManager;
+
+    @Pipe(name = "status_server_pipe")
+    private PipeValue pipe;
 
     public StatusServer() {
         System.out.println("Create instance");
@@ -91,6 +91,25 @@ public class StatusServer implements StatusServerStub {
 
         logger.info("jacorb.poa.thread_pool_max=" + Integer.toString(maxCpus));
         System.setProperty("jacorb.poa.thread_pool_max", Integer.toString(maxCpus));
+    }
+
+    public PipeValue getPipe() throws Exception {
+        RequestContext ctx = getContext();
+        final Timestamp oldTimestamp = ctx.lastTimestamp;
+        final Timestamp timestamp = Timestamp.now();
+
+        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
+        setContext(updated);
+
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, ctx.attributesGroup);
+
+        AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
+
+        return new PipeValue(view.toPipeBlob());
+    }
+
+    public void setPipe(PipeValue v) {
+        pipe = v;
     }
 
     @Override
