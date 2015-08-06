@@ -112,12 +112,14 @@ public class AttributeValuesView {
         for (Iterator<Map.Entry<AttributeName, Collection<AttributeValue<?>>>> it = values.asMap().entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry = it.next();
 
-            PipeBlobBuilder bld = new PipeBlobBuilder(resolveAttributeName(entry.getKey()));
-
-            bld.add("attribute", resolveAttributeName(entry.getKey()));
-
-
             Collection<AttributeValue<?>> attributeValues = entry.getValue();
+
+            if (attributeValues.size() == 0) continue;//skip empty values in the pipe
+
+            PipeBlobBuilder innerBlob = new PipeBlobBuilder(resolveAttributeName(entry.getKey()));
+
+            innerBlob.add("attribute", resolveAttributeName(entry.getKey()));
+
             Class<?> valueType = Iterables.getFirst(attributeValues, null).getValue().getValueClass();
 
             Collection<?> values = Collections2.transform(attributeValues, new Function<AttributeValue<?>, Object>() {
@@ -136,11 +138,11 @@ public class AttributeValuesView {
                 }
             });
 
-            bld.add("values", values.toArray((Object[]) Array.newInstance(valueType, values.size())));
+            innerBlob.add("values", values.toArray((Object[]) Array.newInstance(valueType, values.size())));
 
-            bld.add("times", times.toArray(new Long[times.size()]));
+            innerBlob.add("times", times.toArray(new Long[times.size()]));
 
-            result.add(resolveAttributeName(entry.getKey()), bld.build());
+            result.add(resolveAttributeName(entry.getKey()), innerBlob.build());
         }
 
 

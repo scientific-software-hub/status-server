@@ -68,7 +68,7 @@
         <!-- note that tine device names are started with leading '/'-->
         <device name="/TEST/SineServer/#SineGen3">
             <attributes>
-                <attribute name="MessageText" method="poll" interpolation="last" delay="200"/>
+                <!--attribute name="MessageText" method="poll" interpolation="last" delay="200"/-->
                 <attribute name="RandomBinary" method="event" interpolation="last" delay="0" type="periodic"/>
             </attributes>
         </device>
