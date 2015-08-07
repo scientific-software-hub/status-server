@@ -95,8 +95,13 @@ public class StatusServer implements StatusServerStub {
 
     public PipeValue getPipe() throws Exception {
         RequestContext ctx = getContext();
+        final Timestamp oldTimestamp = ctx.lastTimestamp;
+        final Timestamp timestamp = Timestamp.now();
 
-        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getLatestValues(ctx.attributesGroup);
+        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
+        setContext(updated);
+
+        Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, ctx.attributesGroup);
 
         AttributeValuesView view = new AttributeValuesView(attributes, ctx.useAliases);
 
