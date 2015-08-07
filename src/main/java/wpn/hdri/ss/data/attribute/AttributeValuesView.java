@@ -131,6 +131,8 @@ public class AttributeValuesView {
                 }
             });
 
+            if (filteredValues.isEmpty()) continue;
+
             Collection<?> values = Collections2.transform(filteredValues, new Function<AttributeValue<?>, Object>() {
                 @Override
                 public Object apply(AttributeValue<?> input) {
