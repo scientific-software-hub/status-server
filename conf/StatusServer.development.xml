@@ -66,10 +66,10 @@
             </attributes>
         </device>
         <!-- note that tine device names are started with leading '/'-->
-        <device name="/TEST/SineServer/#SineGen3">
+        <device name="/PETRA/Globals/#keyword">
             <attributes>
                 <!--attribute name="MessageText" method="poll" interpolation="last" delay="200"/-->
-                <attribute name="RandomBinary" method="event" interpolation="last" delay="0" type="periodic"/>
+                <attribute name="BeamCurrent" method="event" interpolation="last" delay="0" type="periodic"/>
             </attributes>
         </device>
     </devices>

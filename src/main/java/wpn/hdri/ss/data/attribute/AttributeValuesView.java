@@ -1,13 +1,14 @@
 package wpn.hdri.ss.data.attribute;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import fr.esrf.TangoApi.PipeBlob;
 import fr.esrf.TangoApi.PipeBlobBuilder;
+import wpn.hdri.ss.data.Value;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -122,18 +123,24 @@ public class AttributeValuesView {
 
             Class<?> valueType = Iterables.getFirst(attributeValues, null).getValue().getValueClass();
 
-            Collection<?> values = Collections2.transform(attributeValues, new Function<AttributeValue<?>, Object>() {
-                @Nullable
+            //filter out null values
+            Collection<AttributeValue<?>> filteredValues = Collections2.filter(attributeValues, new Predicate<AttributeValue<?>>() {
+                @Override
+                public boolean apply(AttributeValue<?> input) {
+                    return input.getValue() != Value.NULL;
+                }
+            });
+
+            Collection<?> values = Collections2.transform(filteredValues, new Function<AttributeValue<?>, Object>() {
                 @Override
                 public Object apply(AttributeValue<?> input) {
                     return input.getValue().get();
                 }
             });
 
-            Collection<Long> times = Collections2.transform(attributeValues, new Function<AttributeValue<?>, Long>() {
-                @Nullable
+            Collection<Long> times = Collections2.transform(filteredValues, new Function<AttributeValue<?>, Long>() {
                 @Override
-                public Long apply(@Nullable AttributeValue<?> input) {
+                public Long apply(AttributeValue<?> input) {
                     return input.getWriteTimestamp().getValue();
                 }
             });
