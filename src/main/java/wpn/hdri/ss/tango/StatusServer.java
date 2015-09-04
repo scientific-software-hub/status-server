@@ -1,6 +1,7 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
@@ -98,7 +99,7 @@ public class StatusServer implements StatusServerStub {
         final Timestamp oldTimestamp = ctx.lastTimestamp;
         final Timestamp timestamp = Timestamp.now();
 
-        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
+        RequestContext updated = new RequestContext(ctx.cid, ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
         setContext(updated);
 
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, ctx.attributesGroup);
@@ -225,13 +226,14 @@ public class StatusServer implements StatusServerStub {
 
     @Attribute
     public void setGroup(String attributesGroup) throws Exception {
-        String cid = getClientId();
-        Preconditions.checkArgument(attributesGroupsMap.get(cid).contains(attributesGroup), "No such group exists: " + attributesGroup);
-
         RequestContext ctx = getContext();
+
+        Preconditions.checkArgument(attributesGroupsMap.get(ctx.cid).contains(attributesGroup), String.format("No such group exists: %s; cid = %s", attributesGroup, ctx.cid));
+
+
         if (attributesGroup.equals(AttributesManager.DEFAULT_ATTR_GROUP))
             attributesGroup = AttributesManager.DEFAULT_ATTR_GROUP;
-        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
+        RequestContext updated = new RequestContext(ctx.cid, ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
     }
 
@@ -244,7 +246,7 @@ public class StatusServer implements StatusServerStub {
     @Override
     public void setUseAliases(boolean v) throws Exception {
         RequestContext old = getContext();
-        RequestContext ctx = new RequestContext(v, old.encode, old.outputType, old.lastTimestamp, old.attributesGroup);
+        RequestContext ctx = new RequestContext(old.cid, v, old.encode, old.outputType, old.lastTimestamp, old.attributesGroup);
         setContext(ctx);
     }
 
@@ -258,7 +260,7 @@ public class StatusServer implements StatusServerStub {
     @Override
     public void setEncode(boolean encode) throws Exception {
         RequestContext ctx = getContext();
-        RequestContext updated = new RequestContext(ctx.useAliases, encode, ctx.outputType, ctx.lastTimestamp, ctx.attributesGroup);
+        RequestContext updated = new RequestContext(ctx.cid, ctx.useAliases, encode, ctx.outputType, ctx.lastTimestamp, ctx.attributesGroup);
         setContext(updated);
     }
 
@@ -268,7 +270,7 @@ public class StatusServer implements StatusServerStub {
     public void setOutputType(String outputType) throws Exception {
         OutputType type = OutputType.valueOf(outputType.toUpperCase());
         RequestContext ctx = getContext();
-        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, type, ctx.lastTimestamp, ctx.attributesGroup);
+        RequestContext updated = new RequestContext(ctx.cid, ctx.useAliases, ctx.encode, type, ctx.lastTimestamp, ctx.attributesGroup);
         setContext(updated);
     }
 
@@ -311,7 +313,7 @@ public class StatusServer implements StatusServerStub {
         final Timestamp oldTimestamp = ctx.lastTimestamp;
         final Timestamp timestamp = Timestamp.now();
 
-        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
+        RequestContext updated = new RequestContext(ctx.cid, ctx.useAliases, ctx.encode, ctx.outputType, timestamp, ctx.attributesGroup);
         setContext(updated);
 
         Multimap<AttributeName, AttributeValue<?>> attributes = engine.getAllAttributeValues(oldTimestamp, ctx.attributesGroup);
@@ -430,10 +432,13 @@ public class StatusServer implements StatusServerStub {
         RequestContext ctx = getContext();
         String cid = getClientId();
         String attributesGroup = args[0];
-        RequestContext updated = new RequestContext(ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
+        RequestContext updated = new RequestContext(cid, ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
-        attributesGroupsMap.put(cid, attributesGroup);
+
+
         engine.createAttributesGroup(attributesGroup, Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
+
+        attributesGroupsMap.put(cid, attributesGroup);
     }
 
     @Attribute
@@ -450,17 +455,18 @@ public class StatusServer implements StatusServerStub {
 
     private RequestContext getContext() throws Exception {
         String cid = getClientId();
+        logger.debug(String.format("Requesting context for client[%s]", cid));
         RequestContext context = ctxs.get(cid);
         if (context == null) {
-            ctxs.put(cid, context = new RequestContext());
+            ctxs.put(cid, context = new RequestContext(cid));
             attributesGroupsMap.put(cid, AttributesManager.DEFAULT_ATTR_GROUP);
         }
+        logger.debug(String.format("Got context [%s]", context));
         return context;
     }
 
     private void setContext(RequestContext context) throws Exception {
-        String cid = getClientId();
-        ctxs.put(cid, context);
+        ctxs.put(context.cid, context);
     }
 
     @Attribute
@@ -474,7 +480,7 @@ public class StatusServer implements StatusServerStub {
             case LockerLanguage._CPP:
                 return "CPP " + clientIdentity.cpp_clnt();
         }
-        throw new AssertionError("Should not happen");
+        throw new AssertionError("Failed to get client's identity!");
     }
 
     private static enum OutputType {
@@ -490,13 +496,15 @@ public class StatusServer implements StatusServerStub {
     }
 
     private static class RequestContext {
+        private final String cid;
         private final boolean useAliases;
         private final boolean encode;
         private final OutputType outputType;
         private final Timestamp lastTimestamp;
         private final String attributesGroup;
 
-        private RequestContext(boolean useAliases, boolean encode, OutputType outputType, Timestamp lastTimestamp, String attributesGroup) {
+        private RequestContext(String cid, boolean useAliases, boolean encode, OutputType outputType, Timestamp lastTimestamp, String attributesGroup) {
+            this.cid = cid;
             this.useAliases = useAliases;
             this.encode = encode;
             this.outputType = outputType;
@@ -506,11 +514,22 @@ public class StatusServer implements StatusServerStub {
 
         /**
          * Creates default context
+         * @param cid
          */
-        private RequestContext() {
-            this(false, false, OutputType.PLAIN, Timestamp.DEEP_PAST, AttributesManager.DEFAULT_ATTR_GROUP);
+        private RequestContext(String cid) {
+            this(cid, false, false, OutputType.PLAIN, Timestamp.DEEP_PAST, AttributesManager.DEFAULT_ATTR_GROUP);
         }
 
-
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                    .add("cid", cid)
+                    .add("useAliases", useAliases)
+                    .add("encode", encode)
+                    .add("outputType", outputType)
+                    .add("lastTimestamp", lastTimestamp)
+                    .add("attributesGroup", attributesGroup)
+                    .toString();
+        }
     }
 }
