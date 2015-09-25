@@ -83,7 +83,7 @@ public class TangoClient extends Client {
         try {
             Map.Entry<T, Long> entry = proxy.readAttributeValueAndTime(attrName);
             return new AbstractMap.SimpleImmutableEntry<T, Timestamp>(entry.getKey(), new Timestamp(entry.getValue()));
-        } catch (TangoProxyException devFailed) {
+        } catch (TangoProxyException | NoSuchAttributeException devFailed) {
             throw new ClientException("Exception in " + proxy.getName(), devFailed);
         }
     }
@@ -95,7 +95,7 @@ public class TangoClient extends Client {
             if (attributeInfo == null)
                 throw new ClientException("Can not execute query!", new NullPointerException("attributeInfo is null"));
             return SpectrumTangoDataFormat.class.isAssignableFrom(attributeInfo.getFormat().getClass());
-        } catch (TangoProxyException e) {
+        } catch (TangoProxyException | NoSuchAttributeException e) {
             throw new ClientException("Can not execute query!", e);
         }
     }
@@ -118,7 +118,7 @@ public class TangoClient extends Client {
             proxy.addEventListener(attrName, (TangoEvent) eventTypesMap.get(type), listener);
 
             listeners.put(attrName, listener);
-        } catch (TangoProxyException devFailed) {
+        } catch (TangoProxyException | NoSuchAttributeException devFailed) {
             throw new ClientException("Exception in " + proxy.getName(), devFailed);
         }
     }
@@ -143,7 +143,7 @@ public class TangoClient extends Client {
             if (attributeInfo == null)
                 throw new ClientException("Exception in " + proxy.getName(), new NullPointerException("attributeInfo is null"));
             return attributeInfo.getClazz();
-        } catch (TangoProxyException e) {
+        } catch (TangoProxyException | NoSuchAttributeException e) {
             throw new ClientException("Exception in " + proxy.getName(), e);
         }
     }
@@ -167,7 +167,7 @@ public class TangoClient extends Client {
             LOGGER.info("Data format:" + info.getFormat().toString());
             LOGGER.info("Data type:" + info.getType().toString());
             LOGGER.info("Java data type match:" + info.getClazz().getSimpleName());
-        } catch (TangoProxyException e) {
+        } catch (TangoProxyException | NoSuchAttributeException e) {
             LOGGER.warn("Can not print attribute info for " + name, e);
         }
     }
