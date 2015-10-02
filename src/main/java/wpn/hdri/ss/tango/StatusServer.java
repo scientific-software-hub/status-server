@@ -241,7 +241,6 @@ public class StatusServer implements StatusServerStub {
         return getContext().useAliases;
     }
 
-    //TODO attributes
     @Attribute
     @Override
     public void setUseAliases(boolean v) throws Exception {
@@ -430,15 +429,14 @@ public class StatusServer implements StatusServerStub {
     @Command(inTypeDesc = "String array where first element is a group name and last elements are attribute full names.")
     public void createAttributesGroup(String[] args) throws Exception {
         RequestContext ctx = getContext();
-        String cid = getClientId();
         String attributesGroup = args[0];
-        RequestContext updated = new RequestContext(cid, ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
+        RequestContext updated = new RequestContext(ctx.cid, ctx.useAliases, ctx.encode, ctx.outputType, ctx.lastTimestamp, attributesGroup);
         setContext(updated);
 
 
         engine.createAttributesGroup(attributesGroup, Arrays.asList(Arrays.copyOfRange(args, 1, args.length)));
 
-        attributesGroupsMap.put(cid, attributesGroup);
+        attributesGroupsMap.put(ctx.cid, attributesGroup);
     }
 
     @Attribute
