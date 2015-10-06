@@ -8,7 +8,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Longs;
-import fr.esrf.Tango.*;
+import fr.esrf.Tango.AttrDataFormat;
+import fr.esrf.Tango.AttrWriteType;
+import fr.esrf.Tango.DevFailed;
 import hzg.wpn.util.compressor.Compressor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,14 +18,15 @@ import org.tango.DeviceState;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
+import org.tango.server.InvocationContext;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
-import org.tango.server.annotation.Device;
 import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.IAttributeBehavior;
 import org.tango.server.device.DeviceManager;
 import org.tango.server.dynamic.DynamicManager;
 import org.tango.server.pipe.PipeValue;
+import org.tango.utils.ClientIDUtil;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
@@ -57,6 +60,7 @@ public class StatusServer implements StatusServerStub {
      * This field tracks ctxs of the clients and is used in getXXXUpdates methods
      */
     private final ConcurrentMap<String, RequestContext> ctxs = Maps.newConcurrentMap();
+    private final ThreadLocal<String> clientId = new ThreadLocal<>();
     private Engine engine;
     // ==== Tango API specific
     @State
@@ -67,7 +71,6 @@ public class StatusServer implements StatusServerStub {
     private DynamicManager dynamicManagement;
     @DeviceManagement
     private DeviceManager deviceManager;
-
     @Pipe(name = "status_server_pipe")
     private PipeValue pipe;
 
@@ -126,11 +129,11 @@ public class StatusServer implements StatusServerStub {
     public String getStatus() {
         return this.status;
     }
+    // ====================
 
     public void setStatus(String v) {
         this.status = v;
     }
-    // ====================
 
     public void setDynamicManagement(DynamicManager dynamicManagement) {
         this.dynamicManagement = dynamicManagement;
@@ -469,16 +472,12 @@ public class StatusServer implements StatusServerStub {
 
     @Attribute
     public String getClientId() throws Exception {
-        ClntIdent clientIdentity = this.deviceManager.getClientIdentity();
-        LockerLanguage discriminator = clientIdentity.discriminator();
-        switch (discriminator.value()) {
-            case LockerLanguage._JAVA:
-                JavaClntIdent java_clnt = clientIdentity.java_clnt();
-                return java_clnt.MainClass;
-            case LockerLanguage._CPP:
-                return "CPP " + clientIdentity.cpp_clnt();
-        }
-        throw new AssertionError("Failed to get client's identity!");
+        return clientId.get();
+    }
+
+    @AroundInvoke
+    public void aroundInvoke(InvocationContext ctx) {
+        clientId.set(ClientIDUtil.toString(ctx.getClientID()));
     }
 
     private static enum OutputType {
