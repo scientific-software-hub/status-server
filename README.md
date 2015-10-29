@@ -146,3 +146,18 @@ Result "test_getLatestSnapshot":
 Benchmark                                                   Mode   Cnt     Score    Error  Units
 tango.ss.benchmark.SimpleBenchmark.test_getLatestSnapshot  thrpt  8780  1042.600 ±  2.616  ops/s
 ```
+
+
+```
+Result "benchmarkSearch":
+  3055462,499 ?(99.9%) 50773,532 ops/s [Average]
+  (min, avg, max) = (2357513,334, 3055462,499, 3504108,209), stdev = 214978,316
+  CI (99.9%): [3004688,967, 3106236,031] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:13:43
+
+Benchmark                         Mode  Cnt        Score       Error  Units
+SearchBenchmark.benchmarkLatest  thrpt  200  8318250,818 ? 60828,652  ops/s
+SearchBenchmark.benchmarkSearch  thrpt  200  3055462,499 ? 50773,532  ops/s
+```
