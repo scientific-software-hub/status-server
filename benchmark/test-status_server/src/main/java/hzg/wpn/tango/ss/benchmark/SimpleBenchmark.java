@@ -50,7 +50,7 @@ public class SimpleBenchmark {
     }
 
 
-    @Benchmark
+//    @Benchmark
     @Measurement(iterations = 1000)
     public String[] test_getLatestSnapshot() throws Exception {
         String[] data = ss.executeCommand("getLatestSnapshot", null);
