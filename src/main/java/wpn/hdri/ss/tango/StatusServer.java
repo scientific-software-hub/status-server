@@ -456,6 +456,7 @@ public class StatusServer implements StatusServerStub {
 
     private RequestContext getContext() throws Exception {
         String cid = getClientId();
+        if(cid == null) cid = "default";
         logger.debug(String.format("Requesting context for client[%s]", cid));
         RequestContext context = ctxs.get(cid);
         if (context == null) {
