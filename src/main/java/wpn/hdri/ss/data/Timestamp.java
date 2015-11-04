@@ -92,7 +92,7 @@ public class Timestamp implements Comparable<Timestamp> {
 
     @Override
     public int compareTo(Timestamp o) {
-        return Longs.compare(value, o.value);
+        return Long.compare(value, o.value);
     }
 
     public long getValue() {
