@@ -13,8 +13,6 @@ import java.util.List;
  */
 @Root
 public class StatusServerProperties {
-    public static final int AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
-    public int engineCpus = AVAILABLE_PROCESSORS;
     public int jacorbMinCpus = 1;
     public int jacorbMaxCpus = 100;
     @ElementList(name = "properties", inline = true)

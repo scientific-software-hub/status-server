@@ -221,12 +221,12 @@ public class AttributesManager {
         return attributes.keySet();
     }
 
-    public long size() {
-        long result = 0;
-        for (Attribute<?> attr : getAllAttributes()) {
-            result += attr.size();
-        }
-        return result;
+    /**
+     *
+     * @return how many attributes this manager has
+     */
+    public int size() {
+        return Iterables.size(getAllAttributes());
     }
 
     public Multimap<AttributeName, AttributeValue<?>> takeAttributeValues(Timestamp from, Timestamp to, String group) {

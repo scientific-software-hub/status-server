@@ -62,10 +62,6 @@ public class Engine {
      * By default engine's logger stores log in {APP_ROOT}/logs/engine.out
      */
     public static final Logger LOGGER = LoggerFactory.getLogger(Engine.class);
-    /**
-     * This one is used as a multiplicator for Math.random in {@link this#scheduler}
-     */
-    public static final int MAX_INITIAL_DELAY = 1000;
 
     private final //TODO use guava concurrency
             ScheduledExecutorService scheduler;
@@ -78,17 +74,16 @@ public class Engine {
     /**
      * @param clientsManager
      * @param attributesManager
-     * @param threads           how many thread will be utilized by the engine
      */
-    public Engine(ClientsManager clientsManager, AttributesManager attributesManager, int threads) {
+    public Engine(ClientsManager clientsManager, AttributesManager attributesManager) {
         this.clientsManager = clientsManager;
         this.attributesManager = attributesManager;
 
-        this.scheduler = Executors.newScheduledThreadPool(threads);
+        this.scheduler = Executors.newScheduledThreadPool(attributesManager.size());
     }
 
     public Engine(EngineInitializationContext ctx) {
-        this(ctx.clientsManager, ctx.attributesManager, ctx.properties.engineCpus);
+        this(ctx.clientsManager, ctx.attributesManager);
         submitPollingTasks(ctx.pollingTasks);
         submitEventTasks(ctx.eventTasks);
     }
@@ -133,21 +128,12 @@ public class Engine {
      *
      * @throws IllegalStateException if engine is already running
      */
-    public /*synchronized*/ void start() {
-        start(MAX_INITIAL_DELAY);
-    }
-
-    /**
-     * For internal use only.
-     *
-     * @param taskInitialDelay actual delay will be randomly chosen starting from '0' to this value exclusively
-     */
-    synchronized void start(int taskInitialDelay) {
+    public void start() {
         Preconditions.checkState(isNotRunning(), "Can not start collectData while current activity is not IDLE");
         LOGGER.info("Starting...");
 
         crtActivity = Activity.HEAVY_DUTY;
-        crtActivity.start(scheduler, activityCtx, null, LOGGER);
+        crtActivity.start(scheduler, activityCtx);
     }
 
     /**
@@ -159,7 +145,7 @@ public class Engine {
         LOGGER.info("Stopping...");
 
         crtActivity = Activity.IDLE;
-        crtActivity.start(scheduler, activityCtx, null, LOGGER);
+        crtActivity.start(scheduler, activityCtx);
     }
 
     public String getCurrentActivity() {
@@ -175,7 +161,7 @@ public class Engine {
         Preconditions.checkState(isNotRunning(), "Can not start lightPolling while current activity is not IDLE");
 
         crtActivity = Activity.LIGHT_POLLING;
-        crtActivity.start(scheduler, activityCtx, null, LOGGER);
+        crtActivity.start(scheduler, activityCtx);
     }
 
     /**
@@ -186,10 +172,9 @@ public class Engine {
     public void startLightPollingAtFixedRate(long delay) {
         Preconditions.checkState(isNotRunning(), "Can not start lightPolling while current activity is not IDLE");
 
-        ActivitySettings settings = new ActivitySettings(delay, MAX_INITIAL_DELAY);
-
         crtActivity = Activity.LIGHT_POLLING;
-        crtActivity.start(scheduler, activityCtx, settings, LOGGER);
+        Activity.LIGHT_POLLING.delay = delay;
+        crtActivity.start(scheduler, activityCtx);
     }
 
     /**

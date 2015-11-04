@@ -78,7 +78,7 @@ public class EngineTest {
 
         AttributesManager attributesManager = initializer.initializeAttributes(clientsManager);
 
-        Engine engine = new Engine(clientsManager, attributesManager, 2);
+        Engine engine = new Engine(clientsManager, attributesManager);
         engine.submitPollingTasks(initializer.initializePollTasks(clientsManager, attributesManager));
 
         engine.start(0);
