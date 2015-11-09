@@ -24,27 +24,43 @@ public class AllRecords {
      */
     public Iterable<SingleRecord> get(long rTimestamp){
         if(data.size() == 0) return Collections.EMPTY_LIST;
-
         List<SingleRecord> records = Arrays.asList((SingleRecord[]) data.toArray());
         int size = records.size();
         if(rTimestamp <= records.get(0).r_t){
             return records;
         } else {
-            //TODO binary search?
-            int startNdx = size;
-            do{
-                startNdx--;
-            }while(rTimestamp > records.get(startNdx).r_t);
+            int startNdx = getNdxLeft(rTimestamp, records);
 
             return records.subList(startNdx, size - 1);
         }
+    }
+
+    private int getNdxLeft(long t, List<SingleRecord> records) {
+        int startNdx = records.size();
+        do{
+            startNdx--;
+        }while(t > records.get(startNdx).r_t);
+        return startNdx;
+    }
+
+    private int getNdxRight(long t, List<SingleRecord> records) {
+        int startNdx = records.size();
+        do{
+            startNdx--;
+        }while(t < records.get(startNdx).r_t);
+        return startNdx;
     }
 
     /**
      *
      */
     public Iterable<SingleRecord> getRange(long t0, long t1){
-        if(t1 <= t0 ) throw  new IllegalArgumentException(String.format("Invalid timestamps range: %d, %d", t0, t1));
-        return null;//TODO
+        if(t1 <= t0) throw  new IllegalArgumentException(String.format("Invalid timestamps range: %d, %d", t0, t1));
+
+        List<SingleRecord> result = (List<SingleRecord>) get(t0);
+
+        int endNdx = getNdxRight(t1, result);
+
+        return result.subList(0, endNdx);
     }
 }
