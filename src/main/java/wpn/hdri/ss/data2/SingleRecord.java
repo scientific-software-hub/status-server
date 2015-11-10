@@ -18,4 +18,26 @@ public class SingleRecord {
         this.w_t = w_t;
         this.value = value;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SingleRecord that = (SingleRecord) o;
+
+        if (id != that.id) return false;
+        if (r_t != that.r_t) return false;
+        if (value != that.value) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (int) (r_t ^ (r_t >>> 32));
+        result = 31 * result + (int) (value ^ (value >>> 32));
+        return result;
+    }
 }
