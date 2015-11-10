@@ -29,15 +29,14 @@
 
 package wpn.hdri.ss.client.tine;
 
-import com.google.common.collect.Sets;
-import wpn.hdri.ss.client.AbsClientFactory;
+import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.client.Client;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 07.05.12
  */
-public class TineClientFactory extends AbsClientFactory {
+public class TineClientFactory implements ClientFactory {
     /**
      * Returns new {@link wpn.hdri.ss.client.tine.TineClient} instance or null.
      *
@@ -45,17 +44,7 @@ public class TineClientFactory extends AbsClientFactory {
      * @return client or null
      */
     @Override
-    public Client createClient(String deviceName) {
-        try {
-            return new TineClient(deviceName);
-        } catch (RuntimeException e) {
-            thrownException = e;
-            return null;
-        }
-    }
-
-    @Override
-    public Iterable<Exception> wasExceptions() {
-        return Sets.newHashSet(thrownException);
+    public Client createClient(String deviceName) throws Exception {
+        return new TineClient(deviceName);
     }
 }

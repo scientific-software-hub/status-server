@@ -15,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @ThreadSafe
 public class AllRecords {
     public static final List EMPTY_RESULT = Collections.EMPTY_LIST;
-    private final CopyOnWriteArrayList<SingleRecord> data = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<SingleRecord<?>> data = new CopyOnWriteArrayList<>();
 
     public void add(SingleRecord record){
         data.add(record);
@@ -26,10 +26,10 @@ public class AllRecords {
      * @param rTimestamp a read timestamp
      * @return all records that were added after specified timestamp
      */
-    public Iterable<SingleRecord> get(long rTimestamp){
+    public Iterable<SingleRecord<?>> get(long rTimestamp){
         if(data.size() == 0) return EMPTY_RESULT;
 
-        SingleRecord[] array = data.toArray(new SingleRecord[data.size()]);
+        SingleRecord<?>[] array = data.toArray(new SingleRecord<?>[data.size()]);
 
         if(rTimestamp <= array[0].r_t){
             return Arrays.asList(array);
@@ -42,9 +42,9 @@ public class AllRecords {
         }
     }
 
-    private int findLeftNdx(long rTimestamp, SingleRecord[] array) {
+    private int findLeftNdx(long rTimestamp, SingleRecord<?>[] array) {
         if(rTimestamp <= array[0].r_t) return 0;
-        int result = Arrays.binarySearch(array, 0, array.length, new SingleRecord(0, rTimestamp, 0L, 0L), new Comparator<SingleRecord>() {
+        int result = Arrays.binarySearch(array, 0, array.length, new SingleRecord<>(0, rTimestamp, 0L, null), new Comparator<SingleRecord>() {
             @Override
             public int compare(SingleRecord o1, SingleRecord key) {
                 return key.r_t <= o1.r_t ? 0 : -1;
@@ -61,13 +61,13 @@ public class AllRecords {
     /**
      *
      */
-    public Iterable<SingleRecord> getRange(long t0, long t1){
+    public Iterable<SingleRecord<?>> getRange(long t0, long t1){
         if(t1 <= t0) throw  new IllegalArgumentException(String.format("Invalid timestamps range: %d, %d", t0, t1));
 
         if(data.size() == 0) return EMPTY_RESULT;
 
 
-        SingleRecord[] array = data.toArray(new SingleRecord[data.size()]);
+        SingleRecord<?>[] array = data.toArray(new SingleRecord<?>[data.size()]);
 
         if (checkIsNotInRange(t0, t1, array)) return EMPTY_RESULT;
 
@@ -83,9 +83,9 @@ public class AllRecords {
                 array[array.length - 1].r_t <= t0;
     }
 
-    private int findRightNdx(long t1, SingleRecord[] array, int leftNdx) {
+    private int findRightNdx(long t1, SingleRecord<?>[] array, int leftNdx) {
         if(t1 >= array[array.length - 1].r_t) return array.length - 1;
-        int result = Arrays.binarySearch(array, leftNdx, array.length, new SingleRecord(0, t1, 0L, 0L), new Comparator<SingleRecord>() {
+        int result = Arrays.binarySearch(array, leftNdx, array.length, new SingleRecord<>(0, t1, 0L, null), new Comparator<SingleRecord>() {
             @Override
             public int compare(SingleRecord o1, SingleRecord key) {
                 return o1.r_t <= key.r_t ? 0 : 1;

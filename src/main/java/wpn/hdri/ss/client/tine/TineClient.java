@@ -39,10 +39,10 @@ import de.desy.tine.queryUtils.TPropertyQuery;
 import de.desy.tine.queryUtils.TQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.client.ez.proxy.EventData;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
-import wpn.hdri.ss.client.EventData;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 

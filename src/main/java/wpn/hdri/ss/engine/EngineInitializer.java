@@ -7,7 +7,7 @@ import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
-import wpn.hdri.ss.client.ClientFactory;
+import wpn.hdri.ss.client.CompositeClientFactory;
 import wpn.hdri.ss.configuration.*;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Value;
@@ -54,7 +54,7 @@ public class EngineInitializer {
     }
 
     public ClientsManager initializeClients() {
-        ClientsManager clientsManager = new ClientsManager(new ClientFactory());
+        ClientsManager clientsManager = new ClientsManager(new CompositeClientFactory());
         for (Device dev : configuration.getDevices()) {
             String devName = dev.getName();
             try {

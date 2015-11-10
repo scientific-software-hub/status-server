@@ -29,6 +29,9 @@
 
 package wpn.hdri.ss.client.tango;
 
+import fr.esrf.Tango.AttributeValue;
+import fr.esrf.Tango.TimeValHelper;
+import fr.esrf.Tango.TimeValHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.format.SpectrumTangoDataFormat;
@@ -36,8 +39,12 @@ import org.tango.client.ez.proxy.*;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
+import wpn.hdri.ss.client2.ClientAdaptor;
+import wpn.hdri.ss.client2.Data;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data2.Attribute;
+import wpn.hdri.ss.data2.SingleRecord;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
@@ -50,7 +57,7 @@ import java.util.Map;
  * @since 27.04.12
  */
 @NotThreadSafe
-public class TangoClient extends Client {
+public class TangoClient extends Client implements ClientAdaptor {
     private static final Logger LOGGER = LoggerFactory.getLogger(TangoClient.class);
     private static final EnumMap<Method.EventType, Object> TANGO_EVENT_TYPES = new EnumMap<Method.EventType, Object>(Method.EventType.class);
 
@@ -81,8 +88,8 @@ public class TangoClient extends Client {
     @Override
     public <T> Map.Entry<T, Timestamp> readAttribute(String attrName) throws ClientException {
         try {
-            Map.Entry<T, Long> entry = proxy.readAttributeValueAndTime(attrName);
-            return new AbstractMap.SimpleImmutableEntry<T, Timestamp>(entry.getKey(), new Timestamp(entry.getValue()));
+            ValueTime<T> entry = proxy.readAttributeValueAndTime(attrName);
+            return new AbstractMap.SimpleImmutableEntry<T, Timestamp>(entry.getValue(), new Timestamp(entry.getTime()));
         } catch (TangoProxyException | NoSuchAttributeException devFailed) {
             throw new ClientException("Exception in " + proxy.getName(), devFailed);
         }
@@ -107,7 +114,7 @@ public class TangoClient extends Client {
             TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    cbk.onEvent(new wpn.hdri.ss.client.EventData(data.getValue(), data.getTime()));
+                    cbk.onEvent(data);
                 }
 
                 @Override
@@ -169,6 +176,16 @@ public class TangoClient extends Client {
             LOGGER.info("Java data type match:" + info.getClazz().getSimpleName());
         } catch (TangoProxyException | NoSuchAttributeException e) {
             LOGGER.warn("Can not print attribute info for " + name, e);
+        }
+    }
+
+    @Override
+    public SingleRecord read(Attribute attr) throws ClientException {
+        try {
+            ValueTime<?> value = proxy.readAttributeValueAndTime(attr.name);
+            return new SingleRecord(attr.ndx, System.currentTimeMillis(), value.getTime(), value.getValue());
+        } catch (TangoProxyException|NoSuchAttributeException e) {
+            throw new ClientException(e.getMessage(),e);
         }
     }
 }

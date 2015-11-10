@@ -33,7 +33,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.junit.Test;
 import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.client.ClientFactory;
+import wpn.hdri.ss.client.CompositeClientFactory;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.configuration.StatusServerProperty;
@@ -62,7 +62,7 @@ public class EngineTest {
         doReturn(String.class).when(client).getAttributeClass(anyString());
 
 
-        ClientsManager clientsManager = new ClientsManager(new ClientFactory() {
+        ClientsManager clientsManager = new ClientsManager(new CompositeClientFactory() {
             @Override
             public Client createClient(String deviceName) {
                 return client;
@@ -81,7 +81,7 @@ public class EngineTest {
         Engine engine = new Engine(clientsManager, attributesManager);
         engine.submitPollingTasks(initializer.initializePollTasks(clientsManager, attributesManager));
 
-        engine.start(0);
+        engine.start();
         Thread.sleep(7000);
         engine.stop();
 

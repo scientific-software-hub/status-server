@@ -13,8 +13,8 @@ import java.util.function.Consumer;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 09.11.2015
  */
-public class Snapshot implements Iterable<SingleRecord>{
-    private final AtomicReferenceArray<SingleRecord> data;
+public class Snapshot implements Iterable<SingleRecord<?>>{
+    private final AtomicReferenceArray<SingleRecord<?>> data;
 
     private static final Field array;
     static {
@@ -48,7 +48,7 @@ public class Snapshot implements Iterable<SingleRecord>{
      * @return Iterator that iterates over copies of underlying arrays
      */
     @Override
-    public final Iterator<SingleRecord> iterator() {
+    public final Iterator<SingleRecord<?>> iterator() {
         final int size = data.length();
         final SingleRecord[] data = new SingleRecord[size];
         try {
@@ -58,7 +58,7 @@ public class Snapshot implements Iterable<SingleRecord>{
             throw new AssertionError("Can not happen!");
         }
 
-            return new Iterator<SingleRecord>() {
+            return new Iterator<SingleRecord<?>>() {
                 private int pos = 0;
 
                 @Override
@@ -75,14 +75,14 @@ public class Snapshot implements Iterable<SingleRecord>{
     }
 
     @Override
-    public void forEach(Consumer<? super SingleRecord> action) {
+    public void forEach(Consumer<? super SingleRecord<?>> action) {
         for(SingleRecord record : this){
             action.accept(record);
         }
     }
 
     @Override
-    public Spliterator<SingleRecord> spliterator() {
+    public Spliterator<SingleRecord<?>> spliterator() {
         throw new UnsupportedOperationException("This method is not supported in " + this.getClass());
     }
 }

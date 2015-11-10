@@ -41,11 +41,11 @@ import static junit.framework.Assert.assertTrue;
 public class ClientFactoryTest {
     @Test
     public void testCreateClient() throws Exception {
-        ClientFactory instance = new ClientFactory();
+        CompositeClientFactory instance = new CompositeClientFactory();
 
         Client result = instance.createClient("bad-client");
 
         assertNotNull(result);
-        assertTrue(result instanceof ClientFactory.BadClient);
+        assertTrue(result instanceof CompositeClientFactory.BadClient);
     }
 }

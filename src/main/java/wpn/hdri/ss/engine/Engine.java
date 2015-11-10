@@ -56,7 +56,6 @@ import java.util.concurrent.ScheduledExecutorService;
  * @since 27.04.12
  */
 //TODO replace Preconditions with StateMachine and meaningful exceptions
-@NotThreadSafe
 public class Engine {
     /**
      * By default engine's logger stores log in {APP_ROOT}/logs/engine.out
@@ -141,7 +140,7 @@ public class Engine {
      *
      * @throws IllegalStateException if engine is not running
      */
-    public synchronized void stop() {
+    public void stop() {
         LOGGER.info("Stopping...");
 
         crtActivity = Activity.IDLE;
@@ -180,7 +179,7 @@ public class Engine {
     /**
      * Clears all the previously collected data
      */
-    public synchronized void clear() {
+    public void clear() {
         Preconditions.checkState(isNotRunning(), "Can not eraseData while current activity is not IDLE");
         LOGGER.info("Erasing all data.");
         attributesManager.clear();

@@ -30,7 +30,7 @@
 package wpn.hdri.ss.engine;
 
 import wpn.hdri.ss.client.Client;
-import wpn.hdri.ss.client.ClientFactory;
+import wpn.hdri.ss.client.CompositeClientFactory;
 import wpn.hdri.ss.engine.exception.ClientInitializationException;
 
 import java.util.*;
@@ -42,14 +42,14 @@ import java.util.*;
 //TODO put a reference to a client into Attribute (do not use Strings to link client and attribute)
 //TODO client must have references to its attributes
 public /*final*/ class ClientsManager {
-    private final ClientFactory factory;
+    private final CompositeClientFactory factory;
 
     private final Map<String, Client> clients = new HashMap<String, Client>();
 
     private final Collection<String> aliveClientNames = new ArrayList<String>();
     private final Map<String, String> deadClientNames = new HashMap<String, String>();
 
-    public ClientsManager(ClientFactory factory) {
+    public ClientsManager(CompositeClientFactory factory) {
         this.factory = factory;
     }
 

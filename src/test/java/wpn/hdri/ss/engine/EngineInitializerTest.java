@@ -1,7 +1,7 @@
 package wpn.hdri.ss.engine;
 
 import org.junit.Test;
-import wpn.hdri.ss.client.ClientFactory;
+import wpn.hdri.ss.client.CompositeClientFactory;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.configuration.StatusServerProperty;
@@ -28,7 +28,7 @@ public class EngineInitializerTest {
 
         ClientsManager result = instance.initializeClients();
 
-        assertTrue(result.getClient("Test.Device") instanceof ClientFactory.BadClient);
+        assertTrue(result.getClient("Test.Device") instanceof CompositeClientFactory.BadClient);
     }
 
     @Test

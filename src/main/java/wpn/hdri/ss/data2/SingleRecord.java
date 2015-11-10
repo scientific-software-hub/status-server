@@ -5,14 +5,14 @@ package wpn.hdri.ss.data2;
  * @since 09.11.2015
  */
 
-public class SingleRecord {
+public class SingleRecord<T> {
     public final int id; //attr.id
     public final long r_t; //rea_timestamp
     public final long w_t; //write_timestamp
-    public final long value; //value bits
+    public final T value; //value bits
     //TODO do we need padding here?
 
-    public SingleRecord(int id, long r_t, long w_t, long value) {
+    public SingleRecord(int id, long r_t, long w_t, T value) {
         this.id = id;
         this.r_t = r_t;
         this.w_t = w_t;
@@ -28,7 +28,7 @@ public class SingleRecord {
 
         if (id != that.id) return false;
         if (r_t != that.r_t) return false;
-        if (value != that.value) return false;
+        if (!value.equals(that.value)) return false;
 
         return true;
     }
@@ -37,7 +37,7 @@ public class SingleRecord {
     public int hashCode() {
         int result = id;
         result = 31 * result + (int) (r_t ^ (r_t >>> 32));
-        result = 31 * result + (int) (value ^ (value >>> 32));
+        result = 31 * result + value.hashCode();
         return result;
     }
 }

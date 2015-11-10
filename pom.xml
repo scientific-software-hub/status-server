@@ -90,6 +90,11 @@
             <artifactId>utils</artifactId>
             <version>0.0.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.tango</groupId>
+            <artifactId>ezTangORB</artifactId>
+            <version>1.1.18-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
