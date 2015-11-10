@@ -1,14 +1,20 @@
 package wpn.hdri.ss.data2;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
+ * This class accumulates all the records collected so far.
+ *
+ * Backed with {@link java.util.concurrent.CopyOnWriteArrayList}.
+ *
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 09.11.2015
  */
+@ThreadSafe
 public class AllRecords {
-    public static final SingleRecord[] EMPTY_RESULT = new SingleRecord[0];
+    public static final List EMPTY_RESULT = Collections.EMPTY_LIST;
     private final CopyOnWriteArrayList<SingleRecord> data = new CopyOnWriteArrayList<>();
 
     public void add(SingleRecord record){
@@ -20,19 +26,19 @@ public class AllRecords {
      * @param rTimestamp a read timestamp
      * @return all records that were added after specified timestamp
      */
-    public SingleRecord[] get(long rTimestamp){
+    public Iterable<SingleRecord> get(long rTimestamp){
         if(data.size() == 0) return EMPTY_RESULT;
 
         SingleRecord[] array = data.toArray(new SingleRecord[data.size()]);
 
         if(rTimestamp <= array[0].r_t){
-            return array;
+            return Arrays.asList(array);
         } else if(rTimestamp >= array[array.length - 1].r_t) {
             return EMPTY_RESULT;
         } else {
             int leftNdx = findLeftNdx(rTimestamp, array);
 
-            return Arrays.copyOfRange(array, leftNdx, array.length);
+            return Arrays.asList(array).subList(leftNdx, array.length);
         }
     }
 
@@ -55,7 +61,7 @@ public class AllRecords {
     /**
      *
      */
-    public SingleRecord[] getRange(long t0, long t1){
+    public Iterable<SingleRecord> getRange(long t0, long t1){
         if(t1 <= t0) throw  new IllegalArgumentException(String.format("Invalid timestamps range: %d, %d", t0, t1));
 
         if(data.size() == 0) return EMPTY_RESULT;
@@ -69,7 +75,7 @@ public class AllRecords {
 
         int rightNdx = findRightNdx(t1, array, leftNdx);
 
-        return Arrays.copyOfRange(array, leftNdx, rightNdx + 1);
+        return Arrays.asList(array).subList(leftNdx, rightNdx + 1);
     }
 
     private boolean checkIsNotInRange(long t0, long t1, SingleRecord[] array) {
