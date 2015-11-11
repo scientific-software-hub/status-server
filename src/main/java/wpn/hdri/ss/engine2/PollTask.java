@@ -14,14 +14,14 @@ public class PollTask extends AbsTask implements Runnable {
 
 
 
-    public PollTask(Attribute attr, DataStorage storage, boolean append) {
+    public PollTask(Attribute<?> attr, DataStorage storage, boolean append) {
         super(attr, storage, append);
     }
 
     @Override
     public void run() {
         try {
-            SingleRecord result = attr.devClient.read(attr);
+            SingleRecord<?> result = attr.devClient.read(attr);
 
             if(append)
                 storage.appendRecord(result);

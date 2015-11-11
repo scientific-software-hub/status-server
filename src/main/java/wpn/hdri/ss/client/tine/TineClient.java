@@ -43,8 +43,12 @@ import org.tango.client.ez.proxy.EventData;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
+import wpn.hdri.ss.client2.ClientAdaptor;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
+import wpn.hdri.ss.data2.Attribute;
+import wpn.hdri.ss.data2.SingleRecord;
+import wpn.hdri.ss.engine2.EventTask;
 
 import java.lang.reflect.Array;
 import java.util.AbstractMap;
@@ -58,7 +62,7 @@ import java.util.concurrent.*;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 27.04.12
  */
-public class TineClient extends Client {
+public class TineClient extends Client implements ClientAdaptor {
     private static final EnumMap<Method.EventType, Object> TINE_EVENT_TYPES = new EnumMap<Method.EventType, Object>(Method.EventType.class);
 
     static {
@@ -257,6 +261,70 @@ public class TineClient extends Client {
             LOGGER.info("Java data type match:" + getAttributeClass(name).getSimpleName());
         } catch (ClientException e) {
             LOGGER.warn("Can not print attribute info for " + name, e);
+        }
+    }
+
+
+    @Override
+    public <T> SingleRecord<T> read(Attribute<T> attr) throws ClientException {
+        Future<TLink> futureLink = getFutureLink(attr.name);
+        try {
+            TLink tLink = futureLink.get();
+            int rc = tLink.execute();
+            if (rc != TErrorList.success) {
+                throw new Exception("TLink has failed: " + TErrorList.getErrorString(rc));
+            }
+            TDataType dout = tLink.dOutput;
+            long time = tLink.getLastTimeStamp();
+            return new SingleRecord<T>(attr.ndx, System.currentTimeMillis(), time, (T)getDataObject(dout));
+        } catch (Exception e) {
+            throw new ClientException("Read from " + getDeviceName() + "/" + attr.name + " has failed:" + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void subscribe(final EventTask eventTask) {
+        final Attribute attr = eventTask.getAttribute();
+        Future<TLink> futureLink = getFutureLink(attr.name);
+        try {
+            final TLink link = futureLink.get();
+            final TDataType dout = link.dOutput;
+            long time = link.getLastTimeStamp();
+            //read data for the first time
+            SingleRecord<?> record = new SingleRecord<>(attr.ndx,System.currentTimeMillis(),time,getDataObject(dout));
+            eventTask.onEvent(record);
+            //attach event listener
+            int rc = link.attach((Short) eventTypesMap.get(attr.eventType), new TCallback() {
+                @Override
+                public void callback(int LinkIndex, int LinkStatus) {
+                    if (TErrorList.isLinkSuccess(LinkStatus)) {
+                        long time = link.getLastTimeStamp();
+                        SingleRecord<?> record = new SingleRecord<>(attr.ndx,System.currentTimeMillis(),time,getDataObject(dout));
+                        eventTask.onEvent(record);
+                    } else {
+                        LOGGER.error(TErrorList.getErrorString(LinkStatus));
+                    }
+                }
+            });
+            if (rc < 0) {
+                throw new IllegalStateException(link.getLastError());
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed subscribe to " + getDeviceName() + "/" + attr.name + ": " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void unsubscribe(Attribute attr) {
+        Future<TLink> futureLink = tlinks.remove(attr.name);
+        try {
+            final TLink link = futureLink.get();
+            int rc = link.close();
+            if (rc < 0) {
+                throw new IllegalStateException(link.getLastError());
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to unsubscribe from " + getDeviceName() + "/" + attr.name + ": " + e.getMessage(), e);
         }
     }
 }

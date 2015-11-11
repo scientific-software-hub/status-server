@@ -2,9 +2,9 @@ package wpn.hdri.ss.engine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tango.client.ez.proxy.EventData;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.EventCallback;
-import wpn.hdri.ss.client.EventData;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.Value;
@@ -38,9 +38,9 @@ public class EventReadAttributeTask implements EventCallback<Object> {
      */
     public final void onEvent(EventData<Object> eventData) {
         if (append)
-            attribute.addValue(Timestamp.now(), Value.getInstance(eventData.getData()), new Timestamp(eventData.getTimestamp()));
+            attribute.addValue(Timestamp.now(), Value.getInstance(eventData.getValue()), new Timestamp(eventData.getTime()));
         else
-            attribute.replaceValue(Timestamp.now(), Value.getInstance(eventData.getData()), new Timestamp(eventData.getTimestamp()));
+            attribute.replaceValue(Timestamp.now(), Value.getInstance(eventData.getValue()), new Timestamp(eventData.getTime()));
     }
 
     /**

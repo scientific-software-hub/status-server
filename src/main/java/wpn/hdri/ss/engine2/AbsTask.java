@@ -19,4 +19,8 @@ public class AbsTask {
         this.storage = storage;
         this.append = append;
     }
+
+    public Attribute getAttribute() {
+        return attr;
+    }
 }

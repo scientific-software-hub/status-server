@@ -6,6 +6,7 @@ import wpn.hdri.ss.data2.Attribute;
 
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -15,8 +16,6 @@ public class Engine {
     private final static Logger logger = LoggerFactory.getLogger(Engine.class);
 
     public final ScheduledExecutorService exec;
-
-    private volatile String status;
 
     private final DataStorage storage;
 
@@ -35,15 +34,53 @@ public class Engine {
 
 
     public void start() {
-        status = "HEAVY_DUTY";
+        logger.debug("Starting...");
+        start(true, -1);
+        logger.debug("Done!");
+    }
+
+    private void start(boolean append, long delay){
         for(Attribute attr : polledAttributes){
-            runningTasks.add(exec.schedule(new PollTask(storage, attr, append), attr.delay, TimeUnit.MILLISECONDS));
+            logger.debug("Scheduling polling task for {}", attr.fullName);
+            runningTasks.add(
+                    exec.scheduleAtFixedRate(
+                            new PollTask(attr, storage, true), 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
+        }
+        for(Attribute attr : eventDrivenAttributes){
+            logger.debug("Subscribing to {}" , attr.fullName);
+            attr.devClient.subscribe(new EventTask(attr, storage, true));
         }
     }
 
+    public void startLightPolling(){
+        logger.debug("Starting light polling...");
+        start(false, -1);
+        logger.debug("Done!");
+    }
+
+    public void startLightPollingAtFixedRate(long delay){
+        if(delay < 0) throw new IllegalArgumentException("delay must be positive!");
+        logger.debug("Starting light polling at fixed rate...");
+        start(false, delay);
+        logger.debug("Done!");
+    }
+
     public void stop(){
+        logger.debug("Stopping...");
         for(ScheduledFuture<?> task : runningTasks){
+            logger.debug("Canceling polling task for...");
             task.cancel(false);
         }
+        for(Attribute attr : eventDrivenAttributes){
+            logger.debug("Unsubscribing from {}", attr.fullName);
+            attr.devClient.unsubscribe(attr);
+        }
+        logger.debug("Done!");
     }
+
+    public DataStorage getStorage(){
+        return storage;
+    }
+
+    //TODO erase data
 }

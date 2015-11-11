@@ -61,18 +61,13 @@ public class CompositeClientFactory {
      * @param deviceName a device name to which factories try to connect
      * @return new client (BadClient if neither factory was able to create a client)
      */
-    public Client createClient(String deviceName) {
+    public Client createClient(String deviceName) throws Exception {
         Client result = null;
 
-        try {
             if(deviceName.startsWith("/"))
                 result = tineFactory.createClient(deviceName);
             else
                 result = tangoFactory.createClient(deviceName);
-        } catch (Exception e) {
-            logger.error(e.toString());
-            result = new BadClient(deviceName);
-        }
 
         return result;
     }

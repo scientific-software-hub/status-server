@@ -29,9 +29,6 @@
 
 package wpn.hdri.ss.client.tango;
 
-import fr.esrf.Tango.AttributeValue;
-import fr.esrf.Tango.TimeValHelper;
-import fr.esrf.Tango.TimeValHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.data.format.SpectrumTangoDataFormat;
@@ -40,11 +37,11 @@ import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.client.EventCallback;
 import wpn.hdri.ss.client2.ClientAdaptor;
-import wpn.hdri.ss.client2.Data;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data2.Attribute;
 import wpn.hdri.ss.data2.SingleRecord;
+import wpn.hdri.ss.engine2.EventTask;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
@@ -180,12 +177,47 @@ public class TangoClient extends Client implements ClientAdaptor {
     }
 
     @Override
-    public SingleRecord read(Attribute attr) throws ClientException {
+    public <T> SingleRecord<T> read(Attribute<T> attr) throws ClientException {
         try {
             ValueTime<?> value = proxy.readAttributeValueAndTime(attr.name);
-            return new SingleRecord(attr.ndx, System.currentTimeMillis(), value.getTime(), value.getValue());
+            return new SingleRecord<>(attr.ndx, System.currentTimeMillis(), value.getTime(), (T)value.getValue());
         } catch (TangoProxyException|NoSuchAttributeException e) {
             throw new ClientException(e.getMessage(),e);
+        }
+    }
+
+    @Override
+    public void subscribe(final EventTask cbk) {
+        final Attribute attr = cbk.getAttribute();
+        try {
+            proxy.subscribeToEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
+            TangoEventListener<Object> listener = new TangoEventListener<Object>() {
+                @Override
+                public void onEvent(EventData<Object> data) {
+                    SingleRecord<?> record = new SingleRecord<>(attr.ndx, System.currentTimeMillis(), data.getTime(), data.getValue());
+                    cbk.onEvent(record);
+                }
+
+                @Override
+                public void onError(Exception cause) {
+                    LOGGER.error(cause.getMessage(), cause);
+                }
+            };
+            proxy.addEventListener(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType), listener);
+
+            listeners.put(attr.name, listener);
+        } catch (TangoProxyException | NoSuchAttributeException devFailed) {
+            LOGGER.error(devFailed.toString());
+        }
+    }
+
+    @Override
+    public void unsubscribe(Attribute attr) {
+        listeners.remove(attr.name);
+        try {
+            proxy.unsubscribeFromEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
+        } catch (TangoProxyException devFailed) {
+            LOGGER.error(devFailed.toString());
         }
     }
 }
