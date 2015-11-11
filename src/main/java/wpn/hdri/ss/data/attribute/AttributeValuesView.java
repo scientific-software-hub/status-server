@@ -1,0 +1,167 @@
+package wpn.hdri.ss.data.attribute;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import fr.esrf.TangoApi.PipeBlob;
+import fr.esrf.TangoApi.PipeBlobBuilder;
+import wpn.hdri.ss.data.Value;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+
+/**
+ * Designed to be thread confinement
+ *
+ * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
+ * @since 03.06.13
+ */
+@NotThreadSafe
+public class AttributeValuesView {
+    static final Iterable<String> HEADER = Arrays.asList("full_name", "alias", "type", "value", "read", "write");
+    private static final ThreadLocal<String[]> LOCAL_RESULT = new ThreadLocal<String[]>();
+    private final SingleAttributeValueView valueView = new SingleAttributeValueView();
+    private final Multimap<AttributeName, AttributeValue<?>> values;
+    private final boolean useAliases;
+
+    public AttributeValuesView(Multimap<AttributeName, AttributeValue<?>> data, boolean useAliases) {
+        this.values = data;
+        this.useAliases = useAliases;
+    }
+
+    public AttributeValuesView(Multimap<AttributeName, AttributeValue<?>> data) {
+        this.values = data;
+        this.useAliases = false;
+    }
+
+    /**
+     * {
+     * attr:[
+     * {
+     * value:
+     * readTimestamp:
+     * writeTimestamp:
+     * },
+     * ...
+     * ],
+     * ...
+     * }
+     *
+     * @return json as shown above
+     */
+    public String toJsonString() {
+        //TODO avoid temporary object creation
+        StringBuilder bld = new StringBuilder();
+
+        bld.append('{');
+
+        for (Iterator<Map.Entry<AttributeName, Collection<AttributeValue<?>>>> it = values.asMap().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry = it.next();
+            bld.append('\'')
+                    .append(resolveAttributeName(entry.getKey()))
+                    .append('\'').append(':').append('[');
+
+            for (Iterator<AttributeValue<?>> values = entry.getValue().iterator(); values.hasNext(); ) {
+                AttributeValue<?> value = values.next();
+                valueView.toJsonString(value, bld);
+                if (values.hasNext())
+                    bld.append(',');
+            }
+            bld.append(']');
+            if (it.hasNext())
+                bld.append(',');
+        }
+        bld.append('}');
+
+        try {
+            return bld.toString();
+        } finally {
+            bld.setLength(0);
+        }
+    }
+
+    public String[] toStringArray() {
+        String[] result = LOCAL_RESULT.get();
+        int size = values.keySet().size();
+        if (result == null || result.length != size) {
+            LOCAL_RESULT.set(result = new String[size]);
+        }
+
+        StringBuilder bld = new StringBuilder();
+        int i = 0;
+        for (Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry : values.asMap().entrySet()) {
+            bld.append(resolveAttributeName(entry.getKey())).append('\n');
+            for (AttributeValue<?> value : entry.getValue()) {
+                valueView.toStringArray(value, bld);
+            }
+            result[i++] = bld.toString();
+            bld.setLength(0);
+        }
+
+        return result;
+    }
+
+    public PipeBlob toPipeBlob() {
+        PipeBlobBuilder result = new PipeBlobBuilder("status_server");
+
+        for (Iterator<Map.Entry<AttributeName, Collection<AttributeValue<?>>>> it = values.asMap().entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<AttributeName, Collection<AttributeValue<?>>> entry = it.next();
+
+            Collection<AttributeValue<?>> attributeValues = entry.getValue();
+
+            if (attributeValues.size() == 0) continue;//skip empty values in the pipe
+
+            PipeBlobBuilder innerBlob = new PipeBlobBuilder(resolveAttributeName(entry.getKey()));
+
+            innerBlob.add("attribute", resolveAttributeName(entry.getKey()));
+
+            Class<?> valueType = Iterables.getFirst(attributeValues, null).getValue().getValueClass();
+
+            //filter out null values
+            Collection<AttributeValue<?>> filteredValues = Collections2.filter(attributeValues, new Predicate<AttributeValue<?>>() {
+                @Override
+                public boolean apply(AttributeValue<?> input) {
+                    return input.getValue() != Value.NULL;
+                }
+            });
+
+            if (filteredValues.isEmpty()) continue;
+
+            Collection<?> values = Collections2.transform(filteredValues, new Function<AttributeValue<?>, Object>() {
+                @Override
+                public Object apply(AttributeValue<?> input) {
+                    return input.getValue().get();
+                }
+            });
+
+            Collection<Long> times = Collections2.transform(filteredValues, new Function<AttributeValue<?>, Long>() {
+                @Override
+                public Long apply(AttributeValue<?> input) {
+                    return input.getWriteTimestamp().getValue();
+                }
+            });
+
+            innerBlob.add("values", values.toArray((Object[]) Array.newInstance(valueType, values.size())));
+
+            innerBlob.add("times", times.toArray(new Long[times.size()]));
+
+            result.add(resolveAttributeName(entry.getKey()), innerBlob.build());
+        }
+
+
+        return result.build();
+    }
+
+    private String resolveAttributeName(AttributeName attrName) {
+        if (useAliases && attrName.getAlias() != null)
+            return attrName.getAlias();
+        else
+            return attrName.getFullName();
+    }
+}
