@@ -162,5 +162,6 @@ Result "benchmarkSearch":
 Benchmark                         Mode  Cnt        Score       Error  Units
 SearchBenchmark.benchmarkLatest  thrpt  200  8751053,333 ? 32440,027  ops/s
 SearchBenchmark.benchmarkSearch  thrpt  200  3256768,953 ? 14576,755  ops/s
+SearchBenchmark.benchmarkRange   thrpt  200  1290584,274 ? 19983,747  ops/s
 
 ```
