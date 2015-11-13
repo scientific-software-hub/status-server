@@ -90,7 +90,7 @@ public final class DeviceAttribute {
     }
 
     public String getAlias(){
-        return alias;
+        return alias == null ? name : alias;
     }
 
     public void setAlias(String alias) {
@@ -134,8 +134,13 @@ public final class DeviceAttribute {
         this.precision = precision;
     }
 
+    /**
+     *
+     *
+     * @return NONE ar event type specified in xml
+     */
     public String getEventType() {
-        return eventType;
+        return eventType == null ? "NONE" : eventType;
     }
 
     public void setEventType(String eventType) {

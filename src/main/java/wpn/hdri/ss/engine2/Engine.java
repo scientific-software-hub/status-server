@@ -4,9 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.Attribute;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -19,6 +20,8 @@ public class Engine {
 
     private final DataStorage storage;
 
+    private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
+
     private final List<Attribute> polledAttributes;
     private final List<Attribute> eventDrivenAttributes;
 
@@ -29,7 +32,13 @@ public class Engine {
         this.exec = exec;
         this.storage = storage;
         this.polledAttributes = polledAttributes;
+        for(Attribute<?> attr : polledAttributes){
+            attributesByName.put(attr.fullName, attr);
+        }
         this.eventDrivenAttributes = eventDrivenAttributes;
+        for(Attribute<?> attr : eventDrivenAttributes){
+            attributesByName.put(attr.fullName, attr);
+        }
     }
 
 
@@ -44,11 +53,11 @@ public class Engine {
             logger.debug("Scheduling polling task for {}", attr.fullName);
             runningTasks.add(
                     exec.scheduleAtFixedRate(
-                            new PollTask(attr, storage, true), 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
+                            new PollTask(attr, storage, append), 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
         }
         for(Attribute attr : eventDrivenAttributes){
             logger.debug("Subscribing to {}" , attr.fullName);
-            attr.devClient.subscribe(new EventTask(attr, storage, true));
+            attr.devClient.subscribe(new EventTask(attr, storage, append));
         }
     }
 
@@ -80,6 +89,18 @@ public class Engine {
 
     public DataStorage getStorage(){
         return storage;
+    }
+
+    /**
+     *
+     * @param name
+     * @return
+     * @throws java.lang.IllegalArgumentException
+     */
+    public Attribute<?> getAttributeByName(String name) {
+        Attribute<?> attribute = attributesByName.get(name);
+        if(attribute == null) throw new IllegalArgumentException("No such attribute: " + name);
+        return attribute;
     }
 
     //TODO erase data

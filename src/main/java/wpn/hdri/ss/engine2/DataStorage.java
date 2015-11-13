@@ -14,7 +14,7 @@ public class DataStorage {
 
     public DataStorage(int totalNumberOfAttributes) {
         this.snapshot = new Snapshot(totalNumberOfAttributes);
-        this.allRecords = new AllRecords();
+        this.allRecords = new AllRecords(totalNumberOfAttributes);
     }
 
     public void writeRecord(SingleRecord<?> record){
@@ -22,8 +22,8 @@ public class DataStorage {
     }
 
     public void appendRecord(SingleRecord<?> record){
-        SingleRecord<?> old = snapshot.update(record);
-        allRecords.add(old);
+        snapshot.update(record);
+        allRecords.add(record);
     }
 
     public Iterable<SingleRecord<?>> getSnapshot(){

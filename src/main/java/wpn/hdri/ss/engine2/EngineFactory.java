@@ -27,9 +27,11 @@ public class EngineFactory {
     private final int totalNumberOfAttributes;
     private final StatusServerConfiguration configuration;
 
+    private final List<Attribute<?>> selfAttributes;
     private final List<String> failedAttributes = new ArrayList<>();
 
-    public EngineFactory(StatusServerConfiguration configuration) {
+    public EngineFactory(List<Attribute<?>> selfAttributes, StatusServerConfiguration configuration) {
+        this.selfAttributes = selfAttributes;
         int totalNumberOfAttributes = 0;
         totalNumberOfAttributes += configuration.getStatusServerAttributes().size();
         for(Device dev : configuration.getDevices()){
@@ -42,14 +44,15 @@ public class EngineFactory {
     public Engine newEngine(){
         int actualNumberOfAttributes = 0;
 
-        actualNumberOfAttributes += configuration.getStatusServerAttributes().size();
+        actualNumberOfAttributes += selfAttributes.size();
 
+        List<Attribute> attributes = new ArrayList<>();
         List<Attribute> polledAttributes = new ArrayList<>();
         List<Attribute> eventDrivenAttributes = new ArrayList<>();
 
+        attributes.addAll(selfAttributes);
 
         CompositeClientFactory clientFactory = new CompositeClientFactory();
-
         for(Device dev : configuration.getDevices()){
             Client client = null;
             try {
@@ -69,13 +72,16 @@ public class EngineFactory {
                     continue;
                 }
 
-                Method.EventType eventType = Method.EventType.valueOf(devAttr.getEventType());
+                Method.EventType eventType = Method.EventType.valueOf(devAttr.getEventType().toUpperCase());
 
                 Attribute<?> attr = new Attribute<>(
                         actualNumberOfAttributes++, (ClientAdaptor) client, devAttr.getDelay(),
                         eventType, type, devAttr.getAlias(), dev.getName() + "/" + devAttr.getName(), devAttr.getName());
                 logger.debug("Monitoring attribute {}", attr.fullName);
                 logger.debug(attr.toString());
+
+                attributes.add(attr);
+
                 if(devAttr.getMethod() == Method.POLL){
                     polledAttributes.add(attr);
                 } else {
@@ -87,7 +93,7 @@ public class EngineFactory {
 
         if(actualNumberOfAttributes != totalNumberOfAttributes) logger.warn("Actual number of monitored attributes[{}] LT total number [{}]", actualNumberOfAttributes, totalNumberOfAttributes);
 
-        ScheduledExecutorService exec = Executors.newScheduledThreadPool(actualNumberOfAttributes - configuration.getStatusServerAttributes().size());
+        ScheduledExecutorService exec = Executors.newScheduledThreadPool(actualNumberOfAttributes - selfAttributes.size());
         DataStorage storage = new DataStorage(actualNumberOfAttributes);
 
         return new Engine(exec, storage, polledAttributes, eventDrivenAttributes);

@@ -2,10 +2,7 @@ package wpn.hdri.ss.data2;
 
 import java.lang.reflect.Field;
 import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-import java.util.function.Consumer;
 
 /**
  * This class contains latest values for each attribute protocolled by the StatusServer
@@ -20,6 +17,7 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
     static {
         try{
             array = AtomicReferenceArray.class.getDeclaredField("array");
+            array.setAccessible(true);
         } catch (NoSuchFieldException e){
             throw new AssertionError("Should not happen!");
         }
@@ -70,19 +68,14 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
                 public SingleRecord next() {
                     return data[pos++];
                 }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException("This method is not supported in " + this.getClass());
+                }
             };
 
     }
 
-    @Override
-    public void forEach(Consumer<? super SingleRecord<?>> action) {
-        for(SingleRecord record : this){
-            action.accept(record);
-        }
-    }
 
-    @Override
-    public Spliterator<SingleRecord<?>> spliterator() {
-        throw new UnsupportedOperationException("This method is not supported in " + this.getClass());
-    }
 }

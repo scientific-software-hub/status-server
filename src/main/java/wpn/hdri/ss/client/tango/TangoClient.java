@@ -180,7 +180,7 @@ public class TangoClient extends Client implements ClientAdaptor {
     public <T> SingleRecord<T> read(Attribute<T> attr) throws ClientException {
         try {
             ValueTime<?> value = proxy.readAttributeValueAndTime(attr.name);
-            return new SingleRecord<>(attr.ndx, System.currentTimeMillis(), value.getTime(), (T)value.getValue());
+            return new SingleRecord<>(attr, System.currentTimeMillis(), value.getTime(), (T)value.getValue());
         } catch (TangoProxyException|NoSuchAttributeException e) {
             throw new ClientException(e.getMessage(),e);
         }
@@ -194,7 +194,7 @@ public class TangoClient extends Client implements ClientAdaptor {
             TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(EventData<Object> data) {
-                    SingleRecord<?> record = new SingleRecord<>(attr.ndx, System.currentTimeMillis(), data.getTime(), data.getValue());
+                    SingleRecord<?> record = new SingleRecord<>(attr, System.currentTimeMillis(), data.getTime(), data.getValue());
                     cbk.onEvent(record);
                 }
 

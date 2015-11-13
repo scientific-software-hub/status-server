@@ -54,9 +54,11 @@ public /*final*/ class ClientsManager {
     }
 
     public Client initializeClient(String name) throws ClientInitializationException {
-        Client result = factory.createClient(name);
-        if (result == null) {
-            throw new ClientInitializationException(name, /*TODO create new exception with all exceptions from .wasExceptions() */null);
+        Client result = null;
+        try {
+            result = factory.createClient(name);
+        } catch (Exception e) {
+            throw new ClientInitializationException(name, e);
         }
         clients.put(name, result);
         aliveClientNames.add(name);

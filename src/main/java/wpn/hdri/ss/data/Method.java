@@ -40,6 +40,7 @@ public enum Method {
     EVENT;
 
     public static enum EventType {
+        NONE,
         CHANGE,
         PERIODIC
     }

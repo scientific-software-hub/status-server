@@ -276,7 +276,7 @@ public class TineClient extends Client implements ClientAdaptor {
             }
             TDataType dout = tLink.dOutput;
             long time = tLink.getLastTimeStamp();
-            return new SingleRecord<T>(attr.ndx, System.currentTimeMillis(), time, (T)getDataObject(dout));
+            return new SingleRecord<T>(attr, System.currentTimeMillis(), time, (T)getDataObject(dout));
         } catch (Exception e) {
             throw new ClientException("Read from " + getDeviceName() + "/" + attr.name + " has failed:" + e.getMessage(), e);
         }
@@ -291,7 +291,7 @@ public class TineClient extends Client implements ClientAdaptor {
             final TDataType dout = link.dOutput;
             long time = link.getLastTimeStamp();
             //read data for the first time
-            SingleRecord<?> record = new SingleRecord<>(attr.ndx,System.currentTimeMillis(),time,getDataObject(dout));
+            SingleRecord<?> record = new SingleRecord<>(attr,System.currentTimeMillis(),time,getDataObject(dout));
             eventTask.onEvent(record);
             //attach event listener
             int rc = link.attach((Short) eventTypesMap.get(attr.eventType), new TCallback() {
@@ -299,7 +299,7 @@ public class TineClient extends Client implements ClientAdaptor {
                 public void callback(int LinkIndex, int LinkStatus) {
                     if (TErrorList.isLinkSuccess(LinkStatus)) {
                         long time = link.getLastTimeStamp();
-                        SingleRecord<?> record = new SingleRecord<>(attr.ndx,System.currentTimeMillis(),time,getDataObject(dout));
+                        SingleRecord<?> record = new SingleRecord<>(attr,System.currentTimeMillis(),time,getDataObject(dout));
                         eventTask.onEvent(record);
                     } else {
                         LOGGER.error(TErrorList.getErrorString(LinkStatus));
