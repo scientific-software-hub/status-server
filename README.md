@@ -165,3 +165,8 @@ SearchBenchmark.benchmarkSearch  thrpt  200  3256768,953 ? 14576,755  ops/s
 SearchBenchmark.benchmarkRange   thrpt  200  1290584,274 ? 19983,747  ops/s
 
 ```
+
+## 2.0.0 Benchmark test:
+
+```
+```
