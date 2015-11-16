@@ -29,6 +29,15 @@ public class Attribute<T> {
         this.name = name;
     }
 
+    /**
+     * For testing
+     *
+     * @param id
+     */
+    Attribute(int id){
+        this(id, null, 0L, null, null, null, null, null);
+    }
+
     public String toString(){
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id)

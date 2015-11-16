@@ -74,6 +74,8 @@ public class EngineFactory {
 
                 Method.EventType eventType = Method.EventType.valueOf(devAttr.getEventType().toUpperCase());
 
+                //TODO interpolation
+
                 Attribute<?> attr = new Attribute<>(
                         actualNumberOfAttributes++, (ClientAdaptor) client, devAttr.getDelay(),
                         eventType, type, devAttr.getAlias(), dev.getName() + "/" + devAttr.getName(), devAttr.getName());

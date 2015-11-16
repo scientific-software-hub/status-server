@@ -5,6 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 import wpn.hdri.ss.data.Method;
 
+import java.util.AbstractMap;
+import java.util.Arrays;
+
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
 
 /**
@@ -13,9 +17,6 @@ import static org.junit.Assert.assertArrayEquals;
  */
 public class AllRecordsComplexTest {
     private AllRecords instance;
-    private Attribute attr0;
-    private Attribute attr1;
-    private Attribute attr2;
 
     /**
      * Setup instance: attr0x6;attr1x3;attr2x1
@@ -24,33 +25,25 @@ public class AllRecordsComplexTest {
     public void before(){
         instance = new AllRecords(3);
 
-        attr0 = new Attribute(0, null, 0L, Method.EventType.NONE, long.class, "teat-0", "test-0", "test-0");
-        attr1 = new Attribute(1, null, 0L, Method.EventType.NONE, double.class, "teat-1", "test-1", "test-1");
-        attr2 = new Attribute(2, null, 0L, Method.EventType.NONE, long.class, "teat-2", "test-2", "test-2");
-
-
-        instance.add(new SingleRecord(attr0, 100L, 0L, 1234L));
-        instance.add(new SingleRecord(attr0, 200L, 0L, 1235L));
-        instance.add(new SingleRecord(attr0, 300L, 0L, 1236L));
-        instance.add(new SingleRecord(attr1, 320L, 0L, 3.14D));
-        instance.add(new SingleRecord(attr0, 350L, 0L, 1237L));
-        instance.add(new SingleRecord(attr2, 370L, 0L, 789L));
-        instance.add(new SingleRecord(attr0, 450L, 0L, 1238L));
-        instance.add(new SingleRecord(attr1, 570L, 0L, 3.144D));
-        instance.add(new SingleRecord(attr1, 600L, 0L, 3.148D));
+        instance.add(new SingleRecord(Attributes.ATTR0, 100L, 0L, 1234L));
+        instance.add(new SingleRecord(Attributes.ATTR0, 200L, 0L, 1235L));
+        instance.add(new SingleRecord(Attributes.ATTR0, 300L, 0L, 1236L));
+        instance.add(new SingleRecord(Attributes.ATTR1, 320L, 0L, 3.14D));
+        instance.add(new SingleRecord(Attributes.ATTR0, 350L, 0L, 1237L));
+        instance.add(new SingleRecord(Attributes.ATTR2, 370L, 0L, 789L));
+        instance.add(new SingleRecord(Attributes.ATTR0, 450L, 0L, 1238L));
+        instance.add(new SingleRecord(Attributes.ATTR1, 570L, 0L, 3.144D));
+        instance.add(new SingleRecord(Attributes.ATTR1, 600L, 0L, 3.148D));
     }
 
     @Test
     public void testGetSnapshot(){
-        Iterable<SingleRecord<?>> result = instance.getSnapshot(380L);
+        Iterable<?> result = instance.getSnapshot(new int[]{0,1,2},380L);
 
-        assertArrayEquals(new SingleRecord[]{
-                new SingleRecord(attr0, 350L, 0L, 1237L),
-                new SingleRecord(attr0, 450L, 0L, 1238L),
-                new SingleRecord(attr1, 320L, 0L, 3.14D),
-                new SingleRecord(attr1, 570L, 0L, 3.144D),
-                new SingleRecord(attr2, 370L, 0L, 789L),
-                new SingleRecord(attr2, 370L, 0L, 789L)
-        }, Iterables.toArray(result, SingleRecord.class));
+        assertTrue(Iterables.elementsEqual(Arrays.asList(
+                new AbstractMap.SimpleEntry(new SingleRecord(Attributes.ATTR0, 350L, 0L, 1237L),new SingleRecord(Attributes.ATTR0, 450L, 0L, 1238L)),
+                new AbstractMap.SimpleEntry(new SingleRecord(Attributes.ATTR1, 320L, 0L, 3.14D),new SingleRecord(Attributes.ATTR1, 570L, 0L, 3.144D)),
+                new AbstractMap.SimpleEntry(new SingleRecord(Attributes.ATTR2, 370L, 0L, 789L), null)
+        ), result));
     }
 }
