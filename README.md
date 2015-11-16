@@ -169,16 +169,11 @@ SearchBenchmark.benchmarkRange   thrpt  200  1290584,274 ? 19983,747  ops/s
 ## 2.0.0 Benchmark test:
 
 ```
-Result "benchmarkSearch":
-  1693,628 ?(99.9%) 25,274 ops/s [Average]
-  (min, avg, max) = (1316,680, 1693,628, 1928,377), stdev = 107,014
-  CI (99.9%): [1668,354, 1718,902] (assumes normal distribution)
-
-
 # Run complete. Total time: 00:21:54
 
 Benchmark                          Mode  Cnt          Score         Error  Units
-SearchBenchmark2.benchmarkLatest  thrpt  200  376546078,535 ? 1343521,015  ops/s
-SearchBenchmark2.benchmarkRange   thrpt  200       1740,652 ?      30,401  ops/s
-SearchBenchmark2.benchmarkSearch  thrpt  200       1693,628 ?      25,274  ops/s
+SearchBenchmark2.benchmarkLatest   thrpt  200  376546078,535 ? 1343521,015  ops/s
+SearchBenchmark2.benchmarkRange    thrpt  200   18960847,908 ?  60166,410  ops/s
+SearchBenchmark2.benchmarkSearch   thrpt  200    6079969,349 ?  71723,323  ops/s
+SearchBenchmark2.benchmarkUpdates  thrpt  200   36036591,098 ? 164357,240  ops/s
 ```
