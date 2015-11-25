@@ -187,3 +187,15 @@ SearchBenchmark2.benchmarkRange    thrpt  200   18960847,908 ?  60166,410  ops/s
 SearchBenchmark2.benchmarkSearch   thrpt  200    6079969,349 ?  71723,323  ops/s
 SearchBenchmark2.benchmarkUpdates  thrpt  200   36036591,098 ? 164357,240  ops/s
 ```
+
+100 attributes with 100K randomly distributed records
+
+```
+# Run complete. Total time: 00:27:07
+
+Benchmark                                  Mode  Cnt          Score         Error  Units
+SearchBenchmark3.benchmarkLatestSnapshot  thrpt  200  368993808,387 ? 1728088,058  ops/s
+SearchBenchmark3.benchmarkRange           thrpt  200   18638307,115 ?   67312,940  ops/s
+SearchBenchmark3.benchmarkSnapshot        thrpt  200    1785893,066 ?   23765,739  ops/s
+SearchBenchmark3.benchmarkUpdates         thrpt  200   36079956,416 ?  133265,984  ops/s
+```
