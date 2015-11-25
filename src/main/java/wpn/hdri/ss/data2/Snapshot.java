@@ -1,5 +1,6 @@
 package wpn.hdri.ss.data2;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -13,11 +14,11 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public class Snapshot implements Iterable<SingleRecord<?>>{
     private final AtomicReferenceArray<SingleRecord<?>> data;
 
-    private static final Field array;
+    private static final Field FIELD_ARRAY;
     static {
         try{
-            array = AtomicReferenceArray.class.getDeclaredField("array");
-            array.setAccessible(true);
+            FIELD_ARRAY = AtomicReferenceArray.class.getDeclaredField("array");
+            FIELD_ARRAY.setAccessible(true);
         } catch (NoSuchFieldException e){
             throw new AssertionError("Should not happen!");
         }
@@ -25,6 +26,19 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
 
     public Snapshot(int totalAttributesNumber) {
         this.data = new AtomicReferenceArray<>(totalAttributesNumber);
+    }
+
+    protected Snapshot(@Nullable Object[] array){
+        if (array == null ) this.data = null;
+        else this.data = new AtomicReferenceArray(array);
+    }
+
+    protected Object getArray(){
+        try {
+            return FIELD_ARRAY.get(this.data);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError(e);
+        }
     }
 
     /**
@@ -49,12 +63,8 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
     public final Iterator<SingleRecord<?>> iterator() {
         final int size = data.length();
         final SingleRecord[] data = new SingleRecord[size];
-        try {
             System.arraycopy(
-                    array.get(this.data),0,data,0,size);
-        } catch (IllegalAccessException e) {
-            throw new AssertionError("Can not happen!");
-        }
+                    getArray(),0,data,0,size);
 
             return new Iterator<SingleRecord<?>>() {
                 private int pos = 0;
@@ -77,5 +87,7 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
 
     }
 
-
+    public SingleRecord<?> get(int ndx){
+        return data.get(ndx);
+    }
 }

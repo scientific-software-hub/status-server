@@ -11,6 +11,7 @@ import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data2.Attribute;
+import wpn.hdri.ss.data2.Interpolation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,11 +75,11 @@ public class EngineFactory {
 
                 Method.EventType eventType = Method.EventType.valueOf(devAttr.getEventType().toUpperCase());
 
-                //TODO interpolation
+                Interpolation interpolation = Interpolation.valueOf(devAttr.getInterpolation().toUpperCase());
 
                 Attribute<?> attr = new Attribute<>(
                         actualNumberOfAttributes++, (ClientAdaptor) client, devAttr.getDelay(),
-                        eventType, type, devAttr.getAlias(), dev.getName() + "/" + devAttr.getName(), devAttr.getName());
+                        eventType, type, devAttr.getAlias(), dev.getName() + "/" + devAttr.getName(), devAttr.getName(), interpolation);
                 logger.debug("Monitoring attribute {}", attr.fullName);
                 logger.debug(attr.toString());
 

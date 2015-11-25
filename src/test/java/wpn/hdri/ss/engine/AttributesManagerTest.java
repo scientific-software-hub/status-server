@@ -61,7 +61,7 @@ public class AttributesManagerTest {
         attr0.setName(TEST_ATTR + "-0");
         attr0.setAlias(null);
         attr0.setMethod(Method.POLL);
-        attr0.setInterpolation(Interpolation.LAST);
+        attr0.setInterpolation(Interpolation.LAST.name());
         attr0.setDelay(20L);
         attr0.setPrecision(BigDecimal.ZERO);
     }
@@ -72,7 +72,7 @@ public class AttributesManagerTest {
         attr.setName(TEST_ATTR);
         attr.setAlias(null);
         attr.setMethod(Method.POLL);
-        attr.setInterpolation(Interpolation.LAST);
+        attr.setInterpolation(Interpolation.LAST.name());
         attr.setDelay(20L);
         attr.setPrecision(BigDecimal.ZERO);
     }

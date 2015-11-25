@@ -17,8 +17,9 @@ public class Attribute<T> {
     public final String name;
     public final String alias;
     public final Class<T> type;
+    public final Interpolation interpolation;
 
-    public Attribute(int id, ClientAdaptor devClient, long delay, Method.EventType eventType, Class<T> type, String alias, String fullName, String name) {
+    public Attribute(int id, ClientAdaptor devClient, long delay, Method.EventType eventType, Class<T> type, String alias, String fullName, String name, Interpolation interpolation) {
         this.id = id;
         this.devClient = devClient;
         this.delay = delay;
@@ -27,6 +28,7 @@ public class Attribute<T> {
         this.alias = alias;
         this.fullName = fullName;
         this.name = name;
+        this.interpolation = interpolation;
     }
 
     /**
@@ -35,7 +37,7 @@ public class Attribute<T> {
      * @param id
      */
     Attribute(int id){
-        this(id, null, 0L, null, null, null, null, null);
+        this(id, null, 0L, null, null, null, null, null, Interpolation.LAST);
     }
 
     public String toString(){
@@ -46,6 +48,7 @@ public class Attribute<T> {
                 .add("alias", alias)
                 .add("type", type.getSimpleName())
                 .add("delay", delay)
-                .add("eventType", eventType).toString();
+                .add("eventType", eventType)
+                .add("interpolation", interpolation).toString();
     }
 }

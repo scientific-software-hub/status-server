@@ -3,7 +3,6 @@ package wpn.hdri.ss.data2;
 import com.google.common.collect.Iterables;
 import org.junit.Before;
 import org.junit.Test;
-import wpn.hdri.ss.data.Method;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
@@ -38,12 +37,12 @@ public class AllRecordsComplexTest {
 
     @Test
     public void testGetSnapshot(){
-        Iterable<?> result = instance.getSnapshot(new int[]{0,1,2},380L);
+        Iterable<?> result = instance.getSnapshot(380L);
 
         assertTrue(Iterables.elementsEqual(Arrays.asList(
-                new AbstractMap.SimpleEntry(new SingleRecord(Attributes.ATTR0, 350L, 0L, 1237L),new SingleRecord(Attributes.ATTR0, 450L, 0L, 1238L)),
-                new AbstractMap.SimpleEntry(new SingleRecord(Attributes.ATTR1, 320L, 0L, 3.14D),new SingleRecord(Attributes.ATTR1, 570L, 0L, 3.144D)),
-                new AbstractMap.SimpleEntry(new SingleRecord(Attributes.ATTR2, 370L, 0L, 789L), null)
+                new SingleRecord(Attributes.ATTR0, 350L, 0L, 1237L),
+                new SingleRecord(Attributes.ATTR1, 320L, 0L, 3.14D),
+                new SingleRecord(Attributes.ATTR2, 370L, 0L, 789L)
         ), result));
     }
 }

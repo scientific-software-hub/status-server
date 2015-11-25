@@ -52,7 +52,7 @@ public final class DeviceAttribute {
     @Attribute(name = "method")
     private Method method;
     @Attribute(name = "interpolation")
-    private Interpolation interpolation;
+    private String interpolation;
     @Attribute(name = "delay", required = false)
     private long delay;
     @Attribute(name = "precision", required = false)
@@ -105,11 +105,11 @@ public final class DeviceAttribute {
         this.method = method;
     }
 
-    public Interpolation getInterpolation() {
+    public String getInterpolation() {
         return interpolation;
     }
 
-    public void setInterpolation(Interpolation interpolation) {
+    public void setInterpolation(String interpolation) {
         this.interpolation = interpolation;
     }
 

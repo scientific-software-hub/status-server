@@ -262,7 +262,7 @@ public class StatusServer2 {
             }
 
             final wpn.hdri.ss.data2.Attribute<?> attr = new wpn.hdri.ss.data2.Attribute<>(
-                    ndx, null, 0L, Method.EventType.NONE, type, attribute.getAlias(), deviceManager.getName() + "/" + attribute.getName(), attribute.getName());
+                    ndx, null, 0L, Method.EventType.NONE, type, attribute.getAlias(), deviceManager.getName() + "/" + attribute.getName(), attribute.getName(), Interpolation.LAST);
             result.add(attr);
             dynamicManagement.addAttribute(new IAttributeBehavior() {
                 private volatile AttributeValue value;

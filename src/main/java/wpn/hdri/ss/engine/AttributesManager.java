@@ -34,6 +34,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.*;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.configuration.DeviceAttribute;
+import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data.Timestamp;
 import wpn.hdri.ss.data.attribute.Attribute;
@@ -92,7 +93,7 @@ public class AttributesManager {
     }
 
     public Attribute<?> initializeAttribute(DeviceAttribute attr, String devName, Client devClient, Class<?> attributeClass, boolean isArray) {
-        Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, attr.getInterpolation(), attr.getPrecision(), attributeClass, isArray);
+        Attribute<?> attribute = factory.createAttribute(attr.getName(), attr.getAlias(), devName, Interpolation.valueOf(attr.getInterpolation().toUpperCase()), attr.getPrecision(), attributeClass, isArray);
         attributes.put(attribute, devClient);
         attributeClasses.put(attribute.getName(), attributeClass);
         attributesByMethod.put(attr.getMethod(), attribute);
