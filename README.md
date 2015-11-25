@@ -162,6 +162,18 @@ SearchBenchmark.benchmarkRange   thrpt  200  1290584,274 ? 19983,747  ops/s
 
 ```
 
+100 attributes with 100K randomly distributed records
+
+```
+# Run complete. Total time: 00:27:19
+
+Benchmark                           Mode  Cnt       Score     Error  Units
+SearchBenchmark.benchmarkLatest    thrpt  200  120810,181 ? 884,829  ops/s
+SearchBenchmark.benchmarkRange     thrpt  200   54811,091 ? 875,401  ops/s
+SearchBenchmark.benchmarkSnapshot  thrpt  200   36707,332 ? 228,565  ops/s
+SearchBenchmark.benchmarkUpdates   thrpt  200   36955,929 ? 196,897  ops/s
+```
+
 ## 2.0.0 Benchmark test:
 
 One attribute 100K records
