@@ -194,7 +194,7 @@ SearchBenchmark2.benchmarkUpdates  thrpt  200   36036591,098 ? 164357,240  ops/s
 # Run complete. Total time: 00:27:07
 
 Benchmark                                  Mode  Cnt          Score         Error  Units
-SearchBenchmark3.benchmarkLatestSnapshot  thrpt  200  368993808,387 ? 1728088,058  ops/s
+SearchBenchmark3.benchmarkLatest          thrpt  200  368993808,387 ? 1728088,058  ops/s
 SearchBenchmark3.benchmarkRange           thrpt  200   18638307,115 ?   67312,940  ops/s
 SearchBenchmark3.benchmarkSnapshot        thrpt  200    1785893,066 ?   23765,739  ops/s
 SearchBenchmark3.benchmarkUpdates         thrpt  200   36079956,416 ?  133265,984  ops/s
