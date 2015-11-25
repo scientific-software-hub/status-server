@@ -150,13 +150,9 @@ tango.ss.benchmark.SimpleBenchmark.test_getLatestSnapshot  thrpt  8780  1042.600
 ## 1.3.2 Benchmark test:
 
 
+One attribute 100K records
+
 ```
-Result "benchmarkSearch":
-  3256768,953 ?(99.9%) 14576,755 ops/s [Average]
-  (min, avg, max) = (3115280,627, 3256768,953, 3371059,072), stdev = 61718,892
-  CI (99.9%): [3242192,198, 3271345,708] (assumes normal distribution)
-
-
 # Run complete. Total time: 00:13:55
 
 Benchmark                         Mode  Cnt        Score       Error  Units
@@ -167,6 +163,8 @@ SearchBenchmark.benchmarkRange   thrpt  200  1290584,274 ? 19983,747  ops/s
 ```
 
 ## 2.0.0 Benchmark test:
+
+One attribute 100K records
 
 ```
 # Run complete. Total time: 00:21:54
