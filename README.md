@@ -147,17 +147,55 @@ Benchmark                                                   Mode   Cnt     Score
 tango.ss.benchmark.SimpleBenchmark.test_getLatestSnapshot  thrpt  8780  1042.600 ±  2.616  ops/s
 ```
 
+## 1.3.2 Benchmark test:
+
+
+One attribute 100K records
 
 ```
-Result "benchmarkSearch":
-  3055462,499 ?(99.9%) 50773,532 ops/s [Average]
-  (min, avg, max) = (2357513,334, 3055462,499, 3504108,209), stdev = 214978,316
-  CI (99.9%): [3004688,967, 3106236,031] (assumes normal distribution)
-
-
-# Run complete. Total time: 00:13:43
+# Run complete. Total time: 00:13:55
 
 Benchmark                         Mode  Cnt        Score       Error  Units
-SearchBenchmark.benchmarkLatest  thrpt  200  8318250,818 ? 60828,652  ops/s
-SearchBenchmark.benchmarkSearch  thrpt  200  3055462,499 ? 50773,532  ops/s
+SearchBenchmark.benchmarkLatest  thrpt  200  8751053,333 ? 32440,027  ops/s
+SearchBenchmark.benchmarkSearch  thrpt  200  3256768,953 ? 14576,755  ops/s
+SearchBenchmark.benchmarkRange   thrpt  200  1290584,274 ? 19983,747  ops/s
+
+```
+
+100 attributes with 100K randomly distributed records
+
+```
+# Run complete. Total time: 00:27:19
+
+Benchmark                           Mode  Cnt       Score     Error  Units
+SearchBenchmark.benchmarkLatest    thrpt  200  120810,181 ? 884,829  ops/s
+SearchBenchmark.benchmarkRange     thrpt  200   54811,091 ? 875,401  ops/s
+SearchBenchmark.benchmarkSnapshot  thrpt  200   36707,332 ? 228,565  ops/s
+SearchBenchmark.benchmarkUpdates   thrpt  200   36955,929 ? 196,897  ops/s
+```
+
+## 2.0.0 Benchmark test:
+
+One attribute 100K records
+
+```
+# Run complete. Total time: 00:21:54
+
+Benchmark                          Mode  Cnt          Score         Error  Units
+SearchBenchmark2.benchmarkLatest   thrpt  200  376546078,535 ? 1343521,015  ops/s
+SearchBenchmark2.benchmarkRange    thrpt  200   18960847,908 ?  60166,410  ops/s
+SearchBenchmark2.benchmarkSearch   thrpt  200    6079969,349 ?  71723,323  ops/s
+SearchBenchmark2.benchmarkUpdates  thrpt  200   36036591,098 ? 164357,240  ops/s
+```
+
+100 attributes with 100K randomly distributed records
+
+```
+# Run complete. Total time: 00:27:07
+
+Benchmark                                  Mode  Cnt          Score         Error  Units
+SearchBenchmark3.benchmarkLatest          thrpt  200  368993808,387 ? 1728088,058  ops/s
+SearchBenchmark3.benchmarkRange           thrpt  200   18638307,115 ?   67312,940  ops/s
+SearchBenchmark3.benchmarkSnapshot        thrpt  200    1785893,066 ?   23765,739  ops/s
+SearchBenchmark3.benchmarkUpdates         thrpt  200   36079956,416 ?  133265,984  ops/s
 ```
