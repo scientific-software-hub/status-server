@@ -42,6 +42,7 @@ import java.io.InputStream;
 import java.lang.String;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
@@ -188,7 +189,9 @@ public class StatusServer2 {
         ctx.lastTimestamp = System.currentTimeMillis();
 
         return new PipeValue(
-                (PipeBlob) OutputType.PIPE.toType(engine.getStorage().getAllRecords().getRange(lastTimestamp),false));
+                (PipeBlob) OutputType.PIPE.toType(
+                        engine.getStorage().getNumberOfAttributues(),
+                        engine.getStorage().getAllRecords().getRange(lastTimestamp), false));
     }
 
     @Command
@@ -209,11 +212,16 @@ public class StatusServer2 {
 
     @Command
     public void dumpData(final String outputFilePath){
+        final Context ctx = contextManager.getContext();
+        final Path output = Paths.get(outputFilePath);
+        if(Files.exists(output)) throw new IllegalArgumentException("Output file already exists! " + outputFilePath);
         exec.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Files.write(Paths.get(outputFilePath), Arrays.asList(getData()), Charset.defaultCharset(), StandardOpenOption.CREATE_NEW);
+                    String[] data = recordsToStrings(engine.getStorage().getAllRecords().getRange(), ctx);
+
+                    Files.write(output, Arrays.asList(data), Charset.defaultCharset(), StandardOpenOption.CREATE_NEW);
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -380,6 +388,6 @@ public class StatusServer2 {
                             return ctx.attributesGroup.hasAttribute(input.attribute);
                         }
                     });
-            return (String[]) ctx.outputType.toType(filtered, ctx.useAliases);
+            return (String[]) ctx.outputType.toType(ctx.attributesGroup.size(), filtered, ctx.useAliases);
     }
 }

@@ -48,7 +48,7 @@
         <device name="/PETRA/Globals/#keyword">
             <attributes>
                 <!--attribute name="MessageText" method="poll" interpolation="last" delay="200"/-->
-                <attribute name="BeamCurrent" method="event" interpolation="last" delay="0" type="periodic"/>
+                <attribute name="BeamCurrent" method="event" interpolation="last" delay="0" type="change"/>
             </attributes>
         </device>
     </devices>

@@ -286,9 +286,13 @@ public class TineClient extends Client implements ClientAdaptor {
     public void subscribe(final EventTask eventTask) {
         final Attribute attr = eventTask.getAttribute();
         Future<TLink> futureLink = getFutureLink(attr.name);
+        final TLink link;
         try {
-            final TLink link = futureLink.get();
-            final TDataType dout = link.dOutput;
+            link = futureLink.get();
+        } catch (InterruptedException|ExecutionException e) {
+            throw new AssertionError(e);
+        }
+        final TDataType dout = link.dOutput;
             long time = link.getLastTimeStamp();
             //read data for the first time
             SingleRecord<?> record = new SingleRecord<>(attr,System.currentTimeMillis(),time,getDataObject(dout));
@@ -307,11 +311,8 @@ public class TineClient extends Client implements ClientAdaptor {
                 }
             });
             if (rc < 0) {
-                throw new IllegalStateException(link.getLastError());
+                LOGGER.error("Failed subscribe to {}/{}: {}", getDeviceName(), attr.name, link.getLastError());
             }
-        } catch (Exception e) {
-            LOGGER.error("Failed subscribe to " + getDeviceName() + "/" + attr.name + ": " + e.getMessage(), e);
-        }
     }
 
     @Override
@@ -322,7 +323,7 @@ public class TineClient extends Client implements ClientAdaptor {
         try {
             link = futureLink.get();
         } catch (InterruptedException|ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new AssertionError(e);
         }
         int rc = link.close();
             if (rc < 0) {

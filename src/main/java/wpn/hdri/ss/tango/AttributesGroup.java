@@ -24,4 +24,8 @@ public class AttributesGroup {
     public boolean isDefault() {
         return false;
     }
+
+    public int size(){
+        return attributes.size();
+    }
 }

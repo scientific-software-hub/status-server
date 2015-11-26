@@ -9,10 +9,13 @@ import wpn.hdri.ss.data2.Snapshot;
  * @since 09.11.2015
  */
 public class DataStorage {
+    private final int totalNumberOfAttributes;
+
     private final Snapshot snapshot;
     private final AllRecords allRecords;
 
     public DataStorage(int totalNumberOfAttributes) {
+        this.totalNumberOfAttributes = totalNumberOfAttributes;
         this.snapshot = new Snapshot(totalNumberOfAttributes);
         this.allRecords = new AllRecords(totalNumberOfAttributes);
     }
@@ -36,5 +39,9 @@ public class DataStorage {
 
     public void clear() {
         allRecords.clear();
+    }
+
+    public int getNumberOfAttributues() {
+        return totalNumberOfAttributes;
     }
 }
