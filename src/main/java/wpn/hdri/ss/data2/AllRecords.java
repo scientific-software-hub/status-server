@@ -113,6 +113,15 @@ public class AllRecords {
         return data.subSet(new SingleRecord<>(null, t0, 0L, null), new SingleRecord<>(null, t1, 0L, null));
     }
 
+    public Iterable<SingleRecord<?>> getRange() {
+        return data;
+    }
+
+    public void clear() {
+        data.clear();
+        snapshots.clear();
+    }
+
     private static class SingleRecordComparator implements Comparator<SingleRecord<?>> {
 
         @Override

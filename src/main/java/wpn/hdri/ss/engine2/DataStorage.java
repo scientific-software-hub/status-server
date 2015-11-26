@@ -33,4 +33,8 @@ public class DataStorage {
     public AllRecords getAllRecords(){
         return allRecords;
     }
+
+    public void clear() {
+        allRecords.clear();
+    }
 }

@@ -4,9 +4,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.MoreExecutors;
 import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.AttrWriteType;
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.PipeBlob;
 import hzg.wpn.xenv.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ import org.tango.server.attribute.AttributeValue;
 import org.tango.server.attribute.IAttributeBehavior;
 import org.tango.server.device.DeviceManager;
 import org.tango.server.dynamic.DynamicManager;
+import org.tango.server.pipe.PipeValue;
 import org.tango.utils.ClientIDUtil;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
@@ -34,9 +37,18 @@ import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.String;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -45,6 +57,8 @@ import java.util.*;
 @Device(deviceType = "xenv.StatusServer", transactionType = TransactionType.NONE)
 public class StatusServer2 {
     private static final Logger logger = LoggerFactory.getLogger(StatusServer2.class);
+
+    private final ExecutorService exec = MoreExecutors.getExitingExecutorService((ThreadPoolExecutor) Executors.newFixedThreadPool(1), 3L, TimeUnit.SECONDS);
 
     @DeviceManagement
     private DeviceManager deviceManager;
@@ -132,15 +146,49 @@ public class StatusServer2 {
         return getClass().getPackage().getImplementationVersion();
     }
 
+    @Attribute
+    public String[] getData(){
+        Context ctx = contextManager.getContext();
+
+        return recordsToStrings(engine.getStorage().getAllRecords().getRange(), ctx);
+    }
+
+    @Attribute
+    public String[] getUpdates(){
+        Context ctx = contextManager.getContext();
+
+        long lastTimestamp = ctx.lastTimestamp;
+
+        ctx.lastTimestamp = System.currentTimeMillis();
+
+        return recordsToStrings(engine.getStorage().getAllRecords().getRange(lastTimestamp), ctx);
+    }
+
+    @Attribute
+    public String getClientId() {
+        return contextManager.getClientId();
+    }
 
     @AroundInvoke
     public void aroundInvoke(InvocationContext invocationContext) {
         contextManager.setClientId(ClientIDUtil.toString(invocationContext.getClientID()));
     }
 
-    @Attribute
-    public String getClientId() {
-        return contextManager.getClientId();
+    @Pipe(name = "status_server_pipe")
+    private PipeValue pipe;
+
+    public void setPipe(PipeValue pipe){
+        this.pipe = pipe;
+    }
+
+    public PipeValue getPipe(){
+        Context ctx = contextManager.getContext();
+
+        long lastTimestamp = ctx.lastTimestamp;
+        ctx.lastTimestamp = System.currentTimeMillis();
+
+        return new PipeValue(
+                (PipeBlob) OutputType.PIPE.toType(engine.getStorage().getAllRecords().getRange(lastTimestamp),false));
     }
 
     @Command
@@ -160,27 +208,47 @@ public class StatusServer2 {
     }
 
     @Command
+    public void dumpData(final String outputFilePath){
+        exec.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Files.write(Paths.get(outputFilePath), Arrays.asList(getData()), Charset.defaultCharset(), StandardOpenOption.CREATE_NEW);
+                } catch (IOException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        });
+    }
+
+    @Command
+    @StateMachine(deniedStates = DeviceState.RUNNING)
+    public void eraseData(){
+        engine.getStorage().clear();
+    }
+
+    @Command
     public String[] getDataRange(long[] t){
         if(t.length != 2) throw new IllegalArgumentException("Exactly two arguments are expected here: t0&t1");
         if(t[0] >= t[1]) throw new IllegalArgumentException("t0 must be LT t1");
 
         Context context = contextManager.getContext();
 
-        return snapshotToStrings(engine.getStorage().getAllRecords().getRange(t[0], t[1]), context);
+        return recordsToStrings(engine.getStorage().getAllRecords().getRange(t[0], t[1]), context);
     }
 
     @Command
     public String[] getLatestSnapshot() {
         Context ctx = contextManager.getContext();
 
-        return snapshotToStrings(engine.getStorage().getSnapshot(), ctx);
+        return recordsToStrings(engine.getStorage().getSnapshot(), ctx);
     }
 
     @Command
     public String[] getSnapshot(long t){
         Context context = contextManager.getContext();
 
-        return snapshotToStrings(engine.getStorage().getAllRecords().getRange(t), context);
+        return recordsToStrings(engine.getStorage().getAllRecords().getRange(t), context);
     }
 
     @Command(name="startCollectData")
@@ -302,7 +370,7 @@ public class StatusServer2 {
     public static void main(String[] args) {
         ServerManager.getInstance().start(args, StatusServer2.class);
     }
-        private static String[] snapshotToStrings(Iterable<SingleRecord<?>> snapshot, final Context ctx) {
+        private static String[] recordsToStrings(Iterable<SingleRecord<?>> snapshot, final Context ctx) {
             Iterable<SingleRecord<?>> filtered = ctx.attributesGroup.isDefault() ?
                     snapshot :
                     Iterables.filter(snapshot, new Predicate<SingleRecord<?>>() {
