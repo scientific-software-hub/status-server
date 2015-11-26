@@ -156,9 +156,9 @@ One attribute 100K records
 # Run complete. Total time: 00:13:55
 
 Benchmark                         Mode  Cnt        Score       Error  Units
-SearchBenchmark.benchmarkLatest  thrpt  200  8751053,333 ? 32440,027  ops/s
-SearchBenchmark.benchmarkSearch  thrpt  200  3256768,953 ? 14576,755  ops/s
-SearchBenchmark.benchmarkRange   thrpt  200  1290584,274 ? 19983,747  ops/s
+SearchBenchmark.benchmarkLatest   thrpt  200  8751053,333 ? 32440,027  ops/s
+SearchBenchmark.benchmarkSnapshot thrpt  200  3256768,953 ? 14576,755  ops/s
+SearchBenchmark.benchmarkRange    thrpt  200  1290584,274 ? 19983,747  ops/s
 
 ```
 
@@ -184,7 +184,7 @@ One attribute 100K records
 Benchmark                          Mode  Cnt          Score         Error  Units
 SearchBenchmark2.benchmarkLatest   thrpt  200  376546078,535 ? 1343521,015  ops/s
 SearchBenchmark2.benchmarkRange    thrpt  200   18960847,908 ?  60166,410  ops/s
-SearchBenchmark2.benchmarkSearch   thrpt  200    6079969,349 ?  71723,323  ops/s
+SearchBenchmark2.benchmarkSnapshot thrpt  200    6079969,349 ?  71723,323  ops/s
 SearchBenchmark2.benchmarkUpdates  thrpt  200   36036591,098 ? 164357,240  ops/s
 ```
 
