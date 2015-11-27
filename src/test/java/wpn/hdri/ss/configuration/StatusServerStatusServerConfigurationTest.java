@@ -30,7 +30,6 @@
 package wpn.hdri.ss.configuration;
 
 import org.junit.Test;
-import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
 import java.lang.reflect.InvocationTargetException;
@@ -58,7 +57,7 @@ public class StatusServerStatusServerConfigurationTest {
         DeviceAttribute attr0 = dev.getAttributes().get(0);
         assertEquals("Test.Attribute", attr0.getName());
         assertEquals(Method.POLL, attr0.getMethod());
-        assertEquals(Interpolation.LINEAR, attr0.getInterpolation());
+        assertEquals("linear", attr0.getInterpolation());
         assertEquals(100L, attr0.getDelay());
         assertEquals(new BigDecimal("0.5"), attr0.getPrecision());
 
@@ -66,14 +65,14 @@ public class StatusServerStatusServerConfigurationTest {
         assertEquals("Test.Attribute.1", attr1.getName());
         assertSame(Method.EVENT, attr1.getMethod());
         assertEquals("change", attr1.getEventType());
-        assertEquals(Interpolation.LAST, attr1.getInterpolation());
+        assertEquals("last", attr1.getInterpolation());
         assertEquals(0L, attr1.getDelay());
         assertSame(BigDecimal.ZERO, attr1.getPrecision());
 
         DeviceAttribute attr2 = dev.getAttributes().get(2);
         assertEquals("Test.Attribute.2", attr2.getName());
         assertEquals(Method.POLL, attr2.getMethod());
-        assertEquals(Interpolation.LINEAR, attr2.getInterpolation());
+        assertEquals("linear", attr2.getInterpolation());
         assertEquals(3000L, attr2.getDelay());
         assertSame(BigDecimal.ZERO, attr2.getPrecision());
     }
