@@ -34,7 +34,6 @@ import com.google.common.base.Preconditions;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.core.Validate;
-import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
 import java.math.BigDecimal;

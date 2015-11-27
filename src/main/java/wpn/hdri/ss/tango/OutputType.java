@@ -7,7 +7,6 @@ import com.google.common.collect.Iterables;
 import com.onjava.lang.DoubleToString;
 import fr.esrf.TangoApi.PipeBlob;
 import org.apache.commons.lang3.ArrayUtils;
-import wpn.hdri.ss.data.attribute.AttributeValue;
 import wpn.hdri.ss.data2.SingleRecord;
 
 import javax.annotation.Nullable;

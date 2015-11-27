@@ -36,7 +36,6 @@ import org.simpleframework.xml.*;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.transform.Matcher;
 import org.simpleframework.xml.transform.Transform;
-import wpn.hdri.ss.data.Interpolation;
 import wpn.hdri.ss.data.Method;
 
 import java.io.*;
@@ -61,18 +60,6 @@ public final class StatusServerConfiguration {
 
                     @Override
                     public String write(Method value) throws Exception {
-                        return value.name();
-                    }
-                };
-            } else if (Interpolation.class.isAssignableFrom(type)) {
-                return new Transform<Interpolation>() {
-                    @Override
-                    public Interpolation read(String value) throws Exception {
-                        return Interpolation.valueOf(value.toUpperCase());
-                    }
-
-                    @Override
-                    public String write(Interpolation value) throws Exception {
                         return value.name();
                     }
                 };

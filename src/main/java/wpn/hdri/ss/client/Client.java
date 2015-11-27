@@ -29,11 +29,10 @@
 
 package wpn.hdri.ss.client;
 
+import wpn.hdri.ss.client2.ClientAdaptor;
 import wpn.hdri.ss.data.Method;
-import wpn.hdri.ss.data.Timestamp;
 
 import java.util.EnumMap;
-import java.util.Map;
 
 /**
  * Abstract base class for Tango or Tine client.
@@ -41,7 +40,7 @@ import java.util.Map;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 27.04.12
  */
-public abstract class Client {
+public abstract class Client implements ClientAdaptor {
     protected final EnumMap<Method.EventType, Object> eventTypesMap;
     /**
      * Fully qualified device name. E.g. for Tango: sys/tg_test/1
@@ -60,45 +59,6 @@ public abstract class Client {
     }
 
     /**
-     * Polls attribute from server. Returns a {@link Map.Entry} where key is a value and value is a timestamp when this value
-     * was set on server.
-     * <p/>
-     * So to acquire a value of "sys/tg_test/1/long_scalar_w" use the following code snippet:
-     * <p/>
-     * <code>
-     * ClientFactory clientFactory = new ClientFactory();<br/>
-     * Client client = clientFactory.createClient("sys/tg_test/1");<br/>
-     * Map.Entry pair = client.readAttribute("long_scalar_w");<br/>
-     * System.out.print(pair.getKey().toString() + "@" + pair.getValue().getValue());<br/>
-     * </code>
-     * This will produce smth like: 12345@13338780292
-     *
-     * @param attrName attribute name
-     * @param <T>
-     * @return (Value, Timestamp) pair
-     * @throws ClientException
-     */
-    public abstract <T> Map.Entry<T, Timestamp> readAttribute(String attrName) throws ClientException;
-
-    /**
-     * Subscribes to attribute change event. When new value is available cbk#onRead will be called.
-     * In case any error cbk#onError will be called and cause will be passed.
-     *
-     * @param attrName attribute
-     * @param type
-     *@param cbk      onRead, onError  @throws ClientException if subscription process failed
-     */
-    public abstract void subscribeEvent(String attrName, Method.EventType type, EventCallback cbk) throws ClientException;
-
-    /**
-     * Checks attribute. Most implementations will try to acquire an info from server.
-     * If it fails an exception will be thrown.
-     *
-     * @param attrName attribute name to check
-     */
-    public abstract boolean checkAttribute(String attrName);
-
-    /**
      * Returns appropriate Java type of the attribute's value, i.e. Integer or Long or whatever.
      *
      * @param attrName attribute name
@@ -106,22 +66,4 @@ public abstract class Client {
      * @throws ClientException in case of any error
      */
     public abstract Class<?> getAttributeClass(String attrName) throws ClientException;
-
-    /**
-     *
-     * @param attrName
-     * @return true if an attribute value is an array
-     * @throws ClientException
-     */
-    public abstract boolean isArrayAttribute(String attrName) throws ClientException;
-
-    /**
-     * Unsubscribe from attribute change event, i.e. stop respond to new values from the attribute
-     *
-     * @param attrName attribute name
-     * @throws ClientException if unsubscription process failed
-     */
-    public abstract void unsubscribeEvent(String attrName) throws ClientException;
-
-    public abstract void printAttributeInfo(String name);
 }

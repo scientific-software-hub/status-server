@@ -1,10 +1,7 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.MoreObjects;
-import wpn.hdri.ss.data.Timestamp;
-import wpn.hdri.ss.engine.AttributesManager;
 
-import javax.annotation.concurrent.Immutable;
 import java.util.HashMap;
 import java.util.Map;
 
