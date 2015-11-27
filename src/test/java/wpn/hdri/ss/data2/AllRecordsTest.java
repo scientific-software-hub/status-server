@@ -18,7 +18,7 @@ public class AllRecordsTest {
         instance = new AllRecords(1);
 
         for(int i = 0; i < 10; ++i){
-            instance.add(new SingleRecord(Attributes.ATTR0, i*100,0L,1234L));
+            instance.add(new SingleRecord(Attributes.ATTR0, i*100,i*100,1234L));
         }
     }
 
@@ -173,9 +173,9 @@ public class AllRecordsTest {
     public void testNotFound(){
         instance = new AllRecords(1);
 
-        instance.add(new SingleRecord(Attributes.ATTR0, 1000L, 0L, 1234L));
-        instance.add(new SingleRecord(Attributes.ATTR0, 2000L, 0L, 1234L));
-        instance.add(new SingleRecord(Attributes.ATTR0, 3000L, 0L, 1234L));
+        instance.add(new SingleRecord(Attributes.ATTR0, 1000L, 1000L, 1234L));
+        instance.add(new SingleRecord(Attributes.ATTR0, 2000L, 2000L, 1234L));
+        instance.add(new SingleRecord(Attributes.ATTR0, 3000L, 3000L, 1234L));
 
         Iterable<SingleRecord<?>> result = instance.getRange(2500L);
 
