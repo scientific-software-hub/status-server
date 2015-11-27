@@ -1,7 +1,7 @@
 package wpn.hdri.ss.data2;
 
-import java.util.IdentityHashMap;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -22,23 +22,13 @@ public enum Interpolation {
         }
     },
     LINEAR {
-        private final Map<Class<? extends Number>, Void> supportedClasses = new IdentityHashMap<>();
-
-        {
-            supportedClasses.put(short.class, null);
-            supportedClasses.put(int.class, null);
-            supportedClasses.put(long.class, null);
-            supportedClasses.put(float.class, null);
-            supportedClasses.put(double.class, null);
-        }
-
-        @Override
-        public boolean canInterpolate(Class<?> type) {
-            return supportedClasses.containsKey(type);
-        }
-
         @Override
         public <T> SingleRecord<T> interpolateInternal(SingleRecord<T> left, SingleRecord<T> right, long t) {
+            if(!Number.class.isAssignableFrom(left.value.getClass())){
+                logger.warn("Can not interpolate non number classes. Fallback to NEAREST interpolation.");
+                return NEAREST.interpolateInternal(left, right, t);
+            }
+
             double v0 = ((Number)left.value).doubleValue();
             double v1 = ((Number)right.value).doubleValue();
 
@@ -60,9 +50,7 @@ public enum Interpolation {
         }
     };
 
-    public boolean canInterpolate(Class<?> type){
-        return true;
-    }
+    private static final Logger logger = LoggerFactory.getLogger(Interpolation.class);
 
     public <T> SingleRecord<T> interpolate(SingleRecord<T> left, SingleRecord<T> right, long t){
         return interpolateInternal(left, right, t);

@@ -23,7 +23,7 @@ public class Context {
     private final Map<String, AttributesGroup> groups = new HashMap<>();
 
     {
-        groups.put("default", new DefaultAttributesGroup());
+        groups.put("default", this.attributesGroup);
     }
 
     /**

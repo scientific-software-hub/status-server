@@ -190,7 +190,6 @@ public class StatusServer2 {
 
         return new PipeValue(
                 (PipeBlob) OutputType.PIPE.toType(
-                        engine.getStorage().getNumberOfAttributues(),
                         engine.getStorage().getAllRecords().getRange(lastTimestamp), false));
     }
 
@@ -219,9 +218,10 @@ public class StatusServer2 {
             @Override
             public void run() {
                 try {
-                    String[] data = recordsToStrings(engine.getStorage().getAllRecords().getRange(), ctx);
+                    String[] data = (String[]) OutputType.TSV.toType(engine.getStorage().getAllRecords().getRange(),ctx.useAliases);
 
-                    Files.write(output, Arrays.asList(data), Charset.defaultCharset(), StandardOpenOption.CREATE_NEW);
+                    Files.write(output, Arrays.asList("Name or Alias\tRead@\tValue\tWritten@\n"), Charset.defaultCharset(), StandardOpenOption.CREATE_NEW);
+                    Files.write(output, Arrays.asList(data), Charset.defaultCharset(), StandardOpenOption.APPEND);
                 } catch (IOException e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -388,6 +388,6 @@ public class StatusServer2 {
                             return ctx.attributesGroup.hasAttribute(input.attribute);
                         }
                     });
-            return (String[]) ctx.outputType.toType(ctx.attributesGroup.size(), filtered, ctx.useAliases);
+            return (String[]) ctx.outputType.toType(filtered, ctx.useAliases);
     }
 }

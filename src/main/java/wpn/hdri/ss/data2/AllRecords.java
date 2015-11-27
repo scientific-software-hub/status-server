@@ -32,11 +32,12 @@ public class AllRecords {
     }
 
     public void add(SingleRecord record) {
-        data.add(record);
-
         TimedSnapshot last;
         try {
             last = snapshots.last();
+
+            if(last.get(record.id) != null && last.get(record.id).w_t == record.w_t) return;
+
             last = last.copy();
         } catch (NoSuchElementException e) {
             last = new TimedSnapshot(totalNumberOfAttributes);
@@ -45,6 +46,7 @@ public class AllRecords {
         last.update(record);
 
         snapshots.add(last);
+        data.add(record);
     }
 
     /**
@@ -113,6 +115,11 @@ public class AllRecords {
         return data.subSet(new SingleRecord<>(null, t0, 0L, null), new SingleRecord<>(null, t1, 0L, null));
     }
 
+    /**
+     * Returns all the values collected so far.
+     *
+     * @return
+     */
     public Iterable<SingleRecord<?>> getRange() {
         return data;
     }
