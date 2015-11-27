@@ -39,7 +39,6 @@ import org.simpleframework.xml.transform.Transform;
 import wpn.hdri.ss.data.Method;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
