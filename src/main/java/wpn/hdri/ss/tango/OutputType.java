@@ -49,6 +49,7 @@ public enum OutputType {
             Map<String, StringBuilder> stringBuilderMap = new HashMap<>();
 
             for(SingleRecord<?> record : records){
+                if(record == null) continue;
                 StringBuilder bld = stringBuilderMap.get(record.attribute.fullName);
                 if(bld == null) stringBuilderMap.put(record.attribute.fullName,
                         bld = new StringBuilder(useAliases ? record.attribute.alias : record.attribute.fullName));
