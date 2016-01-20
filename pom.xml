@@ -34,7 +34,7 @@
     <parent>
         <groupId>hzg.wpn.tango</groupId>
         <artifactId>server-parent</artifactId>
-        <version>10</version>
+        <version>11</version>
     </parent>
 
     <groupId>hzg.wpn</groupId>
