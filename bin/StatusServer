@@ -16,6 +16,5 @@ echo "Using TINE_HOME=$TINE_HOME"
 JAVA_OPTS="-server -Xmx1G -Xshare:off -XX:+UseG1GC"
 echo "Using JAVA_OPTS=$JAVA_OPTS"
 
-$JAVA_HOME/bin/java $JAVA_OPTS -cp "$XENV_ROOT/lib/share/*:$XENV_ROOT/lib/StatusServer/*" wpn.hdri.ss.Launcher \
-  --instance $INSTANCE_NAME --config $XENV_ROOT/etc/StatusServer/conf \
-  > $XENV_ROOT/var/log/StatusServer.out 2>&1 &
+$JAVA_HOME/bin/java $JAVA_OPTS -jar $XENV_ROOT/lib/StatusServer.jar \
+  $INSTANCE_NAME > $XENV_ROOT/var/log/StatusServer.out 2>&1 &
