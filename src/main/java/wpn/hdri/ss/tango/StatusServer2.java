@@ -327,7 +327,7 @@ public class StatusServer2 {
                 attributeConfiguration.setName(attribute.getName());
                 TangoDataType<?> dataType = TangoDataTypes.forString(attribute.getType());
                 attributeConfiguration.setTangoType(dataType.getAlias(), AttrDataFormat.SCALAR);
-                type = dataType.getDataType();
+                type = dataType.getDataTypeClass();
                 attributeConfiguration.setType(type);
                 attributeConfiguration.setWritable(AttrWriteType.READ_WRITE);
             } catch (UnknownTangoDataType unknownTangoDataType) {
