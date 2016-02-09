@@ -34,14 +34,14 @@
     <parent>
         <groupId>hzg.wpn.tango</groupId>
         <artifactId>server-parent</artifactId>
-        <version>11</version>
+        <version>12</version>
     </parent>
 
     <groupId>hzg.wpn</groupId>
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
     </description>
-    <version>2.0.3-SNAPSHOT</version>
+    <version>2.0.4-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -89,11 +89,6 @@
             <groupId>hzg.wpn</groupId>
             <artifactId>utils</artifactId>
             <version>0.0.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.tango</groupId>
-            <artifactId>ezTangORB</artifactId>
-            <version>1.18.0</version>
         </dependency>
         <dependency>
             <groupId>com.carrotsearch</groupId>

@@ -8,6 +8,36 @@
 		</layout>
 	</appender>
 
+	<appender name="SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
+		<discriminator>
+			<Key>deviceName</Key>
+			<DefaultValue>UNKNOWN_DEVICE_NAME</DefaultValue>
+		</discriminator>
+		<sift>
+			<appender name="FILE-${deviceName}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				<file>${deviceName}.log</file>
+				<Append>true</Append>
+				<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+					<fileNamePattern>${deviceName}%i.log</fileNamePattern>
+					<minIndex>1</minIndex>
+					<maxIndex>3</maxIndex>
+				</rollingPolicy>
+				<triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+					<MaxFileSize>10MB</MaxFileSize>
+				</triggeringPolicy>
+				<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+					<layout class="ch.qos.logback.classic.PatternLayout">
+						<pattern>%-5level %d{HH:mm:ss.SSS} [%thread - %X{deviceName}] %logger{36}.%M:%L - %msg%n</pattern>
+					</layout>
+				</encoder>
+			</appender>
+		</sift>
+	</appender>
+
+	<appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="SIFT"/>
+	</appender>
+
 	<logger name="org.jacorb" level="ERROR" />
 	<logger name="org.tango" level="TRACE"/>
 	<logger name="org.quartz" level="ERROR" />
@@ -16,5 +46,6 @@
 
 	<root level="DEBUG">
 		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="ASYNC" />
 	</root>
 </configuration>
