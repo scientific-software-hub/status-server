@@ -13,9 +13,8 @@ public class StatusServerPipeBlob {
 
     public void add(String attrName, Object values, long[] times){
         PipeBlobBuilder bld = new PipeBlobBuilder(attrName);
-        bld.add("attributes", attrName);
-        bld.add("values", values);
-        bld.add("times", times);
+        bld.add("value", values);
+        bld.add("time", times);
 
         blobBuilder.add(attrName, bld.build());
     }
