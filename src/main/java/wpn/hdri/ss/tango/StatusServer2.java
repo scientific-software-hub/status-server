@@ -9,6 +9,7 @@ import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.AttrWriteType;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.PipeBlob;
+import fr.esrf.TangoApi.PipeBlobBuilder;
 import hzg.wpn.xenv.ResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,6 +174,21 @@ public class StatusServer2 {
     @AroundInvoke
     public void aroundInvoke(InvocationContext invocationContext) {
         contextManager.setClientId(ClientIDUtil.toString(invocationContext.getClientID()));
+    }
+
+    //@StatusPipe
+    @Pipe(name = "status")
+    private PipeValue statusPipe;
+
+    public PipeValue getStatusPipe(){
+        PipeBlobBuilder pbb = new PipeBlobBuilder("status");
+
+        //TODO monitored attributes
+        //TODO last read value for an attribute (OK or FAILED)
+
+
+        statusPipe.setValue(pbb.build(), System.currentTimeMillis());
+        return statusPipe;
     }
 
     @Attribute

@@ -11,22 +11,15 @@ import fr.esrf.TangoApi.PipeBlobBuilder;
 public class StatusServerPipeBlob {
     private final PipeBlobBuilder blobBuilder = new PipeBlobBuilder("status_server");
 
-    {
-        blobBuilder.add("append", true);
-    }
-
-    private final PipeBlobBuilder dataBuilder = new PipeBlobBuilder("data");
-
     public void add(String attrName, Object values, long[] times){
         PipeBlobBuilder bld = new PipeBlobBuilder(attrName);
         bld.add("value", values);
         bld.add("time", times);
 
-        dataBuilder.add(attrName, bld.build());
+        blobBuilder.add(attrName, bld.build());
     }
 
     public PipeBlob asPipeBlob(){
-        blobBuilder.add("data", dataBuilder.build());
         return blobBuilder.build();
     }
 }
