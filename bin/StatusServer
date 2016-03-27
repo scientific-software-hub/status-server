@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#export TANGO_HOST="hzgharwi3:10000"
+XENV_ROOT=..
+echo "Using XENV_ROOT=$XENV_ROOT"
+echo "Using TANGO_HOST=$TANGO_HOST"
+echo "Using JAVA_HOME=$JAVA_HOME"
+
+export INSTANCE_NAME="development"
+echo "Using INSTANCE_NAME=$INSTANCE_NAME"
+
+#export TINE_HOME=/home/p07user/tine/database
+echo "Using TINE_HOME=$TINE_HOME"
+
+#-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005
+JAVA_OPTS="-server -Xmx1G -Xshare:off -XX:+UseG1GC"
+echo "Using JAVA_OPTS=$JAVA_OPTS"
+
+$JAVA_HOME/bin/java $JAVA_OPTS -jar $XENV_ROOT/lib/StatusServer.jar \
+  $INSTANCE_NAME > $XENV_ROOT/var/log/StatusServer.out 2>&1 &
