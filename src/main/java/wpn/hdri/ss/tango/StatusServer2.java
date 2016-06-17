@@ -11,6 +11,7 @@ import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.PipeBlob;
 import fr.esrf.TangoApi.PipeBlobBuilder;
 import hzg.wpn.xenv.ResourceManager;
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.DeviceState;
@@ -258,12 +259,69 @@ public class StatusServer2 {
 
     @Command
     public String[] getDataRange(long[] t){
-        if(t.length != 2) throw new IllegalArgumentException("Exactly two arguments are expected here: t0&t1");
-        if(t[0] >= t[1]) throw new IllegalArgumentException("t0 must be LT t1");
+        checkRangeArguments(t);
 
         Context context = contextManager.getContext();
 
         return recordsToStrings(engine.getStorage().getAllRecords().getRange(t[0], t[1]), context);
+    }
+
+    private void checkRangeArguments(long[] t) {
+        if(t.length != 2) throw new IllegalArgumentException("Exactly two arguments are expected here: t0&t1");
+        if(t[0] >= t[1]) throw new IllegalArgumentException("t0 must be LT t1");
+    }
+
+    @Command
+    public String[] getDataRangeInterpolated(long[] t){
+        checkRangeArguments(t);
+
+        final Context context = contextManager.getContext();
+
+        Iterable<? extends Snapshot> snapshots = engine.getStorage().getAllRecords().getSnapshots(t[0], t[1]);
+
+        final int dataSize = Iterables.size(snapshots);
+
+
+        int groupSize = context.attributesGroup.size();//TODO fix NPE
+        List<SingleRecord<?>> result = new ArrayList<>();
+
+
+        //initialize input data array
+        InterpolationInputData[] inputDatas = new InterpolationInputData[groupSize];
+
+        for(int i = 0; i<groupSize ; ++i){
+            inputDatas[i] = new InterpolationInputData(dataSize);
+        }
+
+        for (int ndx = 0; ndx<dataSize; ++ndx) {
+            Snapshot snapshot = Iterables.get(snapshots, ndx);
+            Iterable<SingleRecord<?>> filtered = filteredRecords(snapshot, context);
+
+            for (int i = 0; i < groupSize; ++i) {
+                inputDatas[i].x[ndx] = (double) Iterables.get(filtered, i).r_t;
+                inputDatas[i].x[ndx] = (double) (Double)(Object)Iterables.get(filtered, i).value;
+            }
+        }
+
+        LinearInterpolator interpolator = new LinearInterpolator();
+
+        for(int i = 0;i <groupSize; ++i){
+            long v = t[0] + ((t[1] - t[0]) / 2);
+            result.add(new SingleRecord<>(null,v,v,interpolator.interpolate(inputDatas[0].x, inputDatas[0].y).value(v)));
+        }
+
+
+        return recordsToStrings(result, context);
+    }
+
+    private class InterpolationInputData {
+        final double[] x;
+        final double[] y;
+
+        public InterpolationInputData(int size) {
+            this.x = new double[size];
+            this.y = new double[size];
+        }
     }
 
     @Command
@@ -399,16 +457,22 @@ public class StatusServer2 {
     public static void main(String[] args) {
         ServerManager.getInstance().start(args, StatusServer2.class);
     }
+
+
+    private static Iterable<SingleRecord<?>> filteredRecords(Iterable<SingleRecord<?>> snapshot, final Context ctx){
+        return ctx.attributesGroup.isDefault() ?
+                snapshot :
+                Iterables.filter(snapshot, new Predicate<SingleRecord<?>>() {
+                    @Override
+                    public boolean apply(SingleRecord<?> input) {
+                        if (input == null) return false;
+                        return ctx.attributesGroup.hasAttribute(input.attribute);
+                    }
+                });
+    }
+
         private static String[] recordsToStrings(Iterable<SingleRecord<?>> snapshot, final Context ctx) {
-            Iterable<SingleRecord<?>> filtered = ctx.attributesGroup.isDefault() ?
-                    snapshot :
-                    Iterables.filter(snapshot, new Predicate<SingleRecord<?>>() {
-                        @Override
-                        public boolean apply(SingleRecord<?> input) {
-                            if (input == null) return false;
-                            return ctx.attributesGroup.hasAttribute(input.attribute);
-                        }
-                    });
+            Iterable<SingleRecord<?>> filtered = filteredRecords(snapshot, ctx);
             return (String[]) ctx.outputType.toType(filtered, ctx.useAliases);
     }
 }

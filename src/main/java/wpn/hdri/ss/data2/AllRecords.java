@@ -100,6 +100,10 @@ public class AllRecords {
         return result;
     }
 
+    public Iterable<? extends Snapshot> getSnapshots(long t0, long t1){
+        return snapshots.subSet(new TimedSnapshot(t0), true, new TimedSnapshot(t1), true);
+    }
+
     /**
      * @param t0 a read timestamp
      * @return all records that were added after specified timestamp, aka getRange(t0, Long.MAX_VALUE)
@@ -109,10 +113,10 @@ public class AllRecords {
     }
 
     /**
-     *
+     * @return inclusive data range
      */
     public Iterable<SingleRecord<?>> getRange(long t0, long t1) {
-        return data.subSet(new SingleRecord<>(null, t0, 0L, null), new SingleRecord<>(null, t1, 0L, null));
+        return data.subSet(new SingleRecord<>(null, t0, 0L, null), true, new SingleRecord<>(null, t1, 0L, null), true);
     }
 
     /**
