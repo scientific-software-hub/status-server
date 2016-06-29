@@ -130,7 +130,7 @@
             </snapshots>
             <id>bintray-release</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/hzgde/hzg-wpn-projects</url>
+            <url>http://dl.bintray.com/hzgde/hzg-wpn-projects/;publish=1</url>
         </repository>
     </repositories>
 </project>

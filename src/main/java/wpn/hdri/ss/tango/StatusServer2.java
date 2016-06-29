@@ -4,6 +4,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Doubles;
 import com.google.common.util.concurrent.MoreExecutors;
 import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.AttrWriteType;
@@ -92,7 +95,7 @@ public class StatusServer2 {
 
     private Engine engine;
 
-    private final ContextManager contextManager = new ContextManager();
+    private ContextManager contextManager;;
 
     @Attribute
     public boolean getUseAliases() {
@@ -153,7 +156,9 @@ public class StatusServer2 {
     public String[] getData(){
         Context ctx = contextManager.getContext();
 
-        return recordsToStrings(engine.getStorage().getAllRecords().getRange(), ctx);
+        Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange();
+
+        return recordsToStrings(filterRecords(range, ctx), ctx);
     }
 
     @Attribute
@@ -164,7 +169,8 @@ public class StatusServer2 {
 
         ctx.lastTimestamp = System.currentTimeMillis();
 
-        return recordsToStrings(engine.getStorage().getAllRecords().getRange(lastTimestamp), ctx);
+        Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(lastTimestamp);
+        return recordsToStrings(filterRecords(range, ctx), ctx);
     }
 
     @Attribute
@@ -263,7 +269,8 @@ public class StatusServer2 {
 
         Context context = contextManager.getContext();
 
-        return recordsToStrings(engine.getStorage().getAllRecords().getRange(t[0], t[1]), context);
+        Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t[0], t[1]);
+        return recordsToStrings(filterRecords(range, context), context);
     }
 
     private void checkRangeArguments(long[] t) {
@@ -277,50 +284,72 @@ public class StatusServer2 {
 
         final Context context = contextManager.getContext();
 
-        Iterable<? extends Snapshot> snapshots = engine.getStorage().getAllRecords().getSnapshots(t[0], t[1]);
-
-        final int dataSize = Iterables.size(snapshots);
+        Iterable<SingleRecord<?>> records = filterRecords(engine.getStorage().getAllRecords().getRange(t[0], t[1]), context);
 
 
-        int groupSize = context.attributesGroup.size();//TODO fix NPE
-        List<SingleRecord<?>> result = new ArrayList<>();
+        Map<String, InterpolationInputData> inputDataMap = Maps.newHashMap();
 
 
-        //initialize input data array
-        InterpolationInputData[] inputDatas = new InterpolationInputData[groupSize];
+        for(SingleRecord<?> record : records){
+            String attributeFullName = record.attribute.fullName;//TODO possibly slow read from memory
 
-        for(int i = 0; i<groupSize ; ++i){
-            inputDatas[i] = new InterpolationInputData(dataSize);
+            InterpolationInputData inputData = inputDataMap.getOrDefault(attributeFullName, new InterpolationInputData(record.attribute));
+
+            inputData.add((SingleRecord<Object>) record);//TODO avoid autoboxing
+
+            inputDataMap.putIfAbsent(attributeFullName, inputData);
         }
 
-        for (int ndx = 0; ndx<dataSize; ++ndx) {
-            Snapshot snapshot = Iterables.get(snapshots, ndx);
-            Iterable<SingleRecord<?>> filtered = filteredRecords(snapshot, context);
+        List<SingleRecord<?>> result = new ArrayList<>();
+        LinearInterpolator interpolator = new LinearInterpolator();
 
-            for (int i = 0; i < groupSize; ++i) {
-                inputDatas[i].x[ndx] = (double) Iterables.get(filtered, i).r_t;
-                inputDatas[i].x[ndx] = (double) (Double)(Object)Iterables.get(filtered, i).value;
+        for(InterpolationInputData inputData : inputDataMap.values()){
+            if(inputData.size() == 1){
+                result.add(inputData.records.get(0));
+            } else {
+                long v = t[0] + ((t[1] - t[0]) / 2);
+                result.add(new SingleRecord<>((wpn.hdri.ss.data2.Attribute<Object>) inputData.attribute, v, v, interpolator.interpolate(inputData.x(), inputData.y()).value(v)));
             }
         }
 
-        LinearInterpolator interpolator = new LinearInterpolator();
-
-        for(int i = 0;i <groupSize; ++i){
-            long v = t[0] + ((t[1] - t[0]) / 2);
-            result.add(new SingleRecord<>(null,v,v,interpolator.interpolate(inputDatas[0].x, inputDatas[0].y).value(v)));
-        }
-
-
-        return recordsToStrings(result, context);
+        return recordsToStrings(result, context);//TODO use decoration
     }
 
     private class InterpolationInputData {
-        final double[] x;
-        final double[] y;
+        final wpn.hdri.ss.data2.Attribute<?> attribute;
 
-        public InterpolationInputData(int size) {
-            this.x = new double[size];
-            this.y = new double[size];
+        List<SingleRecord<?>> records = new ArrayList<>();
+
+        private InterpolationInputData(wpn.hdri.ss.data2.Attribute<?> attribute) {
+            this.attribute = attribute;
+        }
+
+        void add(SingleRecord<Object> record){
+            this.records.add(record);
+        }
+
+        double[] x(){
+            return Doubles.toArray(Lists.transform(records, new Function<SingleRecord<?>, Number>() {
+                @Nullable
+                @Override
+                public Number apply(@Nullable SingleRecord<?> input) {
+                    return Long.valueOf(input.r_t);
+                }
+            }));
+        }
+
+        double[] y(){
+            return Doubles.toArray(Lists.transform(records, new Function<SingleRecord<?>, Number>() {
+                @Nullable
+                @Override
+                public Number apply(@Nullable SingleRecord<?> input) {
+                    return (Number) input.value;
+                }
+            }));
+        }
+
+        int size(){
+            return records.size();
         }
     }
 
@@ -328,14 +357,18 @@ public class StatusServer2 {
     public String[] getLatestSnapshot() {
         Context ctx = contextManager.getContext();
 
-        return recordsToStrings(engine.getStorage().getSnapshot(), ctx);
+        Iterable<SingleRecord<?>> snapshot = engine.getStorage().getSnapshot();
+
+        return recordsToStrings(filterRecords(snapshot, ctx), ctx);
     }
 
     @Command
     public String[] getSnapshot(long t){
         Context context = contextManager.getContext();
 
-        return recordsToStrings(engine.getStorage().getAllRecords().getRange(t), context);
+        Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t);
+
+        return recordsToStrings(filterRecords(range, context), context);
     }
 
     @Command(name="startCollectData")
@@ -392,6 +425,9 @@ public class StatusServer2 {
 
         EngineFactory engineFactory = new EngineFactory(selfAttributes, configuration);
         this.engine = engineFactory.newEngine();
+
+        this.contextManager = new ContextManager();
+
         setStatus(StatusServerStatus.IDLE);
     }
 
@@ -459,7 +495,8 @@ public class StatusServer2 {
     }
 
 
-    private static Iterable<SingleRecord<?>> filteredRecords(Iterable<SingleRecord<?>> snapshot, final Context ctx){
+    //TODO the following must be refactored as decorators
+    private static Iterable<SingleRecord<?>> filterRecords(Iterable<SingleRecord<?>> snapshot, final Context ctx){
         return ctx.attributesGroup.isDefault() ?
                 snapshot :
                 Iterables.filter(snapshot, new Predicate<SingleRecord<?>>() {
@@ -472,7 +509,6 @@ public class StatusServer2 {
     }
 
         private static String[] recordsToStrings(Iterable<SingleRecord<?>> snapshot, final Context ctx) {
-            Iterable<SingleRecord<?>> filtered = filteredRecords(snapshot, ctx);
-            return (String[]) ctx.outputType.toType(filtered, ctx.useAliases);
+            return (String[]) ctx.outputType.toType(snapshot, ctx.useAliases);
     }
 }
