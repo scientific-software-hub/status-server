@@ -28,4 +28,20 @@ public class AttributesGroup {
     public int size(){
         return attributes.size();
     }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder("AttributesGroup@");
+        result.append(hashCode())
+                .append("[")
+                .append(name)
+                .append(";{");
+
+        for(Attribute<?> attr : attributes){
+            result.append(attr.name).append(",");
+        }
+
+        result.append("}]");
+        return result.toString();
+    }
 }
