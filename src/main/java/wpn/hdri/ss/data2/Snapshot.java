@@ -27,13 +27,20 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
         }
     }
 
+    private final long arrayBaseOffset;
+    private final long arrayIndexScale;
+
     public Snapshot(int totalAttributesNumber) {
         this.data = new AtomicReferenceArray<>(totalAttributesNumber);
+        arrayBaseOffset = UnsafeSupport.UNSAFE.arrayBaseOffset(getArray().getClass());
+        arrayIndexScale = UnsafeSupport.UNSAFE.arrayIndexScale(getArray().getClass());
     }
 
     protected Snapshot(@Nullable Object[] array){
         if (array == null ) this.data = null;
         else this.data = new AtomicReferenceArray(array);
+        arrayBaseOffset = UnsafeSupport.UNSAFE.arrayBaseOffset(array.getClass());
+        arrayIndexScale = UnsafeSupport.UNSAFE.arrayIndexScale(array.getClass());
     }
 
     protected Object getArray(){
@@ -60,30 +67,22 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
      */
     @Override
     public final Iterator<SingleRecord<?>> iterator() {
-        final int size = data.length();
-        final SingleRecord[] data = new SingleRecord[size];
-            System.arraycopy(
-                    getArray(),0,data,0,size);
+        final long size = data.length();
+        final Object array = getArray();
 
-            return new Iterator<SingleRecord<?>>() {
-                private int pos = 0;
+        return new Iterator<SingleRecord<?>>() {
+            private int pos = 0;
 
-                @Override
-                public boolean hasNext() {
-                    return pos < size;
-                }
+            @Override
+            public boolean hasNext() {
+                return pos < size;
+            }
 
-                @Override
-                public SingleRecord next() {
-                    return data[pos++];
-                }
-
-                @Override
-                public void remove() {
-                    throw new UnsupportedOperationException("This method is not supported in " + this.getClass());
-                }
-            };
-
+            @Override
+            public SingleRecord next() {
+                return SingleRecord.class.cast(UnsafeSupport.UNSAFE.getObject(array, arrayBaseOffset + pos++ * arrayIndexScale));
+            }
+        };
     }
 
     public SingleRecord<?> get(int ndx){
