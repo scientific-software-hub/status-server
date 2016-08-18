@@ -25,7 +25,6 @@ import org.tango.server.InvocationContext;
 import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
-import org.tango.server.annotation.Attribute;
 import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.AttributeValue;
 import org.tango.server.attribute.IAttributeBehavior;
@@ -37,14 +36,14 @@ import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.data.Method;
-import wpn.hdri.ss.data2.*;
+import wpn.hdri.ss.data2.Interpolation;
+import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.String;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -303,12 +302,16 @@ public class StatusServer2 {
         List<SingleRecord<?>> result = new ArrayList<>();
         LinearInterpolator interpolator = new LinearInterpolator();
 
+        long v = t[0] + ((t[1] - t[0]) / 2);
         for(InterpolationInputData inputData : inputDataMap.values()){
             if(inputData.size() == 1){
                 result.add(inputData.records.get(0));
             } else {
-                long v = t[0] + ((t[1] - t[0]) / 2);
-                result.add(new SingleRecord<>((wpn.hdri.ss.data2.Attribute<Object>) inputData.attribute, v, v, interpolator.interpolate(inputData.x(), inputData.y()).value(v)));
+                result.add(
+                        new SingleRecord<>(
+                                (wpn.hdri.ss.data2.Attribute<Object>) inputData.attribute,
+                                v, v,
+                                interpolator.interpolate(inputData.x(), inputData.y()).value(v)));
             }
         }
 
