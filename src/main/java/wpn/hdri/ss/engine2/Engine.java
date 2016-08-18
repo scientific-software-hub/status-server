@@ -7,7 +7,9 @@ import wpn.hdri.ss.data2.Attribute;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -25,7 +27,7 @@ public class Engine {
     private final List<Attribute> polledAttributes;
     private final List<Attribute> eventDrivenAttributes;
 
-    private final ConcurrentSkipListSet<ScheduledFuture<?>> runningTasks = new ConcurrentSkipListSet<>();
+    private final Map<String, ScheduledFuture<?>> runningTasks = new HashMap<>();
 
     public Engine(ScheduledExecutorService exec, DataStorage storage,
                   List<Attribute> polledAttributes, List<Attribute> eventDrivenAttributes){
@@ -51,7 +53,7 @@ public class Engine {
     private void start(boolean append, long delay){
         for(Attribute attr : polledAttributes){
             logger.debug("Scheduling polling task for {}", attr.fullName);
-            runningTasks.add(
+            runningTasks.put(attr.fullName,
                     exec.scheduleAtFixedRate(
                             new PollTask(attr, storage, append), 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
         }
@@ -76,15 +78,15 @@ public class Engine {
 
     public void stop(){
         logger.debug("Stopping...");
-        for(ScheduledFuture<?> task : runningTasks){
-            logger.debug("Canceling polling task for...");
-            task.cancel(false);
+        for(Map.Entry<String,ScheduledFuture<?>> task : runningTasks.entrySet()){
+            logger.debug("Canceling polling task for {}", task.getKey());
+            task.getValue().cancel(false);
         }
         for(Attribute attr : eventDrivenAttributes){
             logger.debug("Unsubscribing from {}", attr.fullName);
             attr.devClient.unsubscribe(attr);
         }
-        logger.debug("Done!");
+        logger.info("Stopped!");
     }
 
     public DataStorage getStorage(){
