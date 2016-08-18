@@ -27,8 +27,8 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
         }
     }
 
-    private final long arrayBaseOffset;
-    private final long arrayIndexScale;
+    protected final long arrayBaseOffset;
+    protected final long arrayIndexScale;
 
     public Snapshot(int totalAttributesNumber) {
         this.data = new AtomicReferenceArray<>(totalAttributesNumber);
@@ -80,12 +80,22 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
 
             @Override
             public SingleRecord next() {
-                return SingleRecord.class.cast(UnsafeSupport.UNSAFE.getObject(array, arrayBaseOffset + pos++ * arrayIndexScale));
+                return get(array, pos++);
             }
         };
     }
 
     public SingleRecord<?> get(int ndx){
         return data.get(ndx);
+    }
+
+    /**
+     *
+     * @param array must be the reference obtained via {@link this#getArray}
+     * @param ndx position
+     * @return SingleRecord stored in the array at position = ndx
+     */
+    protected SingleRecord<?> get(Object array, int ndx){
+        return SingleRecord.class.cast(UnsafeSupport.UNSAFE.getObject(array, arrayBaseOffset + ndx * arrayIndexScale));
     }
 }

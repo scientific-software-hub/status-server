@@ -29,7 +29,7 @@ public class DataStorage {
         allRecords.add(record);
     }
 
-    public Iterable<SingleRecord<?>> getSnapshot(){
+    public Snapshot getSnapshot(){
         return snapshot;
     }
 

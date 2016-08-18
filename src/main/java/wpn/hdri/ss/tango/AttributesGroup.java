@@ -2,7 +2,7 @@ package wpn.hdri.ss.tango;
 
 import wpn.hdri.ss.data2.Attribute;
 
-import java.util.*;
+import java.util.Collection;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class AttributesGroup {
     public final String name;
-    private final Collection<Attribute<?>> attributes;
+    public final Collection<Attribute<?>> attributes;
 
     public AttributesGroup(String name, Collection<Attribute<?>> attributes) {
         this.name = name;

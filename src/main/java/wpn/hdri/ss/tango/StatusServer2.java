@@ -36,8 +36,10 @@ import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.data.Method;
+import wpn.hdri.ss.data2.FilteredSnapshot;
 import wpn.hdri.ss.data2.Interpolation;
 import wpn.hdri.ss.data2.SingleRecord;
+import wpn.hdri.ss.data2.Snapshot;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
 
@@ -360,9 +362,10 @@ public class StatusServer2 {
     public String[] getLatestSnapshot() {
         Context ctx = contextManager.getContext();
 
-        Iterable<SingleRecord<?>> snapshot = engine.getStorage().getSnapshot();
+        Snapshot snapshot = engine.getStorage().getSnapshot();
+        FilteredSnapshot filteredSnapshot = new FilteredSnapshot(ctx.attributesGroup, snapshot);
 
-        return recordsToStrings(filterRecords(snapshot, ctx), ctx);
+        return recordsToStrings(filteredSnapshot, ctx);
     }
 
     @Command
