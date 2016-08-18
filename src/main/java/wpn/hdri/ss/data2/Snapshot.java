@@ -1,5 +1,7 @@
 package wpn.hdri.ss.data2;
 
+import hzg.wpn.UnsafeSupport;
+
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Iterator;
@@ -14,12 +16,13 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public class Snapshot implements Iterable<SingleRecord<?>>{
     private final AtomicReferenceArray<SingleRecord<?>> data;
 
-    private static final Field FIELD_ARRAY;
+    private static final long FLD_ARRAY_OFFSET;
     static {
-        try{
-            FIELD_ARRAY = AtomicReferenceArray.class.getDeclaredField("array");
-            FIELD_ARRAY.setAccessible(true);
-        } catch (NoSuchFieldException e){
+        try {
+            Field fldArray = AtomicReferenceArray.class.getDeclaredField("array");
+
+            FLD_ARRAY_OFFSET = UnsafeSupport.UNSAFE.objectFieldOffset(fldArray);
+        } catch (NoSuchFieldException e) {
             throw new AssertionError("Should not happen!");
         }
     }
@@ -34,11 +37,7 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
     }
 
     protected Object getArray(){
-        try {
-            return FIELD_ARRAY.get(this.data);
-        } catch (IllegalAccessException e) {
-            throw new AssertionError(e);
-        }
+        return UnsafeSupport.UNSAFE.getObject(this.data, FLD_ARRAY_OFFSET);
     }
 
     /**
