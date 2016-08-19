@@ -35,11 +35,10 @@ public class FilteredSnapshot implements Iterable<SingleRecord<?>> {
 
 
     public Iterator<SingleRecord<?>> iterator() {
-        final Object array = snapshot.getArray();
-        final int size = attrPos.length;
-
         if(attributesGroup.isDefault()) return snapshot.iterator();
 
+        final Object array = snapshot.getArray();
+        final int size = attrPos.length;
         return new Iterator<SingleRecord<?>>() {
             private int pos = 0;
 
