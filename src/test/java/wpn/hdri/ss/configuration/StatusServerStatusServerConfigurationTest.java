@@ -35,7 +35,8 @@ import wpn.hdri.ss.data.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
+
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>

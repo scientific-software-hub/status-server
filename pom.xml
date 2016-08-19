@@ -28,21 +28,24 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>hzg.wpn.tango</groupId>
-        <artifactId>server-parent</artifactId>
-        <version>14</version>
-    </parent>
-
-    <groupId>hzg.wpn</groupId>
+    <groupId>de.hzg.wpi.xenv</groupId>
     <artifactId>StatusServer</artifactId>
-    <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.
-    </description>
-    <version>2.0.9-SNAPSHOT</version>
+    <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.</description>
+    <version>2.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
+    <developers>
+        <developer>
+            <name>Igor Khokhriakov</name>
+            <email>igor.khokhriakov@hzg.de</email>
+            <organization>Helmholtz-Zentrum Geesthacht</organization>
+            <organizationUrl>hzg.de</organizationUrl>
+        </developer>
+    </developers>
 
     <properties>
         <scm.project.name>statusserver</scm.project.name>
@@ -50,11 +53,31 @@
     </properties>
 
     <scm>
-        <developerConnection>${scm.developerConnection.prefix}${scm.project.name}</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <connection>scm:hg:https://bitbucket.org/hzgwpn/${scm.project.name}</connection>
+        <developerConnection>scm:hg:ssh://hg@bitbucket.org/hzgwpn/${scm.project.name}</developerConnection>
+        <url>ssh://hg@bitbucket.org/hzgwpn/${scm.project.name}</url>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray-hzg</id>
+            <url>https://api.bintray.com/maven/hzgde/hzg-wpn-projects/${distribution.project.name};publish=1</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -91,20 +114,37 @@
             <version>4.5.4</version>
         </dependency>
         <dependency>
-            <groupId>hzg.wpn</groupId>
-            <artifactId>utils</artifactId>
-            <version>0.0.6</version>
-        </dependency>
-        <dependency>
             <groupId>com.carrotsearch</groupId>
             <artifactId>hppc</artifactId>
             <version>0.7.1</version>
         </dependency>
+        <dependency>
+            <groupId>de.hzg.wpi.tango</groupId>
+            <artifactId>tango-server-bom</artifactId>
+            <version>1</version>
+            <type>pom</type>
+        </dependency>
+
     </dependencies>
 
     <build>
         <finalName>StatusServer-${project.version}</finalName>
         <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -116,6 +156,26 @@
                     <archive>
                         <manifest>
                             <mainClass>wpn.hdri.ss.tango.StatusServer2</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                     </archive>
                 </configuration>
