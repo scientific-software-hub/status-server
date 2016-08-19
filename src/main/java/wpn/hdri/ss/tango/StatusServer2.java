@@ -145,11 +145,6 @@ public class StatusServer2 {
         return Iterables.toArray(context.getGroups(), String.class);
     }
 
-    @Attribute
-    public String getImplementationVersion(){
-        return getClass().getPackage().getImplementationVersion();
-    }
-
     //TODO data obtaining code must be encapsulated into a dedicated class, which will handle current status and context
     @Attribute
     public String[] getData(){
