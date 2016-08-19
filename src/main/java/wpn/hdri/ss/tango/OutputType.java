@@ -7,6 +7,7 @@ import com.google.common.collect.Iterables;
 import com.onjava.lang.DoubleToString;
 import fr.esrf.TangoApi.PipeBlob;
 import org.apache.commons.lang3.ArrayUtils;
+import wpn.hdri.ss.data2.Attribute;
 import wpn.hdri.ss.data2.SingleRecord;
 
 import javax.annotation.Nullable;
@@ -20,7 +21,7 @@ import java.util.*;
 public enum OutputType {
     PIPE{
         @Override
-        public PipeBlob toType(Iterable<SingleRecord<?>> records, boolean useAliases){
+        public PipeBlob toType(Iterable<SingleRecord<?>> records, Context ctx){
             Collection<RecordsContainer<?>> tmp = toRecordsContainerCollection(records);
 
             StatusServerPipeBlob result = new StatusServerPipeBlob();
@@ -45,14 +46,16 @@ public enum OutputType {
     },
     PLAIN{
         @Override
-        public String[] toType(Iterable<SingleRecord<?>> records, boolean useAliases){
-            Map<String, StringBuilder> stringBuilderMap = new HashMap<>();
+        public String[] toType(Iterable<SingleRecord<?>> records, Context ctx){
+            Map<String, StringBuilder> stringBuilderMap = new LinkedHashMap<>();
+
+            for(Attribute<?> attr : ctx.attributesGroup.attributes){
+                stringBuilderMap.put(attr.fullName, new StringBuilder(ctx.useAliases ? attr.alias : attr.fullName));
+            }
 
             for(SingleRecord<?> record : records){
                 if(record == null) continue;
                 StringBuilder bld = stringBuilderMap.get(record.attribute.fullName);
-                if(bld == null) stringBuilderMap.put(record.attribute.fullName,
-                        bld = new StringBuilder(useAliases ? record.attribute.alias : record.attribute.fullName));
                 bld
                         .append("\n@").append(record.r_t)
                         .append('[').append(valueToString(record))
@@ -70,7 +73,7 @@ public enum OutputType {
     },
     JSON{
         @Override
-        public String[] toType(Iterable<SingleRecord<?>> records, boolean useAliases){
+        public String[] toType(Iterable<SingleRecord<?>> records, Context ctx){
             Collection<RecordsContainer<?>> tmp = toRecordsContainerCollection(records);
 
             ArrayList<String> result = new ArrayList<>();
@@ -105,13 +108,13 @@ public enum OutputType {
     },
     TSV{
         @Override
-        public String[] toType(Iterable<SingleRecord<?>> records, final boolean useAliases) {
+        public String[] toType(Iterable<SingleRecord<?>> records, final Context ctx) {
             return Iterables.toArray(Iterables.transform(records, new Function<SingleRecord<?>, String>() {
                 @Nullable
                 @Override
                 public String apply(@Nullable SingleRecord<?> input) {
                     return String.format("%s\t%d\t%s\t%d\n",
-                            useAliases ? input.attribute.alias : input.attribute.fullName,
+                            ctx.useAliases ? input.attribute.alias : input.attribute.fullName,
                             input.r_t, valueToString(input), input.w_t);
                 }
             }), String.class);
@@ -143,7 +146,7 @@ public enum OutputType {
         return tmp.values();
     }
 
-    public abstract Object toType(Iterable<SingleRecord<?>> records, boolean useAliases);
+    public abstract Object toType(Iterable<SingleRecord<?>> records, Context ctx);
 
     private static class RecordsContainer<T> implements Iterable<SingleRecord<T>> {
         private final String attrName;

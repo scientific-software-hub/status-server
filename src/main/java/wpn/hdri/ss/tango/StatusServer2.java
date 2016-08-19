@@ -1,7 +1,6 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -25,6 +24,7 @@ import org.tango.server.InvocationContext;
 import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.*;
+import org.tango.server.annotation.Attribute;
 import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.AttributeValue;
 import org.tango.server.attribute.IAttributeBehavior;
@@ -36,10 +36,7 @@ import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.data.Method;
-import wpn.hdri.ss.data2.FilteredSnapshot;
-import wpn.hdri.ss.data2.Interpolation;
-import wpn.hdri.ss.data2.SingleRecord;
-import wpn.hdri.ss.data2.Snapshot;
+import wpn.hdri.ss.data2.*;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
 
@@ -158,8 +155,10 @@ public class StatusServer2 {
         Context ctx = contextManager.getContext();
 
         Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange();
+        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
 
-        return recordsToStrings(filterRecords(range, ctx), ctx);
+
+        return recordsToStrings(filteredRange, ctx);
     }
 
     @Attribute
@@ -171,7 +170,8 @@ public class StatusServer2 {
         ctx.lastTimestamp = System.currentTimeMillis();
 
         Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(lastTimestamp);
-        return recordsToStrings(filterRecords(range, ctx), ctx);
+        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
+        return recordsToStrings(filteredRange, ctx);
     }
 
     @Attribute
@@ -219,7 +219,7 @@ public class StatusServer2 {
 
         return new PipeValue(
                 (PipeBlob) OutputType.PIPE.toType(
-                        engine.getStorage().getAllRecords().getRange(lastTimestamp), false));
+                        engine.getStorage().getAllRecords().getRange(lastTimestamp), ctx));
     }
 
     @Command
@@ -247,7 +247,7 @@ public class StatusServer2 {
             @Override
             public void run() {
                 try {
-                    String[] data = (String[]) OutputType.TSV.toType(engine.getStorage().getAllRecords().getRange(),ctx.useAliases);
+                    String[] data = (String[]) OutputType.TSV.toType(engine.getStorage().getAllRecords().getRange(),ctx);
 
                     Files.write(output, Arrays.asList("Name or Alias\tRead@\tValue\tWritten@\n"), Charset.defaultCharset(), StandardOpenOption.CREATE_NEW);
                     Files.write(output, Arrays.asList(data), Charset.defaultCharset(), StandardOpenOption.APPEND);
@@ -268,10 +268,11 @@ public class StatusServer2 {
     public String[] getDataRange(long[] t){
         checkRangeArguments(t);
 
-        Context context = contextManager.getContext();
+        Context ctx = contextManager.getContext();
 
         Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t[0], t[1]);
-        return recordsToStrings(filterRecords(range, context), context);
+        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
+        return recordsToStrings(filteredRange, ctx);
     }
 
     private void checkRangeArguments(long[] t) {
@@ -285,7 +286,8 @@ public class StatusServer2 {
 
         final Context context = contextManager.getContext();
 
-        Iterable<SingleRecord<?>> records = filterRecords(engine.getStorage().getAllRecords().getRange(t[0], t[1]), context);
+        Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t[0], t[1]);
+        FilteredRecords records = new FilteredRecords(context.attributesGroup, range);
 
 
         Map<String, InterpolationInputData> inputDataMap = Maps.newHashMap();
@@ -370,11 +372,11 @@ public class StatusServer2 {
 
     @Command
     public String[] getSnapshot(long t){
-        Context context = contextManager.getContext();
+        Context ctx = contextManager.getContext();
 
         Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t);
-
-        return recordsToStrings(filterRecords(range, context), context);
+        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
+        return recordsToStrings(filteredRange, ctx);
     }
 
     @Command(name="startCollectData")
@@ -432,7 +434,7 @@ public class StatusServer2 {
         EngineFactory engineFactory = new EngineFactory(selfAttributes, configuration);
         this.engine = engineFactory.newEngine();
 
-        this.contextManager = new ContextManager();
+        this.contextManager = new ContextManager(engine.getAttributes());
 
         setStatus(StatusServerStatus.IDLE);
     }
@@ -500,21 +502,8 @@ public class StatusServer2 {
         ServerManager.getInstance().start(args, StatusServer2.class);
     }
 
-
     //TODO the following must be refactored as decorators
-    private static Iterable<SingleRecord<?>> filterRecords(Iterable<SingleRecord<?>> snapshot, final Context ctx){
-        return ctx.attributesGroup.isDefault() ?
-                snapshot :
-                Iterables.filter(snapshot, new Predicate<SingleRecord<?>>() {
-                    @Override
-                    public boolean apply(SingleRecord<?> input) {
-                        if (input == null) return false;
-                        return ctx.attributesGroup.hasAttribute(input.attribute);
-                    }
-                });
-    }
-
-        private static String[] recordsToStrings(Iterable<SingleRecord<?>> snapshot, final Context ctx) {
-            return (String[]) ctx.outputType.toType(snapshot, ctx.useAliases);
+    private static String[] recordsToStrings(Iterable<SingleRecord<?>> snapshot, final Context ctx) {
+        return (String[]) ctx.outputType.toType(snapshot, ctx);
     }
 }

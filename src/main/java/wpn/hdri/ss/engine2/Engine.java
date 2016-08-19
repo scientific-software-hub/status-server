@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.Attribute;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,5 +106,8 @@ public class Engine {
         return attribute;
     }
 
+    public Collection<Attribute<?>> getAttributes(){
+        return attributesByName.values();
+    }
     //TODO erase data
 }

@@ -1,7 +1,9 @@
 package wpn.hdri.ss.tango;
 
 import com.google.common.base.MoreObjects;
+import wpn.hdri.ss.data2.Attribute;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,20 +17,19 @@ public class Context {
     public volatile boolean encode = false;
     public volatile OutputType outputType = OutputType.PLAIN;
     public volatile long lastTimestamp;
-    public volatile AttributesGroup attributesGroup = new DefaultAttributesGroup();
+    public volatile AttributesGroup attributesGroup;
 
     private final Map<String, AttributesGroup> groups = new HashMap<>();
-
-    {
-        groups.put("default", this.attributesGroup);
-    }
 
     /**
      * Creates default context
      * @param cid
+     * @param attributes
      */
-    public Context(String cid) {
+    public Context(String cid, Collection<Attribute<?>> attributes) {
         this.cid = cid;
+        this.attributesGroup = new DefaultAttributesGroup(attributes);
+        groups.put("default", this.attributesGroup);
     }
 
     @Override

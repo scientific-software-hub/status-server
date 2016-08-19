@@ -2,15 +2,22 @@ package wpn.hdri.ss.tango;
 
 import wpn.hdri.ss.data2.Attribute;
 
+import java.util.Collection;
+
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 11.11.2015
  */
 public class DefaultAttributesGroup extends AttributesGroup {
-    public DefaultAttributesGroup() {
-        super("default", null);
+    public DefaultAttributesGroup(Collection<Attribute<?>> attributes) {
+        super("default", attributes);
     }
 
+    /**
+     *
+     * @param attr
+     * @return always true
+     */
     @Override
     public boolean hasAttribute(Attribute attr) {
         return true;
@@ -19,15 +26,6 @@ public class DefaultAttributesGroup extends AttributesGroup {
     @Override
     public boolean isDefault() {
         return true;
-    }
-
-    /**
-     *
-     * @return -1
-     */
-    @Override
-    public int size() {
-        return -1;
     }
 
     @Override
