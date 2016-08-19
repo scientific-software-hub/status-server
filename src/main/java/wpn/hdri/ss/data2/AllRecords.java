@@ -160,7 +160,7 @@ public class AllRecords {
         }
 
         public TimedSnapshot(long t) {
-            super(null);
+            super();
             timestamp = t;
             previous = null;
         }

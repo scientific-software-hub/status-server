@@ -2,7 +2,6 @@ package wpn.hdri.ss.data2;
 
 import hzg.wpn.UnsafeSupport;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -36,7 +35,13 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
         arrayIndexScale = UnsafeSupport.UNSAFE.arrayIndexScale(getArray().getClass());
     }
 
-    protected Snapshot(@Nullable Object[] array){
+    protected Snapshot(){
+        this.data = null;
+        arrayBaseOffset = 0L;
+        arrayIndexScale = 0L;
+    }
+
+    protected Snapshot(Object[] array){
         if (array == null ) this.data = null;
         else this.data = new AtomicReferenceArray(array);
         arrayBaseOffset = UnsafeSupport.UNSAFE.arrayBaseOffset(array.getClass());
