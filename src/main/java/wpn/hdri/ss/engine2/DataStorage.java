@@ -40,8 +40,4 @@ public class DataStorage {
     public void clear() {
         allRecords.clear();
     }
-
-    public int getNumberOfAttributues() {
-        return totalNumberOfAttributes;
-    }
 }

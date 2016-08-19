@@ -150,11 +150,16 @@ public class StatusServer2 {
         return getClass().getPackage().getImplementationVersion();
     }
 
+    //TODO data obtaining code must be encapsulated into a dedicated class, which will handle current status and context
     @Attribute
     public String[] getData(){
         Context ctx = contextManager.getContext();
 
-        Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange();
+        Iterable<SingleRecord<?>> range;
+        if(StatusServerStatus.HEAVY_DUTY == getStatus())
+            range = engine.getStorage().getAllRecords().getRange();
+        else
+            range = engine.getStorage().getSnapshot();
         FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
 
 
@@ -169,7 +174,11 @@ public class StatusServer2 {
 
         ctx.lastTimestamp = System.currentTimeMillis();
 
-        Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(lastTimestamp);
+        Iterable<SingleRecord<?>> range;
+        if(StatusServerStatus.HEAVY_DUTY == getStatus())
+            range = engine.getStorage().getAllRecords().getRange(lastTimestamp);
+        else
+            range = engine.getStorage().getSnapshot();
         FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
         return recordsToStrings(filteredRange, ctx);
     }
