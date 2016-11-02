@@ -108,11 +108,9 @@
             <version>2.6.2</version>
         </dependency>
         <dependency>
-            <groupId>de.desy.tine</groupId>
-            <artifactId>tineJAVA</artifactId>
+            <groupId>de.desy</groupId>
+            <artifactId>tine</artifactId>
             <version>4.5.10</version>
-            <scope>system</scope>
-            <systemPath>/home/ingvord/Downloads/TINE/tine/java/lib/tine-4.5.10.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.carrotsearch</groupId>
