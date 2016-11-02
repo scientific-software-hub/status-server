@@ -1,6 +1,6 @@
 # Requirements
 
-* Java 1.7 server environment
+* Java 1.8 server environment
 * Tango 8+
 
 # User guide
