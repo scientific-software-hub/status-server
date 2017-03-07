@@ -110,7 +110,7 @@
         <dependency>
             <groupId>de.desy</groupId>
             <artifactId>tine</artifactId>
-            <version>4.5.10</version>
+            <version>4.6.0</version>
         </dependency>
         <dependency>
             <groupId>com.carrotsearch</groupId>
@@ -208,6 +208,10 @@
             <id>bintray-release</id>
             <name>bintray</name>
             <url>http://dl.bintray.com/hzgde/hzg-wpn-projects/;publish=1</url>
+        </repository>
+        <repository>
+            <id>lib</id>
+            <url>file://${project.basedir}/lib</url>
         </repository>
     </repositories>
 </project>
