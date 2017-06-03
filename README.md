@@ -1,3 +1,14 @@
+# StatusServer
+
+
+
+This project is a part of [X-Environment](http://www.github.com/xenvhzg) (Integrated Control System for High Throughput Tomography experiments). X-Environment is a bunch of components that server two main goals:
+
+* Collect data during the High throughput Tomography experiment in a non-disturbing way (does not disturb experiment)
+* Provide high level abstraction for beamline scientist to control the experiment
+
+This Tango server corresponds to the first goal. It aggregates data from upstream Tango and/or TINE servers it acts as an intermediate buffer for the collected data.
+
 # Requirements
 
 * Java 1.8 server environment
