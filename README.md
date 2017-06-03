@@ -13,7 +13,7 @@ This project is a part of [X-Environment](http://www.github.com/xenvhzg) (Integr
 * Collect data during the High throughput Tomography experiment in a non-disturbing way (does not disturb experiment)
 * Provide high level abstraction for beamline scientist to control the experiment
 
-This Tango server corresponds to the first goal. It aggregates data from upstream Tango and/or TINE servers it acts as an intermediate buffer for the collected data.
+This Tango server corresponds to the first goal. It aggregates data from upstream [Tango](http://www.tango-controls.org) and/or [TINE](http://adweb.desy.de/mcs/tine/) servers it acts as an intermediate buffer for the collected data.
 
 # Requirements
 
