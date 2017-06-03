@@ -1,7 +1,7 @@
 # StatusServer
 
 
-[![Build Status](https://travis-ci.org/xenvwpi/status-server.svg?branch=master)](https://travis-ci.org/xenvwpi/status-server)
+[![Build Status](https://travis-ci.org/xenvhzg/status-server.svg?branch=master)](https://travis-ci.org/xenvhzg/status-server)
 [![Coverage Status](https://coveralls.io/repos/github/xenvhzg/status-server/badge.svg?branch=master)](https://coveralls.io/github/xenvhzg/status-server?branch=master)
 [![Dependency Status](https://www.versioneye.com/user/projects/5932605d22f278005aa86f5f/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5932605d22f278005aa86f5f)
 [![codebeat badge](https://codebeat.co/badges/a646871c-9772-48bd-91b3-0edee8134aa2)](https://codebeat.co/projects/github-com-xenvhzg-status-server-master)
