@@ -1,0 +1,58 @@
+1.0.5:
+=====
+
+TINE client error message improved
+clientID added
+TINE updated to 4.5.0
+TangoAPI updated to 1.1.7
+JTangoServer updated to 1.1.5
+
+1.0.4:
+=====
+
+Migration to a new JTangoServer API
+
+1.0.3:
+=====
+
+TINE updated to 4.3.12
+Issue 34 resolved
+
+1.0.2:
+=====
+
+Unique client ids are automatically assigned
+Polling task back off logic changed: now failed task does not delay others
+
+1.0.1:
+=====
+
+supported persistent storage
+introduced client sensitive context
+migrated to Java 1.7
+
+1.0.0:
+=====
+
+introduced properties file
+migrated to new JTango server API
+added meta attribute that specifies data types of the being collected attributes
+preserved last value when erasing data
+supported encoded output
+supported embedded attributes
+
+1.9:
+===
+
+supported attributes alias
+added getCurrentActivity command 
+supported spectrum attributes
+added startLightPollingAtFixed rate command
+improved performance when returning last value 
+fixed Doubles view in the output
+
+1.8: 
+===
+
+Deploy and start up
+Status Server is distributed in tar.gz or zip archive. Unpack the archive to any location on the local file system. This location is referred as {SS_HOME}. To start Status Server, first define it in the Tango DB (how to define Tango server: https://bitbucket.org/Ingvord/tomography-preexperiment-data-collector/wiki/HowTos#!how-to-set-up-tango-device-server) second – go to {SS_HOME}/bin and launch either StatusServer.sh or StatusServer.bat. Important, before starting it, look through launch script and verify that TANGO_HOST is set properly. This TANGO_HOST defines host where Status Server is defined.
