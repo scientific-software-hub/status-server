@@ -6,6 +6,8 @@
 [![Dependency Status](https://www.versioneye.com/user/projects/5932605d22f278005aa86f5f/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/5932605d22f278005aa86f5f)
 [![codebeat badge](https://codebeat.co/badges/a646871c-9772-48bd-91b3-0edee8134aa2)](https://codebeat.co/projects/github-com-xenvhzg-status-server-master)
 
+[![Documentation Status](https://readthedocs.org/projects/status-server/badge/?version=latest)](http://status-server.readthedocs.io/en/latest/?badge=latest)
+
 [![Download](https://api.bintray.com/packages/hzgde/hzg-wpn-projects/status_server/images/download.svg) ](https://bintray.com/hzgde/hzg-wpn-projects/status_server/_latestVersion)
 
 This project is a part of [X-Environment](http://www.github.com/xenvhzg) (Integrated Control System for High-throughput Tomography experiments). X-Environment is a bunch of components that server two main goals:
