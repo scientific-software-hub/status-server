@@ -17,6 +17,12 @@ _Figure 1. Status Server collected data and user requests._
 
 Every value is linked with timestamp when is being read by Status Server. Therefore collected data forms a timeline representing the experiment. One can easily get a snapshot of values for every particular timestamp. See figure 1. This ability is used during the experiment when Control Server needs a snapshot before and after taking an image. Also Status Server can give away all collected data. This set of data is then stored in Nexus file. So the whole timeline of the experiment can be easily reproduced.
 
+## Deploy and start up
+
+Status Server is distributed in tar.gz or zip archive. Unpack the archive to any location on the local file system. This location is referred as `{SS_HOME}`. To start Status Server, first define it in the Tango DB ([how to define Tango server](https://bitbucket.org/Ingvord/tomography-preexperiment-data-collector/wiki/HowTos#!how-to-set-up-tango-device-server)) second – go to `{SS_HOME}/bin` and launch either _StatusServer.sh_ or _StatusServer.bat_. 
+
+> __Important, before starting it, look through launch script and verify that TANGO_HOST is set properly. This TANGO_HOST defines host where Status Server is defined.__
+
 ## Configuration
 
 Status Server is configured via xml description in a configuration file and a properties file. The configuration file is located in `{SS_HOME}/conf`, properties file ­– in `{SS_HOME}/bin`. This section describes both files.
