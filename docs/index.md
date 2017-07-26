@@ -9,6 +9,7 @@ Status Server is a Java application which supports Tango interface. So one can c
 
 Operator configures which attributes of which target devices will be read in a simple xml file. Devices can be of both types: Tango and Tine. Attributes can be polled or updated by event. 
 
+![StatusServer data](images/statusserver_data.png)
 Figure 1. Status Server collected data and user requests.
 
 Every value is linked with timestamp when is being read by Status Server. Therefore collected data forms a timeline representing the experiment. One can easily get a snapshot of values for every particular timestamp. See figure 1. This ability is used during the experiment when Control Server needs a snapshot before and after taking an image. Also Status Server can give away all collected data. This set of data is then stored in Nexus file. So the whole timeline of the experiment can be easily reproduced.
