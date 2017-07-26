@@ -11,7 +11,7 @@ Operator configures which attributes of which target devices will be read in a s
 
 ![StatusServer data](images/statusserver_data.png)
 
-Figure 1. Status Server collected data and user requests.
+_Figure 1. Status Server collected data and user requests._
 
 Every value is linked with timestamp when is being read by Status Server. Therefore collected data forms a timeline representing the experiment. One can easily get a snapshot of values for every particular timestamp. See figure 1. This ability is used during the experiment when Control Server needs a snapshot before and after taking an image. Also Status Server can give away all collected data. This set of data is then stored in Nexus file. So the whole timeline of the experiment can be easily reproduced.
 
@@ -53,9 +53,52 @@ On the figure 1 it is shown how these attributes affect Status Server behavior. 
 
 #### Sample configuration:
 
+```xml
+<!-- server-name - a tango server name for this server; instance-name - a tango instance name for this server-->
+<StatusServer use-aliases="true">
+    <properties>
+        <property name="jacorb.poa.thread_pool_min" value="1"/>
+        <property name="jacorb.poa.thread_pool_max" value="10"/>
+    </properties>
+    <!-- these attributes can be used for writing data directly to StatusServer -->
+    <attributes>
+        <attribute name="string_attr" alias="string" type="DevString"/>
+        <attribute name="double_attr" alias="dbl" type="DevDouble"/>
+    </attributes>
+    <devices>
+        <!-- tango or tine full device name-->
+        <device name="sys/tg_test/1">
+            <attributes>
+                <!-- name - an attribute name;
+                method=[event|poll];
+                interpolation=[last|nearest|linear];
+                delay - polling frequency in millis. Note: delay for event=0; polling delay >= 20
+                precision for numeric attributes -->
+                <attribute name="long_scalar" alias="long" method="event" interpolation="nearest" delay="0" type="change"/>
+                <attribute name="float_scalar" alias="float" method="poll" interpolation="linear" precision="0.5"
+                           delay="200"/>
+                <attribute name="short_scalar" alias="short" method="poll" interpolation="linear" precision="0.125"
+                           delay="150"/>
+                <attribute name="double_scalar" alias="double" method="poll" interpolation="linear" precision="0.125"
+                           delay="150"/>
+                <attribute name="double_spectrum" alias="double_arr" method="poll" interpolation="linear" delay="150"/>
+                <!--attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/-->
+            </attributes>
+        </device>
+        <!-- note that tine device names are started with leading '/'-->
+        <device name="/TEST/SineServer/#SineGen3">
+            <attributes>
+                <attribute name="MessageText" method="poll" interpolation="last" delay="200"/>
+                <attribute name="RandomBinary" method="event" interpolation="last" delay="0" type="change"/>
+            </attributes>
+        </device>
+    </devices>
+</StatusServer>
+```
+
 ## Status Server Tango Interface
 
-> Important: Starting from version 1.0.1 it is mandatory to set up caching strategy on the client side, i.e. call method setSource with argument DEV on a StatusServer proxy object. See explanation below.
+> __Important: Starting from version 1.0.1 it is mandatory to set up caching strategy on the client side, i.e. call method setSource with argument DEV on a StatusServer proxy object. See explanation below.__
 
 Each client is associated with a context on the server side. For users it is important to understand how this affects their calls to the server. Currently context holds the following references:
 
