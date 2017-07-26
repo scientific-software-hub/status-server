@@ -1,3 +1,5 @@
+[TOC]
+
 # Status Server User Manual
 This document describes Status Server Tango User Interface (Commands and attributes available to the user and general use case guide line)
 
