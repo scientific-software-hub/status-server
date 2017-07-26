@@ -10,43 +10,44 @@ Status Server is a Java application which supports Tango interface. So one can c
 Operator configures which attributes of which target devices will be read in a simple xml file. Devices can be of both types: Tango and Tine. Attributes can be polled or updated by event. 
 
 ![StatusServer data](images/statusserver_data.png)
+
 Figure 1. Status Server collected data and user requests.
 
 Every value is linked with timestamp when is being read by Status Server. Therefore collected data forms a timeline representing the experiment. One can easily get a snapshot of values for every particular timestamp. See figure 1. This ability is used during the experiment when Control Server needs a snapshot before and after taking an image. Also Status Server can give away all collected data. This set of data is then stored in Nexus file. So the whole timeline of the experiment can be easily reproduced.
 
 ## Configuration
 
-Status Server is configured via xml description in a configuration file and a properties file. The configuration file is located in {SS_HOME}/conf, properties file ­– in {SS_HOME}/bin. This section describes both files.
+Status Server is configured via xml description in a configuration file and a properties file. The configuration file is located in `{SS_HOME}/conf`, properties file ­– in `{SS_HOME}/bin`. This section describes both files.
 
 ### Properties file
 
 Currently the following properties are defined in the file:
- jacorb.poa.thread_pool_min=1 – defines minimum threads that will be used by CORBA for requests handling
- jacorb.poa.thread_pool_max=10 – defines maximum threads that will be used simultaneously by CORBA for requests handling
- persistent.threshold=1000000 – defines how many records StatusServer will keep in memory 
- persistent.delay=10 – defines how often (in seconds) StatusServer will flush in-mem values to the persistent storage (this won’t happen unless there are in-mem values at least as many as defined by persistent.threshold)
- persistent.root=/mnt/StatusServer/persistent – defines the root of the persistent storage. Under this root a data file will be created.
+ `jacorb.poa.thread_pool_min=1` – defines minimum threads that will be used by CORBA for requests handling
+ `jacorb.poa.thread_pool_max=10` – defines maximum threads that will be used simultaneously by CORBA for requests handling
+ `persistent.threshold=1000000` – defines how many records StatusServer will keep in memory 
+ `persistent.delay=10` – defines how often (in seconds) StatusServer will flush in-mem values to the persistent storage (this won’t happen unless there are in-mem values at least as many as defined by persistent.threshold)
+ `persistent.root=/mnt/StatusServer/persistent` – defines the root of the persistent storage. Under this root a data file will be created.
 
 ### Xml configuration
 
 Root element is StatusServer. It has two attributes: server-name – defines server name specified in Tango DB for this Status Server and instance-name – defines instance specified in Tango DB for this Status Server. StatusServer contains a list of devices (devices element) and a list of embedded attributes (attributes element). 
 Each embedded attribute (attribute element) has the following xml attributes:
 
-  name – defines the name of the attribute. Should be valid Tango attribute name; 
-  alias – defines alias for this attribute’s name;
-  type – defines TangoDev data type.
+  `name` – defines the name of the attribute. Should be valid Tango attribute name; 
+  `alias` – defines alias for this attribute’s name;
+  `type` – defines TangoDev data type.
   
 StatusServer may have zero embedded attributes in this case xml configuration must have an empty attributes element.
 Each device (device element) contains a name attribute which is fully qualified Tango or Tine device name, it also contains a list of attributes (attributes element). 
 
 Each attribute (attribute element) contains the following attributes: 
 
-  name – a name of the attribute;
-  alias – an alias for the attribute’s name; 
-  method – a method by which Status Server will obtain data from this attribute := poll|event;
-  interpolation – defines method which will be used when user request data for a particular timestamp := last|nearest|linear; 
-  delay – defines a rate at which Status Server will poll the attribute (> 20 for poll and 0 for event)
-  precision – for numeric attributes defines the maximum delta between two values so as they are considered different, i.e. |x – y|>presicion, record y
+  `name` – a name of the attribute;
+  `alias` – an alias for the attribute’s name; 
+  `method` – a method by which Status Server will obtain data from this attribute := poll|event;
+  `interpolation` – defines method which will be used when user request data for a particular timestamp := last|nearest|linear; 
+  `delay` – defines a rate at which Status Server will poll the attribute (> 20 for poll and 0 for event)
+  `precision` – for numeric attributes defines the maximum delta between two values so as they are considered different, i.e. |x – y|>presicion, record y
   
 On the figure 1 it is shown how these attributes affect Status Server behavior. Arc arrows show delay between polling. Assume user requests a data snapshot for time t1 and assume there are only two attributes are being polled (green and yellow). For green attribute last-interpolation is defined – it means that user receives the most actual value for the timestamp (a value which was collected just before the timestamp). Yellow demonstrates both nearest and linear-interpolations: if nearest is defined – user receives right value (it was collected at the time that is closer to the timestamp); if linear – Status Server will interpolate the value using the following formula: y=y0+((t-t0)(y1-y0))/t1-t0, where y0 – left value, y1 – right value, t – t1 on the figure, t0 – timestamp when Status Server received the left value, t1 – timestamp when Status Server received the right value.
 
