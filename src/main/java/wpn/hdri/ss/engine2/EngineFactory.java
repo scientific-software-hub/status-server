@@ -69,7 +69,7 @@ public class EngineFactory {
                     type = client.getAttributeClass(devAttr.getName());
                 } catch (ClientException e) {
                     logger.error(e.getMessage(), e);
-                    failedAttributes.add(dev.getName() + "/" + devAttr.getName());
+                    failedAttributes.add(dev.getUrl() + "/" + devAttr.getName());
                     continue;
                 }
 
