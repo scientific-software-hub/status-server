@@ -39,13 +39,13 @@
     </attributes>
     <devices>
         <!-- tango or tine full device name-->
-        <device name="test/test_server/camera">
+        <device name="test/test_server/camera" url="tango://hzgxenvtest:10000/test/test_server/camera">
             <attributes>
                 <attribute name="long" method="poll" delay="20" interpolation="nearest"/>
             </attributes>
         </device>
         <!-- note that tine device names are started with leading '/'-->
-        <device name="/PETRA/Globals/#keyword">
+        <device name="/PETRA/Globals/#keyword" url="tine:/PETRA/Globals/#keyword">
             <attributes>
                 <!--attribute name="MessageText" method="poll" interpolation="last" delay="200"/-->
                 <attribute name="BeamCurrent" method="event" interpolation="last" delay="0" type="change"/>
