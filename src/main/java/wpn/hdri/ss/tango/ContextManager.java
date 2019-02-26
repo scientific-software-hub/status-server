@@ -20,9 +20,11 @@ public class ContextManager {
     private final ThreadLocal<String> clientId = new ThreadLocal<>();
 
     private final ConcurrentMap<String, Context> clientContexts = new ConcurrentHashMap<>();
+    private Collection<String> failedAttributes;
 
-    public ContextManager(Collection<Attribute<?>> attributes) {
+    public ContextManager(Collection<Attribute<?>> attributes, Collection<String> failedAttributes) {
         this.attributes = attributes;
+        this.failedAttributes = failedAttributes;
     }
 
     public void setClientId(String clientId){
@@ -41,5 +43,9 @@ public class ContextManager {
 
     public String getClientId() {
         return clientId.get();
+    }
+
+    public Iterable<String> getFailedAttributes() {
+        return failedAttributes;
     }
 }

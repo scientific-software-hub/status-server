@@ -55,20 +55,14 @@ public class EngineFactory {
 
         ClientFactory clientFactory = new ClientFactory();
         for(Device dev : configuration.getDevices()){
-            Client client = null;
-            try {
-                client = clientFactory.createClient(dev.getUrl());
-            } catch (Exception e) {
-                logger.error(e.getMessage(), e);
-                continue;
-            }
+            Client client = clientFactory.createClient(dev.getUrl());
 
             for(DeviceAttribute devAttr : dev.getAttributes()){
                 Class<?> type = null;
                 try {
                     type = client.getAttributeClass(devAttr.getName());
                 } catch (ClientException e) {
-                    logger.error(e.getMessage(), e);
+                    logger.warn(e.getMessage(), e);
                     failedAttributes.add(dev.getUrl() + "/" + devAttr.getName());
                     continue;
                 }

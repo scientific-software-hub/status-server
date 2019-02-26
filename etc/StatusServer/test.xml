@@ -27,7 +27,8 @@
                 <attribute name="double_scalar" alias="double" method="poll" interpolation="linear" precision="0.125"
                            delay="150"/>
                 <attribute name="double_spectrum" alias="double_arr" method="poll" interpolation="linear" delay="150"/>
-                <!--attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/-->
+                <attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/>
+                <attribute name="no_value" method="event" interpolation="last" delay="100"/>
             </attributes>
         </device>
         <!-- note that tine device names are started with leading '/'-->

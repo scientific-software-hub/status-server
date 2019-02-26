@@ -54,7 +54,7 @@ public class ClientFactory {
      * @param deviceUrl a device name to which factories try to connect
      * @return new client (BadClient if neither factory was able to create a client)
      */
-    public Client createClient(String deviceUrl) throws Exception {
+    public Client createClient(String deviceUrl) {
         URI uri = URI.create(deviceUrl);
 
         switch (uri.getScheme()) {

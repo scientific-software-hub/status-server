@@ -23,8 +23,8 @@ import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.server.InvocationContext;
 import org.tango.server.ServerManager;
 import org.tango.server.StateMachineBehavior;
-import org.tango.server.annotation.*;
 import org.tango.server.annotation.Attribute;
+import org.tango.server.annotation.*;
 import org.tango.server.attribute.AttributeConfiguration;
 import org.tango.server.attribute.AttributeValue;
 import org.tango.server.attribute.IAttributeBehavior;
@@ -98,6 +98,12 @@ public class StatusServer2 {
     @Attribute
     public boolean getUseAliases() {
         return contextManager.getContext().useAliases;
+    }
+
+    //TODO move to StatusPipe
+    @Attribute
+    public String[] getFailedToInitializeAttributes() {
+        return Iterables.toArray(contextManager.getFailedAttributes(), String.class);
     }
 
     @Attribute
@@ -185,7 +191,9 @@ public class StatusServer2 {
 
     @AroundInvoke
     public void aroundInvoke(InvocationContext invocationContext) {
-        contextManager.setClientId(ClientIDUtil.toString(invocationContext.getClientID()));
+        Optional.ofNullable(contextManager)
+                .orElseGet(() -> new ContextManager(Collections.emptyList(), Collections.emptyList()))
+                .setClientId(ClientIDUtil.toString(invocationContext.getClientID()));
     }
 
     //@StatusPipe
@@ -438,7 +446,7 @@ public class StatusServer2 {
         EngineFactory engineFactory = new EngineFactory(selfAttributes, configuration);
         this.engine = engineFactory.newEngine();
 
-        this.contextManager = new ContextManager(engine.getAttributes());
+        this.contextManager = new ContextManager(engine.getAttributes(), engineFactory.getFailedAttributes());
 
         setStatus(StatusServerStatus.IDLE);
     }
