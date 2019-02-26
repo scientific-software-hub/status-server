@@ -204,7 +204,7 @@ public class StatusServer2 {
     }
 
     @Attribute
-    public long getCrtTimestamp(){
+    public long getCrtTimestamp() {
         return System.currentTimeMillis();
     }
 
