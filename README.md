@@ -3,7 +3,6 @@
 
 [![Build Status](https://travis-ci.org/hzg-wpi/status-server.svg?branch=master)](https://travis-ci.org/hzg-wpi/status-server)
 [![codecov](https://codecov.io/gh/hzg-wpi/status-server/branch/master/graph/badge.svg)](https://codecov.io/gh/hzg-wpi/status-server)
-
 [![codebeat badge](https://codebeat.co/badges/a646871c-9772-48bd-91b3-0edee8134aa2)](https://codebeat.co/projects/github-com-hzg-wpi-status-server-master)
 
 [![Download](https://img.shields.io/github/release/hzg-wpi/status-server.svg?style=flat)](https://github.com/hzg-wpi/status-server/releases/latest)
