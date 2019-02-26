@@ -71,8 +71,8 @@ public class TineClient extends Client implements ClientAdaptor {
     private ConcurrentMap<String, Future<TLink>> tlinks = new ConcurrentHashMap<String, Future<TLink>>();
 
     public TineClient(URI deviceName) {
-        super(deviceName.getPath());
-        String[] deviceInfo = deviceName.getPath().split("/");
+        super(deviceName.toString());
+        String[] deviceInfo = deviceName.toString().split("/");
         this.context = deviceInfo[1];//skip leading '/'
         this.serverName = deviceInfo[2];
         this.deviceName = deviceInfo[3];
