@@ -30,9 +30,9 @@
 package wpn.hdri.ss.configuration;
 
 import org.junit.Test;
+import org.simpleframework.xml.core.ValueRequiredException;
 import wpn.hdri.ss.data.Method;
 
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 
 import static junit.framework.TestCase.*;
@@ -79,7 +79,7 @@ public class StatusServerStatusServerConfigurationTest {
         assertSame(BigDecimal.ZERO, attr2.getPrecision());
     }
 
-    @Test(expected = InvocationTargetException.class)
+    @Test(expected = ValueRequiredException.class)
     public void test_bad() throws Exception {
         StatusServerConfiguration conf = StatusServerConfiguration.XML_SERIALIZER.read(StatusServerConfiguration.class, StatusServerStatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.BAD.xml"));
     }
