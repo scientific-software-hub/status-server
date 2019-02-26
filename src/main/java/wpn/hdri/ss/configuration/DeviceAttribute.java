@@ -29,7 +29,7 @@
 
 package wpn.hdri.ss.configuration;
 
-import com.google.common.base.Objects;
+
 import com.google.common.base.Preconditions;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
@@ -148,12 +148,12 @@ public final class DeviceAttribute {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("name", name)
-                .add("alias", alias)
-                .add("method", method)
-                .add("interpolation", interpolation)
-                .add("delay", delay)
-                .toString();
+        return this.getClass().getSimpleName() + "@" + hashCode() + "{" +
+                "name" + name +
+                "alias" + alias +
+                "method" + method +
+                "interpolation" + interpolation +
+                "delay" + delay +
+                "}";
     }
 }

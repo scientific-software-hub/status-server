@@ -29,7 +29,6 @@
 
 package wpn.hdri.ss.configuration;
 
-import com.google.common.base.Objects;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
@@ -68,9 +67,9 @@ public final class Device {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("name", name)
-                .add("attributes", attributes)
-                .toString();
+        return this.getClass().getSimpleName() + "@" + hashCode() + "{" +
+                "name" + name +
+                "attributes" + attributes +
+                "}";
     }
 }
