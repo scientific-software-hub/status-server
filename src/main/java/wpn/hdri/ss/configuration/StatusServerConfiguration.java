@@ -29,7 +29,6 @@
 
 package wpn.hdri.ss.configuration;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.simpleframework.xml.*;
@@ -131,9 +130,9 @@ public final class StatusServerConfiguration {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("devices", devices)
-                .toString();
+        return getClass().getSimpleName() + "@" + hashCode() + "{" +
+                "devices=" + devices +
+                "}";
     }
 
 
