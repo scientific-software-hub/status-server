@@ -229,28 +229,22 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.5.0</version>
-                        <executions>
-                            <execution>
-                                <id>deploy</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>upload-github-release-asset.sh</executable>
-                                    <arguments>
-                                        <argument>github_api_token=${github.apikey}</argument>
-                                        <argument>owner=${github.organization}</argument>
-                                        <argument>repo=${github.repo}</argument>
-                                        <argument>tag=${project.artifactId}-${project.version}</argument>
-                                        <argument>filename=${build.directory}/${build.finalName}</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
+                        <groupId>de.jutzig</groupId>
+                        <artifactId>github-release-plugin</artifactId>
+                        <version>1.3.0</version>
+                        <configuration>
+                            <description>Description of your release</description>
+                            <releaseName>1.0 Final</releaseName>
+                            <tag>${project.artifactId}-${project.version}</tag>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>${project.build.finalName}</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
