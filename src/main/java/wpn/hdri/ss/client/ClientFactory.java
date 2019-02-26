@@ -31,7 +31,8 @@ package wpn.hdri.ss.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.client.ez.proxy.TangoProxies;
+
+import java.net.URI;
 
 /**
  * Aggregates TINE and Tango client factories
@@ -39,8 +40,8 @@ import org.tango.client.ez.proxy.TangoProxies;
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 27.04.12
  */
-public class CompositeClientFactory {
-    private static final Logger logger = LoggerFactory.getLogger(CompositeClientFactory.class);
+public class ClientFactory {
+    private static final Logger logger = LoggerFactory.getLogger(ClientFactory.class);
 
     /**
      * Creates an instance of either {@link TangoClient} or {@link TineClient} or null.
@@ -50,20 +51,19 @@ public class CompositeClientFactory {
      *
      * NOTE: TINE devices start with '/'
      *
-     * @param deviceName a device name to which factories try to connect
+     * @param deviceUrl a device name to which factories try to connect
      * @return new client (BadClient if neither factory was able to create a client)
      */
-    public Client createClient(String deviceName) throws Exception {
-        Client result = null;
+    public Client createClient(String deviceUrl) throws Exception {
+        URI uri = URI.create(deviceUrl);
 
-            if(deviceName.startsWith("/")) {
-                logger.debug("Create TINE client...");
-                result = new TineClient(deviceName);
-            } else {
-                logger.debug("Create Tango client...");
-                result = new TangoClient(deviceName, TangoProxies.newDeviceProxyWrapper(deviceName));
-            }
-
-        return result;
+        switch (uri.getScheme()) {
+            case "tine":
+                return new TineClient(uri);
+            case "tango":
+                return new TangoClient(uri);
+            default:
+                throw new IllegalArgumentException("Unknown device uri scheme:" + uri.getScheme());
+        }
     }
 }

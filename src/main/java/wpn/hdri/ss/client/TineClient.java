@@ -46,6 +46,7 @@ import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.engine2.EventTask;
 
 import java.lang.reflect.Array;
+import java.net.URI;
 import java.util.EnumMap;
 import java.util.concurrent.*;
 
@@ -64,14 +65,14 @@ public class TineClient extends Client implements ClientAdaptor {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TineClient.class);
-    private final String context;
-    private final String serverName;
-    private final String deviceName;
+    final String context;
+    final String serverName;
+    final String deviceName;
     private ConcurrentMap<String, Future<TLink>> tlinks = new ConcurrentHashMap<String, Future<TLink>>();
 
-    public TineClient(String deviceName) {
-        super(deviceName);
-        String[] deviceInfo = deviceName.split("/");
+    public TineClient(URI deviceName) {
+        super(deviceName.getPath());
+        String[] deviceInfo = deviceName.getPath().split("/");
         this.context = deviceInfo[1];//skip leading '/'
         this.serverName = deviceInfo[2];
         this.deviceName = deviceInfo[3];

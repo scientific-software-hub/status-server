@@ -136,7 +136,6 @@ public final class StatusServerConfiguration {
     }
 
 
-    //TODO issue 6
     public DeviceAttribute getDeviceAttribute(final String deviceName, final String name) {
         return Iterables.filter(Iterables.filter(devices, new Predicate<Device>() {
             @Override

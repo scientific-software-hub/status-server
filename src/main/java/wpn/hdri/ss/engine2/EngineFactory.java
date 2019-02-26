@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.client.Client;
 import wpn.hdri.ss.client.ClientException;
-import wpn.hdri.ss.client.CompositeClientFactory;
+import wpn.hdri.ss.client.ClientFactory;
 import wpn.hdri.ss.client2.ClientAdaptor;
 import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.DeviceAttribute;
@@ -53,11 +53,11 @@ public class EngineFactory {
 
         attributes.addAll(selfAttributes);
 
-        CompositeClientFactory clientFactory = new CompositeClientFactory();
+        ClientFactory clientFactory = new ClientFactory();
         for(Device dev : configuration.getDevices()){
             Client client = null;
             try {
-                client = clientFactory.createClient(dev.getName());
+                client = clientFactory.createClient(dev.getUrl());
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 continue;

@@ -46,14 +46,18 @@ import java.util.List;
 public final class Device {
     @Attribute(name = "name")
     private String name;
+    @Attribute
+    private String url;
     @ElementList(name = "attributes")
     private List<DeviceAttribute> attributes;
 
     public Device(
             @Attribute(name = "name") String name,
+            @Attribute(name = "url") String url,
             @ElementList(name = "attributes") List<DeviceAttribute> attributes
     ) {
         this.name = name;
+        this.url = url;
         this.attributes = Collections.unmodifiableList(attributes);
     }
 
@@ -68,8 +72,12 @@ public final class Device {
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + "@" + hashCode() + "{" +
-                "name" + name +
-                "attributes" + attributes +
+                "name=" + name +
+                ";name=" + url +
                 "}";
+    }
+
+    public String getUrl() {
+        return url;
     }
 }

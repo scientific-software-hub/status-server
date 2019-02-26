@@ -54,6 +54,7 @@ public class StatusServerStatusServerConfigurationTest {
         Device dev = conf.getDevices().get(0);
 
         assertEquals("Test.Device", dev.getName());
+        assertEquals("tango://tango_host:10000/sys/tg_test/1", dev.getUrl());
 
         DeviceAttribute attr0 = dev.getAttributes().get(0);
         assertEquals("Test.Attribute", attr0.getName());

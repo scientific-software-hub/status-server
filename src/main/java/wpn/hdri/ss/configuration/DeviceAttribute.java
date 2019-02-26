@@ -149,11 +149,11 @@ public final class DeviceAttribute {
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + "@" + hashCode() + "{" +
-                "name" + name +
-                "alias" + alias +
-                "method" + method +
-                "interpolation" + interpolation +
-                "delay" + delay +
+                "name=" + name +
+                ";alias=" + alias +
+                ";method=" + method +
+                ";interpolation=" + interpolation +
+                ";delay=" + delay +
                 "}";
     }
 }
