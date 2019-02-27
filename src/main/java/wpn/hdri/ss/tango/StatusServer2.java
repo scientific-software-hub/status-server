@@ -512,8 +512,8 @@ public class StatusServer2 {
 
 
     public static void main(String[] args) throws IOException {
-        ServerManagerUtils.writePidFile(null);
         ServerManager.getInstance().start(args, StatusServer2.class);
+        ServerManagerUtils.writePidFile(null);
     }
 
     //TODO the following must be refactored as decorators
