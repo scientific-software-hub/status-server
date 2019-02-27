@@ -22,6 +22,7 @@ import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
 import org.tango.server.InvocationContext;
 import org.tango.server.ServerManager;
+import org.tango.server.ServerManagerUtils;
 import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.Attribute;
 import org.tango.server.annotation.*;
@@ -510,7 +511,8 @@ public class StatusServer2 {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        ServerManagerUtils.writePidFile(null);
         ServerManager.getInstance().start(args, StatusServer2.class);
     }
 
