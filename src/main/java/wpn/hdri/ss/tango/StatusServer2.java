@@ -35,7 +35,6 @@ import org.tango.server.pipe.PipeValue;
 import org.tango.utils.ClientIDUtil;
 import wpn.hdri.ss.configuration.StatusServerAttribute;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
-import wpn.hdri.ss.configuration.StatusServerProperties;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data2.*;
 import wpn.hdri.ss.engine2.Engine;
@@ -429,17 +428,6 @@ public class StatusServer2 {
 
         logger.info("Loading configuration...");
         StatusServerConfiguration configuration = StatusServerConfiguration.fromXmlStream(xmlStream);
-        logger.info("Done.");
-
-        StatusServerProperties properties = configuration.getProperties();
-
-        logger.info("Tuning jacORB thread pool:");
-        logger.info("Setting System settings...");
-        logger.info("jacorb.poa.thread_pool_min={}", properties.jacorbMinCpus);
-        System.setProperty("jacorb.poa.thread_pool_min", Integer.toString(properties.jacorbMinCpus));
-
-        logger.info("jacorb.poa.thread_pool_max={}", properties.jacorbMaxCpus);
-        System.setProperty("jacorb.poa.thread_pool_max", Integer.toString(properties.jacorbMaxCpus));
         logger.info("Done.");
 
         List<wpn.hdri.ss.data2.Attribute<?>> selfAttributes = initializeStatusServerAttributes(configuration, dynamicManager);

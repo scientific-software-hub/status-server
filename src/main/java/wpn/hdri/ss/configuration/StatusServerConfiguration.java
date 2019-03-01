@@ -31,7 +31,10 @@ package wpn.hdri.ss.configuration;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import org.simpleframework.xml.*;
+import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.ElementList;
+import org.simpleframework.xml.Root;
+import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.transform.Matcher;
 import org.simpleframework.xml.transform.Transform;
@@ -72,8 +75,6 @@ public final class StatusServerConfiguration {
     private List<Device> devices;
     @ElementList(name = "attributes")
     private List<StatusServerAttribute> attributes;
-    @Element(name = "properties")
-    private StatusServerProperties properties;
 
     /**
      * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.
@@ -85,12 +86,10 @@ public final class StatusServerConfiguration {
     public StatusServerConfiguration(
             @Attribute(name = "use-aliases") boolean useAliases,
             @ElementList(name = "devices") List<Device> devices,
-            @ElementList(name = "attributes") List<StatusServerAttribute> attributes,
-            @Element(name = "properties") StatusServerProperties properties) {
+            @ElementList(name = "attributes") List<StatusServerAttribute> attributes) {
         this.useAliases = useAliases;
         this.devices = devices;
         this.attributes = attributes;
-        this.properties = properties;
     }
 
     public static StatusServerConfiguration fromXml(String pathToXml) throws ConfigurationException {
@@ -122,10 +121,6 @@ public final class StatusServerConfiguration {
 
     public List<StatusServerAttribute> getStatusServerAttributes() {
         return attributes;
-    }
-
-    public StatusServerProperties getProperties() {
-        return properties;
     }
 
     @Override

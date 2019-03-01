@@ -1,8 +1,5 @@
 <?xml version="1.0"?>
 <StatusServer use-aliases="false">
-    <properties>
-        <property name="jacorb.poa.thread_pool_min" value="1"/>
-    </properties>
     <attributes>
     </attributes>
     <devices>

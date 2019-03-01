@@ -47,8 +47,6 @@ public class StatusServerStatusServerConfigurationTest {
     public void test() throws Exception {
         StatusServerConfiguration conf = StatusServerConfiguration.XML_SERIALIZER.read(StatusServerConfiguration.class, StatusServerStatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.xml"));
 
-        assertEquals(1, conf.getProperties().jacorbMinCpus);
-
         assertTrue(conf.getStatusServerAttributes().isEmpty());
 
         Device dev = conf.getDevices().get(0);
