@@ -34,7 +34,7 @@
     <groupId>de.hzg.wpi.xenv</groupId>
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.</description>
-    <version>2.1.10-SNAPSHOT</version>
+    <version>2.1.10</version>
     <packaging>jar</packaging>
 
     <developers>
