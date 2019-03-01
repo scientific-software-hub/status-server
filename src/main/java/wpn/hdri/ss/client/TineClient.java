@@ -48,6 +48,7 @@ import wpn.hdri.ss.engine2.EventTask;
 import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.EnumMap;
+import java.util.StringJoiner;
 import java.util.concurrent.*;
 
 /**
@@ -76,6 +77,15 @@ public class TineClient extends Client implements ClientAdaptor {
         this.context = deviceInfo[1];//skip leading '/'
         this.serverName = deviceInfo[2];
         this.deviceName = deviceInfo[3];
+    }
+
+    @Override
+    protected String getDeviceName() {
+        return new StringJoiner("/")
+                .add("")
+                .add(this.context)
+                .add(this.serverName)
+                .add(this.deviceName).toString();
     }
 
     protected EnumMap<Method.EventType, Object> mapEventTypes() {
