@@ -78,9 +78,20 @@ public class StatusServer2 {
         this.dynamicManager = manager;
     }
 
+    @State
+    private DeviceState state;
+
+    public DeviceState getState() {
+        return state;
+    }
+
+    public void setState(DeviceState state) {
+        this.state = state;
+    }
 
     @Status
     private String status;
+
 
     public String getStatus() {
         return status;
@@ -420,7 +431,7 @@ public class StatusServer2 {
     }
 
     @Init
-    @StateMachine(endState = DeviceState.ON, deniedStates = DeviceState.RUNNING)
+    @StateMachine(deniedStates = DeviceState.RUNNING)
     public void init() throws Exception {
         String devName = deviceManager.getName().split("/")[2];
 
@@ -437,7 +448,13 @@ public class StatusServer2 {
 
         this.contextManager = new ContextManager(engine.getAttributes(), engineFactory.getFailedAttributes());
 
-        setStatus(StatusServerStatus.IDLE);
+        if (!engineFactory.getFailedAttributes().isEmpty()) {
+            setState(DeviceState.ALARM);
+            setStatus("Some attributes in configuration has failed to initialize!");
+        } else {
+            setState(DeviceState.ON);
+            setStatus(StatusServerStatus.IDLE);
+        }
     }
 
     private List<wpn.hdri.ss.data2.Attribute<?>> initializeStatusServerAttributes(StatusServerConfiguration configuration, DynamicManager dynamicManagement) throws DevFailed {
