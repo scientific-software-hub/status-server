@@ -79,8 +79,7 @@ public class TineClient extends Client implements ClientAdaptor {
         this.deviceName = deviceInfo[3];
     }
 
-    @Override
-    public String getDeviceName() {
+    String getTineName() {
         return new StringJoiner("/")
                 .add("")
                 .add(this.context)
@@ -107,7 +106,7 @@ public class TineClient extends Client implements ClientAdaptor {
                                     short dataFormat = getTPropertyFormat(meta);
                                     TDataType dout = new TDataType(size, dataFormat);
                                     // get a reference array : synchronous call ...
-                                    TLink result = new TLink(getDeviceName(), attrName, dout, null, TAccess.CA_READ);
+                                    TLink result = new TLink(getTineName(), attrName, dout, null, TAccess.CA_READ);
                                     return result;
                                 }
                             });

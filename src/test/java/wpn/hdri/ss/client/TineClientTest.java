@@ -16,7 +16,7 @@ public class TineClientTest {
     public void getDeviceName() {
         TineClient instance = new TineClient(URI.create("tine:/PETRA/Globals/#keyword"));
 
-        String result = instance.getDeviceName();
+        String result = instance.getTineName();
 
         assertEquals("/PETRA/Globals/#keyword", result);
     }
