@@ -54,7 +54,7 @@ public abstract class Client implements ClientAdaptor {
 
     protected abstract EnumMap<Method.EventType, Object> mapEventTypes();
 
-    protected String getDeviceName() {
+    public String getDeviceName() {
         return deviceName;
     }
 

@@ -80,7 +80,7 @@ public class TineClient extends Client implements ClientAdaptor {
     }
 
     @Override
-    protected String getDeviceName() {
+    public String getDeviceName() {
         return new StringJoiner("/")
                 .add("")
                 .add(this.context)

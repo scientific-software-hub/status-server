@@ -73,7 +73,7 @@ public class EngineFactory {
 
                 Attribute<?> attr = new Attribute<>(
                         actualNumberOfAttributes++, (ClientAdaptor) client, devAttr.getDelay(),
-                        eventType, type, devAttr.getAlias(), dev.getName() + "/" + devAttr.getName(), devAttr.getName(), interpolation);
+                        eventType, type, devAttr.getAlias(), client.getDeviceName() + "/" + devAttr.getName(), devAttr.getName(), interpolation);
                 logger.debug("Monitoring attribute {}", attr.fullName);
                 logger.debug(attr.toString());
 
