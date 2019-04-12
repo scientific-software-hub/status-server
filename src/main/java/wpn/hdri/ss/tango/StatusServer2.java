@@ -20,10 +20,7 @@ import org.tango.DeviceState;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
-import org.tango.server.InvocationContext;
-import org.tango.server.ServerManager;
-import org.tango.server.ServerManagerUtils;
-import org.tango.server.StateMachineBehavior;
+import org.tango.server.*;
 import org.tango.server.annotation.Attribute;
 import org.tango.server.annotation.*;
 import org.tango.server.attribute.AttributeConfiguration;
@@ -78,19 +75,20 @@ public class StatusServer2 {
         this.dynamicManager = manager;
     }
 
-    @State
+    @State(isPolled = true)
     private DeviceState state;
 
     public DeviceState getState() {
         return state;
     }
 
+    @Status(isPolled = true)
+    private String status;
+
     public void setState(DeviceState state) {
         this.state = state;
+        new ChangeEventPusher<>("State", state, deviceManager).run();
     }
-
-    @Status
-    private String status;
 
 
     public String getStatus() {
@@ -99,6 +97,7 @@ public class StatusServer2 {
 
     public void setStatus(String status) {
         this.status = status;
+        new ChangeEventPusher<>("Status", status, deviceManager).run();
     }
 
 
@@ -240,9 +239,10 @@ public class StatusServer2 {
         long lastTimestamp = ctx.lastTimestamp;
         ctx.lastTimestamp = System.currentTimeMillis();
 
-        return new PipeValue(
+        PipeValue value = new PipeValue(
                 (PipeBlob) OutputType.PIPE.toType(
                         engine.getStorage().getAllRecords().getRange(lastTimestamp), ctx));
+        return value;
     }
 
     @Command
