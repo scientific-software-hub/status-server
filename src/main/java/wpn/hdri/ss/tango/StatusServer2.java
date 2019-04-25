@@ -87,7 +87,7 @@ public class StatusServer2 {
 
     public void setState(DeviceState state) {
         this.state = state;
-        new ChangeEventPusher<>("State", state, deviceManager).run();
+        new StateChangeEventPusher(state, deviceManager).run();
     }
 
 
