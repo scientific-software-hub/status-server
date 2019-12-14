@@ -11,7 +11,6 @@ import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.AttrWriteType;
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.PipeBlob;
-import fr.esrf.TangoApi.PipeBlobBuilder;
 import hzg.wpn.xenv.ResourceManager;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.slf4j.Logger;
@@ -20,7 +19,9 @@ import org.tango.DeviceState;
 import org.tango.client.ez.data.type.TangoDataType;
 import org.tango.client.ez.data.type.TangoDataTypes;
 import org.tango.client.ez.data.type.UnknownTangoDataType;
-import org.tango.server.*;
+import org.tango.server.InvocationContext;
+import org.tango.server.ServerManager;
+import org.tango.server.StateMachineBehavior;
 import org.tango.server.annotation.Attribute;
 import org.tango.server.annotation.*;
 import org.tango.server.attribute.AttributeConfiguration;
@@ -75,19 +76,18 @@ public class StatusServer2 {
         this.dynamicManager = manager;
     }
 
-    @State(isPolled = true)
+    @State(isPolled = true, pollingPeriod = 3000)
     private DeviceState state;
 
     public DeviceState getState() {
         return state;
     }
 
-    @Status(isPolled = true)
+    @Status(isPolled = true, pollingPeriod = 3000)
     private String status;
 
     public void setState(DeviceState state) {
         this.state = state;
-        new StateChangeEventPusher(state, deviceManager).run();
     }
 
 
@@ -95,9 +95,8 @@ public class StatusServer2 {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-        new ChangeEventPusher<>("Status", status, deviceManager).run();
+    public static void main(String[] args) {
+        ServerManager.getInstance().start(args, StatusServer2.class);
     }
 
 
@@ -204,21 +203,6 @@ public class StatusServer2 {
         Optional.ofNullable(contextManager)
                 .orElseGet(() -> new ContextManager(Collections.emptyList(), Collections.emptyList()))
                 .setClientId(ClientIDUtil.toString(invocationContext.getClientID()));
-    }
-
-    //@StatusPipe
-    @Pipe(name = "status")
-    private PipeValue statusPipe;
-
-    public PipeValue getStatusPipe(){
-        PipeBlobBuilder pbb = new PipeBlobBuilder("status");
-
-        //TODO monitored attributes
-        //TODO last read value for an attribute (OK or FAILED)
-
-
-        statusPipe.setValue(pbb.build(), System.currentTimeMillis());
-        return statusPipe;
     }
 
     @Attribute
@@ -402,59 +386,39 @@ public class StatusServer2 {
         return recordsToStrings(filteredRange, ctx);
     }
 
+    public void setStatus(String status) {
+        this.status = String.format("%d: %s", System.currentTimeMillis(), status);
+    }
+
     @Command(name="startCollectData")
-    @StateMachine(endState = DeviceState.RUNNING, deniedStates = {DeviceState.RUNNING})
+    @StateMachine(deniedStates = {DeviceState.RUNNING})
     public void start() {
         engine.start();
-        setStatus(StatusServerStatus.HEAVY_DUTY);
+        deviceManager.pushStateChangeEvent(DeviceState.RUNNING);
+        deviceManager.pushStatusChangeEvent(StatusServerStatus.HEAVY_DUTY);
     }
 
     @Command
     @StateMachine(endState = DeviceState.RUNNING, deniedStates = {DeviceState.RUNNING})
     public void startLightPoling() {
         engine.startLightPolling();
-        setStatus(StatusServerStatus.LIGHT_POLLING);
+        deviceManager.pushStateChangeEvent(DeviceState.RUNNING);
+        deviceManager.pushStatusChangeEvent(StatusServerStatus.LIGHT_POLLING);
     }
 
     @Command
-    @StateMachine(endState = DeviceState.RUNNING, deniedStates = {DeviceState.RUNNING})
+    @StateMachine(deniedStates = {DeviceState.RUNNING})
     public void startLightPolingAtFixedRate(long delay) {
         engine.startLightPollingAtFixedRate(delay);
-        setStatus(StatusServerStatus.LIGHT_POLLING_AT_FIXED_RATE);
+        deviceManager.pushStateChangeEvent(DeviceState.RUNNING);
+        deviceManager.pushStatusChangeEvent(StatusServerStatus.LIGHT_POLLING_AT_FIXED_RATE);
     }
 
     @Command(name="stopCollectData")
-    @StateMachine(endState = DeviceState.ON)
     public void stop() {
         engine.stop();
-        setStatus(StatusServerStatus.IDLE);
-    }
-
-    @Init
-    @StateMachine(deniedStates = DeviceState.RUNNING)
-    public void init() throws Exception {
-        String devName = deviceManager.getName().split("/")[2];
-
-        InputStream xmlStream = ResourceManager.loadResource("etc/StatusServer", devName + ".xml");
-
-        logger.info("Loading configuration...");
-        StatusServerConfiguration configuration = StatusServerConfiguration.fromXmlStream(xmlStream);
-        logger.info("Done.");
-
-        List<wpn.hdri.ss.data2.Attribute<?>> selfAttributes = initializeStatusServerAttributes(configuration, dynamicManager);
-
-        EngineFactory engineFactory = new EngineFactory(selfAttributes, configuration);
-        this.engine = engineFactory.newEngine();
-
-        this.contextManager = new ContextManager(engine.getAttributes(), engineFactory.getFailedAttributes());
-
-        if (!engineFactory.getFailedAttributes().isEmpty()) {
-            setState(DeviceState.ALARM);
-            setStatus("Some attributes in configuration has failed to initialize!");
-        } else {
-            setState(DeviceState.ON);
-            setStatus(StatusServerStatus.IDLE);
-        }
+        deviceManager.pushStateChangeEvent(DeviceState.ON);
+        deviceManager.pushStatusChangeEvent(StatusServerStatus.IDLE);
     }
 
     private List<wpn.hdri.ss.data2.Attribute<?>> initializeStatusServerAttributes(StatusServerConfiguration configuration, DynamicManager dynamicManagement) throws DevFailed {
@@ -515,10 +479,32 @@ public class StatusServer2 {
         return result;
     }
 
+    @Init
+    @StateMachine(deniedStates = DeviceState.RUNNING)
+    public void init() throws Exception {
+        String devName = deviceManager.getName().split("/")[2];
 
-    public static void main(String[] args) throws IOException {
-        ServerManager.getInstance().start(args, StatusServer2.class);
-        ServerManagerUtils.writePidFile(null);
+        InputStream xmlStream = ResourceManager.loadResource("etc/StatusServer", devName + ".xml");
+
+        logger.info("Loading configuration...");
+        StatusServerConfiguration configuration = StatusServerConfiguration.fromXmlStream(xmlStream);
+        logger.info("Done.");
+
+        List<wpn.hdri.ss.data2.Attribute<?>> selfAttributes = initializeStatusServerAttributes(configuration, dynamicManager);
+
+        EngineFactory engineFactory = new EngineFactory(selfAttributes, configuration);
+        this.engine = engineFactory.newEngine();
+
+        this.contextManager = new ContextManager(engine.getAttributes(), engineFactory.getFailedAttributes());
+
+        if (!engineFactory.getFailedAttributes().isEmpty()) {
+            deviceManager.pushStateChangeEvent(DeviceState.ALARM);
+            deviceManager.pushStatusChangeEvent("Some attributes in configuration has failed to initialize!");
+        } else {
+
+            deviceManager.pushStateChangeEvent(DeviceState.ON);
+            deviceManager.pushStatusChangeEvent(StatusServerStatus.IDLE);
+        }
     }
 
     //TODO the following must be refactored as decorators
