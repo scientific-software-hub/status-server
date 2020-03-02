@@ -4,5 +4,6 @@ script:
   - mvn clean install
 jdk:
   - openjdk11
+  - openjdk8
 after_success:
   - bash <(curl -s https://codecov.io/bash)
