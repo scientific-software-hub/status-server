@@ -497,12 +497,11 @@ public class StatusServer2 {
 
         this.contextManager = new ContextManager(engine.getAttributes(), engineFactory.getFailedAttributes());
 
+        deviceManager.pushStateChangeEvent(DeviceState.ON);
+
         if (!engineFactory.getFailedAttributes().isEmpty()) {
-            deviceManager.pushStateChangeEvent(DeviceState.ALARM);
             deviceManager.pushStatusChangeEvent("Some attributes in configuration has failed to initialize!");
         } else {
-
-            deviceManager.pushStateChangeEvent(DeviceState.ON);
             deviceManager.pushStatusChangeEvent(StatusServerStatus.IDLE);
         }
     }
