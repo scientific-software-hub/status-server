@@ -1,7 +1,6 @@
 # StatusServer
 
 
-[![Build Status](https://travis-ci.org/hzg-wpi/status-server.svg?branch=master)](https://travis-ci.org/hzg-wpi/status-server)
 [![codecov](https://codecov.io/gh/hzg-wpi/status-server/branch/master/graph/badge.svg)](https://codecov.io/gh/hzg-wpi/status-server)
 [![codebeat badge](https://codebeat.co/badges/a646871c-9772-48bd-91b3-0edee8134aa2)](https://codebeat.co/projects/github-com-hzg-wpi-status-server-master)
 
@@ -16,8 +15,8 @@ This Tango server corresponds to the first goal. It aggregates data from upstrea
 
 # Requirements
 
-* Java 1.8 server environment
-* Tango 8+
+* Java 11 server environment
+* Tango 9+
 
 # User guide
 
