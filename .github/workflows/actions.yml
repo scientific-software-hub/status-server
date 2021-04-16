@@ -17,5 +17,5 @@ jobs:
       - name: Run maven
         run: mvn -B package --file pom.xml
         env:
-          GITHUB_USER: ${{ secrets.GITHUB_USER }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USER: ${{ secrets.MAVEN_GITHUB_USER }}
+          GITHUB_TOKEN: ${{ secrets.MAVEN_GITHUB_TOKEN }}
