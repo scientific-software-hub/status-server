@@ -11,5 +11,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
+          server-id: github
+          server-username: GITHUB_USER
+          server-password: GITHUB_TOKEN
       - name: Run maven
         run: mvn -B package --file pom.xml
+        env:
+          GITHUB_USER: ${{ secrets.GITHUB_USER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
