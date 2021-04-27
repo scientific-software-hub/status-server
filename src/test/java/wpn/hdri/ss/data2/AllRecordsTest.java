@@ -3,11 +3,10 @@ package wpn.hdri.ss.data2;
 import com.google.common.collect.Iterables;
 import org.junit.Before;
 import org.junit.Test;
-import wpn.hdri.ss.data.Method;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 public class AllRecordsTest {
 
@@ -92,12 +91,25 @@ public class AllRecordsTest {
     }
 
     @Test
+    public void testClear() throws Exception {
+        instance.clear(500);
+
+        assertTrue(Iterables.elementsEqual(Arrays.asList(
+                new SingleRecord(null, 500, 0L, 1234L),
+                new SingleRecord(null, 600, 0L, 1234L),
+                new SingleRecord(null, 700, 0L, 1234L),
+                new SingleRecord(null, 800, 0L, 1234L),
+                new SingleRecord(null, 900, 0L, 1234L)
+        ), instance.getRange()));
+    }
+
+    @Test
     public void testGetRange_19_21() throws Exception {
-        Iterable<SingleRecord<?>> result = instance.getRange(190,210);
+        Iterable<SingleRecord<?>> result = instance.getRange(190, 210);
 
         assertTrue(Iterables.elementsEqual(Arrays.asList(
                 new SingleRecord(null, 200, 0L, 1234L)
-                ), result));
+        ), result));
     }
 
     @Test

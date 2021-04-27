@@ -133,6 +133,16 @@ public class AllRecords {
         snapshots.clear();
     }
 
+    /**
+     * Clears this records removing all data older than timestamp
+     *
+     * @param timestamp
+     */
+    public void clear(long timestamp) {
+        data.headSet(new SingleRecord<>(null, timestamp, 0L, null)).clear();
+        snapshots.headSet(new TimedSnapshot(timestamp)).clear();
+    }
+
     private static class SingleRecordComparator implements Comparator<SingleRecord<?>> {
 
         @Override

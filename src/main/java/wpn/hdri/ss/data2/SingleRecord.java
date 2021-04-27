@@ -8,7 +8,7 @@ package wpn.hdri.ss.data2;
 public class SingleRecord<T> {
     public final int id;
     public final Attribute<T> attribute; //attr.id
-    public final long r_t; //rea_timestamp
+    public final long r_t; //read_timestamp
     public final long w_t; //write_timestamp
     public final T value; //value bits
     //TODO do we need padding here?

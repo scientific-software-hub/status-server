@@ -29,26 +29,21 @@ public class Engine {
     private final List<Attribute> eventDrivenAttributes;
 
     private final Map<String, ScheduledFuture<?>> runningTasks = new HashMap<>();
+    private ScheduledFuture<?> maintenance;
+    private long maintenanceDelay = 30L;
 
     public Engine(ScheduledExecutorService exec, DataStorage storage,
-                  List<Attribute> polledAttributes, List<Attribute> eventDrivenAttributes){
+                  List<Attribute> polledAttributes, List<Attribute> eventDrivenAttributes) {
         this.exec = exec;
         this.storage = storage;
         this.polledAttributes = polledAttributes;
-        for(Attribute<?> attr : polledAttributes){
+        for (Attribute<?> attr : polledAttributes) {
             attributesByName.put(attr.fullName, attr);
         }
         this.eventDrivenAttributes = eventDrivenAttributes;
         for(Attribute<?> attr : eventDrivenAttributes){
             attributesByName.put(attr.fullName, attr);
         }
-    }
-
-
-    public void start() {
-        logger.debug("Starting...");
-        start(true, -1);
-        logger.debug("Done!");
     }
 
     private void start(boolean append, long delay){
@@ -58,39 +53,52 @@ public class Engine {
                     exec.scheduleAtFixedRate(
                             new PollTask(attr, storage, append), 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
         }
-        for(Attribute attr : eventDrivenAttributes){
-            logger.debug("Subscribing to {}" , attr.fullName);
+        for (Attribute attr : eventDrivenAttributes) {
+            logger.debug("Subscribing to {}", attr.fullName);
             attr.devClient.subscribe(new EventTask(attr, storage, append));
         }
+        this.maintenance = exec.scheduleAtFixedRate(new MaintenanceTask(), maintenanceDelay, maintenanceDelay, TimeUnit.SECONDS);
     }
 
-    public void startLightPolling(){
+
+    public void start() {
+        logger.debug("Starting...");
+        start(true, -1);
+        logger.debug("Done!");
+    }
+
+    public void stop() {
+        logger.debug("Stopping...");
+        for (Map.Entry<String, ScheduledFuture<?>> task : runningTasks.entrySet()) {
+            logger.debug("Canceling polling task for {}", task.getKey());
+            task.getValue().cancel(false);
+        }
+        for (Attribute attr : eventDrivenAttributes) {
+            logger.debug("Unsubscribing from {}", attr.fullName);
+            attr.devClient.unsubscribe(attr);
+        }
+        this.maintenance.cancel(true);
+        logger.info("Stopped!");
+    }
+
+    public void startLightPolling() {
         logger.debug("Starting light polling...");
         start(false, -1);
         logger.debug("Done!");
     }
 
-    public void startLightPollingAtFixedRate(long delay){
-        if(delay < 0) throw new IllegalArgumentException("delay must be positive!");
+    public void startLightPollingAtFixedRate(long delay) {
+        if (delay < 0) throw new IllegalArgumentException("delay must be positive!");
         logger.debug("Starting light polling at fixed rate...");
         start(false, delay);
         logger.debug("Done!");
     }
 
-    public void stop(){
-        logger.debug("Stopping...");
-        for(Map.Entry<String,ScheduledFuture<?>> task : runningTasks.entrySet()){
-            logger.debug("Canceling polling task for {}", task.getKey());
-            task.getValue().cancel(false);
-        }
-        for(Attribute attr : eventDrivenAttributes){
-            logger.debug("Unsubscribing from {}", attr.fullName);
-            attr.devClient.unsubscribe(attr);
-        }
-        logger.info("Stopped!");
+    public long getMaintenanceDelay() {
+        return this.maintenanceDelay;
     }
 
-    public DataStorage getStorage(){
+    public DataStorage getStorage() {
         return storage;
     }
 
@@ -102,12 +110,29 @@ public class Engine {
      */
     public Attribute<?> getAttributeByName(String name) {
         Attribute<?> attribute = attributesByName.get(name);
-        if(attribute == null) throw new IllegalArgumentException("No such attribute: " + name);
+        if (attribute == null) throw new IllegalArgumentException("No such attribute: " + name);
         return attribute;
     }
 
-    public Collection<Attribute<?>> getAttributes(){
+    public Collection<Attribute<?>> getAttributes() {
         return attributesByName.values();
     }
+
+    //TODO thread safety?
+    public void setMaintenanceDelay(long newDelay) {
+        this.maintenanceDelay = newDelay;
+    }
     //TODO erase data
+
+    private class MaintenanceTask implements Runnable {
+        private long lastTimestamp = System.currentTimeMillis();
+
+        @Override
+        public void run() {
+            long timestamp = this.lastTimestamp;
+            Engine.this.storage.getAllRecords().clear(timestamp);
+
+            this.lastTimestamp = System.currentTimeMillis();
+        }
+    }
 }

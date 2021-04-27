@@ -205,14 +205,25 @@ public class StatusServer2 {
         return System.currentTimeMillis();
     }
 
+    @Attribute
+    public long getMaintenanceDelay() {
+        return this.engine.getMaintenanceDelay();
+    }
+
+    @Attribute
+    @StateMachine(deniedStates = DeviceState.RUNNING)
+    public void setMaintenanceDelay(long newDelay) {
+        this.engine.setMaintenanceDelay(newDelay);
+    }
+
     @Pipe(name = "status_server_pipe")
     private PipeValue pipe;
 
-    public void setPipe(PipeValue pipe){
+    public void setPipe(PipeValue pipe) {
         this.pipe = pipe;
     }
 
-    public PipeValue getPipe(){
+    public PipeValue getPipe() {
         Context ctx = contextManager.getContext();
 
         long lastTimestamp = ctx.lastTimestamp;
