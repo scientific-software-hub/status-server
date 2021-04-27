@@ -8,31 +8,31 @@
     </attributes>
     <devices>
         <!-- tango or tine full device name-->
-        <device name="sys/tg_test/1" url="tango://hzgxenvtest:10000/sys/tg_test/1">
+        <device name="tango://localhost:10000/sys/tg_test/1" url="tango://localhost:10000/sys/tg_test/1">
             <attributes>
                 <!-- name - an attribute name;
                 method=[event|poll];
                 interpolation=[last|nearest|linear];
                 delay - polling frequency in millis. Note: delay for event=0; polling delay >= 20
                 precision for numeric attributes -->
-                <attribute name="long_scalar" alias="long" method="event" interpolation="nearest" delay="0" type="change"/>
-                <attribute name="float_scalar" alias="float" method="poll" interpolation="linear" precision="0.5"
+                <!--attribute name="long_scalar" alias="long" method="event" interpolation="nearest" delay="0" type="change"/-->
+                <!--<attribute name="float_scalar" alias="float" method="poll" interpolation="linear" precision="0.5"
                            delay="200"/>
                 <attribute name="short_scalar" alias="short" method="poll" interpolation="linear" precision="0.125"
+                           delay="150"/>-->
+                <attribute name="double_scalar" alias="double" method="poll" interpolation="last" precision="0.125"
                            delay="150"/>
-                <attribute name="double_scalar" alias="double" method="poll" interpolation="linear" precision="0.125"
-                           delay="150"/>
-                <attribute name="double_spectrum" alias="double_arr" method="poll" interpolation="linear" delay="150"/>
-                <attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/>
+                <!--<attribute name="double_spectrum" alias="double_arr" method="poll" interpolation="linear" delay="150"/>
+                <attribute name="throw_exception" method="poll" interpolation="last" precision="0." delay="300"/>-->
                 <!--<attribute name="no_value" method="event" interpolation="last" delay="100"/>-->
             </attributes>
         </device>
         <!-- note that tine device names are started with leading '/'-->
-        <device name="/TEST/SineServer/#SineGen3" url="tine:/TEST/SineServer/#SineGen3">
+        <!--<device name="/TEST/SineServer/#SineGen3" url="tine:/TEST/SineServer/#SineGen3">
             <attributes>
                 <attribute name="MessageText" method="poll" interpolation="last" delay="200"/>
                 <attribute name="RandomBinary" method="event" interpolation="last" delay="0" type="change"/>
             </attributes>
-        </device>
+        </device>-->
     </devices>
 </StatusServer>
