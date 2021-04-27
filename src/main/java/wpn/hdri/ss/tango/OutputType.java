@@ -49,7 +49,7 @@ public enum OutputType {
         public String[] toType(Iterable<SingleRecord<?>> records, Context ctx){
             Map<String, StringBuilder> stringBuilderMap = new LinkedHashMap<>();
 
-            for(Attribute<?> attr : ctx.attributesGroup.attributes){
+            for (Attribute<?> attr : ctx.getContextManager().getGroup().attributes) {
                 stringBuilderMap.put(attr.fullName, new StringBuilder(ctx.useAliases ? attr.alias : attr.fullName));
             }
 

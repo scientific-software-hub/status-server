@@ -15,14 +15,18 @@ public class Context {
     public volatile boolean encode = false;
     public volatile OutputType outputType = OutputType.PLAIN;
     public volatile long lastTimestamp;
+    public final ContextManager contextManager;
 
     /**
      * Creates default context
+     *
      * @param cid
      * @param attributes
+     * @param contextManager
      */
-    public Context(String cid, Collection<Attribute<?>> attributes) {
+    public Context(String cid, Collection<Attribute<?>> attributes, ContextManager contextManager) {
         this.cid = cid;
+        this.contextManager = contextManager;
     }
 
     @Override
@@ -37,4 +41,7 @@ public class Context {
     }
 
 
+    public ContextManager getContextManager() {
+        return contextManager;
+    }
 }

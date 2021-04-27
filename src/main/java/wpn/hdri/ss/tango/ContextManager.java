@@ -43,7 +43,7 @@ public class ContextManager {
         Preconditions.checkNotNull(clientId.get());
         logger.debug("Requesting context for client={}", clientId.get());
         Context context = clientContexts.get(clientId.get());
-        if(context == null) context = new Context(clientId.get(), attributes);
+        if (context == null) context = new Context(clientId.get(), attributes, this);
         logger.debug("Got context[{}]", context.toString());
         Context oldContext = clientContexts.putIfAbsent(clientId.get(), context);
         return oldContext == null ? context : oldContext;
