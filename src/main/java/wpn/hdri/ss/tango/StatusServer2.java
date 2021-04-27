@@ -142,22 +142,17 @@ public class StatusServer2 {
 
     @Attribute
     public String getGroup() {
-        return contextManager.getContext().attributesGroup.name;
+        return contextManager.getGroupName();
     }
 
     @Attribute
     public void setGroup(String attributesGroup) {
-        Context context = contextManager.getContext();
-        if (context.hasGroup(attributesGroup))
-            context.attributesGroup = context.getGroup(attributesGroup);
-        else
-            throw new IllegalArgumentException("AttributesGroup[" + attributesGroup + "] does not exist!");
+        contextManager.selectGroup(attributesGroup);
     }
 
     @Attribute
     public String[] getGroups(){
-        Context context = contextManager.getContext();
-        return Iterables.toArray(context.getGroups(), String.class);
+        return Iterables.toArray(contextManager.getGroups(), String.class);
     }
 
     //TODO data obtaining code must be encapsulated into a dedicated class, which will handle current status and context
@@ -170,7 +165,7 @@ public class StatusServer2 {
             range = engine.getStorage().getAllRecords().getRange();
         else
             range = engine.getStorage().getSnapshot();
-        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
+        FilteredRecords filteredRange = new FilteredRecords(contextManager.getGroup(), range);
 
 
         return recordsToStrings(filteredRange, ctx);
@@ -189,7 +184,7 @@ public class StatusServer2 {
             range = engine.getStorage().getAllRecords().getRange(lastTimestamp);
         else
             range = engine.getStorage().getSnapshot();
-        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
+        FilteredRecords filteredRange = new FilteredRecords(contextManager.getGroup(), range);
         return recordsToStrings(filteredRange, ctx);
     }
 
@@ -242,7 +237,7 @@ public class StatusServer2 {
             }
         });
 
-        contextManager.getContext().setGroup(new AttributesGroup(groupName, attributes));
+        contextManager.setGroup(new AttributesGroup(groupName, attributes));
     }
 
     @Command
@@ -278,7 +273,7 @@ public class StatusServer2 {
         Context ctx = contextManager.getContext();
 
         Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t[0], t[1]);
-        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
+        FilteredRecords filteredRange = new FilteredRecords(contextManager.getGroup(), range);
         return recordsToStrings(filteredRange, ctx);
     }
 
@@ -294,7 +289,7 @@ public class StatusServer2 {
         final Context context = contextManager.getContext();
 
         Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t[0], t[1]);
-        FilteredRecords records = new FilteredRecords(context.attributesGroup, range);
+        FilteredRecords records = new FilteredRecords(contextManager.getGroup(), range);
 
 
         Map<String, InterpolationInputData> inputDataMap = Maps.newHashMap();
@@ -372,7 +367,7 @@ public class StatusServer2 {
         Context ctx = contextManager.getContext();
 
         Snapshot snapshot = engine.getStorage().getSnapshot();
-        FilteredSnapshot filteredSnapshot = new FilteredSnapshot(ctx.attributesGroup, snapshot);
+        FilteredSnapshot filteredSnapshot = new FilteredSnapshot(contextManager.getGroup(), snapshot);
 
         return recordsToStrings(filteredSnapshot, ctx);
     }
@@ -382,7 +377,7 @@ public class StatusServer2 {
         Context ctx = contextManager.getContext();
 
         Iterable<SingleRecord<?>> range = engine.getStorage().getAllRecords().getRange(t);
-        FilteredRecords filteredRange = new FilteredRecords(ctx.attributesGroup, range);
+        FilteredRecords filteredRange = new FilteredRecords(contextManager.getGroup(), range);
         return recordsToStrings(filteredRange, ctx);
     }
 
