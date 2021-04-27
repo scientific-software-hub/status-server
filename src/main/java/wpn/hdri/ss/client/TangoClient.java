@@ -30,6 +30,7 @@
 package wpn.hdri.ss.client;
 
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.DeviceProxy;
 import fr.esrf.TangoApi.DeviceProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +95,7 @@ public class TangoClient extends Client implements ClientAdaptor {
     public <T> SingleRecord<T> read(Attribute<T> attr) throws ClientException {
         try {
             this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(DeviceProxyFactory.get(getDeviceName())));
+                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
 
 
             ValueTime<?> value = proxy.get().readAttributeValueAndTime(attr.name);

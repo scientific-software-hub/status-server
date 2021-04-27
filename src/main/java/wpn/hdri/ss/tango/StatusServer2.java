@@ -10,6 +10,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import fr.esrf.Tango.AttrDataFormat;
 import fr.esrf.Tango.AttrWriteType;
 import fr.esrf.Tango.DevFailed;
+import fr.esrf.TangoApi.ApiUtil;
 import fr.esrf.TangoApi.PipeBlob;
 import hzg.wpn.xenv.ResourceManager;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
@@ -95,14 +96,16 @@ public class StatusServer2 {
         return status;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        ApiUtil.set_db_obj("localhost:10000");
         ServerManager.getInstance().start(args, StatusServer2.class);
     }
 
 
     private Engine engine;
 
-    private ContextManager contextManager;;
+    private ContextManager contextManager;
+    ;
 
     @Attribute
     public boolean getUseAliases() {
@@ -161,7 +164,7 @@ public class StatusServer2 {
         Context ctx = contextManager.getContext();
 
         Iterable<SingleRecord<?>> range;
-        if(StatusServerStatus.HEAVY_DUTY == getStatus())
+        if (getStatus().endsWith(StatusServerStatus.HEAVY_DUTY))
             range = engine.getStorage().getAllRecords().getRange();
         else
             range = engine.getStorage().getSnapshot();
