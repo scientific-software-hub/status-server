@@ -97,7 +97,7 @@ public class StatusServer2 {
     }
 
     public static void main(String[] args) throws Exception {
-        ApiUtil.set_db_obj("localhost:10000");
+        ApiUtil.set_db_obj(System.getProperty("TANGO_HOST", "localhost:10000"));
         ServerManager.getInstance().start(args, StatusServer2.class);
     }
 
