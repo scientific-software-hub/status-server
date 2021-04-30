@@ -1,7 +1,5 @@
 package wpn.hdri.ss.engine2;
 
-import fr.esrf.Tango.DevFailed;
-import fr.esrf.TangoApi.ApiUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.Attribute;
@@ -65,11 +63,6 @@ public class Engine {
 
     public void start() {
         logger.debug("Starting...");
-        try {
-            ApiUtil.set_db_obj("localhost:10000");
-        } catch (DevFailed ignored) {
-
-        }
         start(true, -1);
         logger.debug("Done!");
     }
