@@ -1,6 +1,7 @@
 package wpn.hdri.ss.data2;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -68,7 +69,7 @@ public class AllRecords {
             return Collections.emptyList();
         }
 
-        Snapshot left = right.previous;
+        Snapshot left = right.previous.get();
         if(left == null) return right;
 
         for (int i = 0; i < totalNumberOfAttributes; ++i) {
@@ -141,6 +142,7 @@ public class AllRecords {
     public void clear(long timestamp) {
         data.headSet(new SingleRecord<>(null, timestamp, 0L, null)).clear();
         snapshots.headSet(new TimedSnapshot(timestamp)).clear();
+        snapshots.first().previous.clear();
     }
 
     private static class SingleRecordComparator implements Comparator<SingleRecord<?>> {
@@ -161,18 +163,18 @@ public class AllRecords {
 
     private static class TimedSnapshot extends Snapshot {
         private volatile long timestamp;
-        private final TimedSnapshot previous;
+        private final WeakReference<TimedSnapshot> previous;
 
         public TimedSnapshot(int totalAttributesNumber) {
             super(totalAttributesNumber);
-            this.previous = null;
+            this.previous = new WeakReference<TimedSnapshot>(null);
             this.timestamp = System.currentTimeMillis();
         }
 
         public TimedSnapshot(long t) {
             super();
             timestamp = t;
-            previous = null;
+            previous = new WeakReference<TimedSnapshot>(null);
         }
 
         @Override
@@ -184,7 +186,7 @@ public class AllRecords {
         private TimedSnapshot(Object[] array, TimedSnapshot previous){
             super(array);
             this.timestamp = previous.timestamp;
-            this.previous = previous;
+            this.previous = new WeakReference<TimedSnapshot>(previous);
         }
 
         public TimedSnapshot copy(){
