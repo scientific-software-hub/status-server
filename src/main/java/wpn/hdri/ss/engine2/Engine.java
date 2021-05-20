@@ -50,7 +50,7 @@ public class Engine {
         for(Attribute attr : polledAttributes){
             logger.debug("Scheduling polling task for {}", attr.fullName);
             runningTasks.put(attr.fullName,
-                    exec.scheduleAtFixedRate(
+                    exec.scheduleWithFixedDelay(
                             new PollTask(attr, storage, append), 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
         }
         for (Attribute attr : eventDrivenAttributes) {
