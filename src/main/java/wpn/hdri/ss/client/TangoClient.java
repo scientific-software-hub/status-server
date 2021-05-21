@@ -31,7 +31,6 @@ package wpn.hdri.ss.client;
 
 import fr.esrf.Tango.DevFailed;
 import fr.esrf.TangoApi.DeviceProxy;
-import fr.esrf.TangoApi.DeviceProxyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tango.client.ez.proxy.*;
@@ -77,7 +76,7 @@ public class TangoClient extends Client implements ClientAdaptor {
     public Class<?> getAttributeClass(String attrName) throws ClientException {
         try {
             this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(DeviceProxyFactory.get(getDeviceName())));
+                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
 
             TangoAttributeInfoWrapper attributeInfo = proxy.get().getAttributeInfo(attrName);
             if (attributeInfo == null)
@@ -113,7 +112,7 @@ public class TangoClient extends Client implements ClientAdaptor {
         final Attribute attr = cbk.getAttribute();
         try {
             this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(DeviceProxyFactory.get(getDeviceName())));
+                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
 
             proxy.get().subscribeToEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
             TangoEventListener<Object> listener = new TangoEventListener<Object>() {
@@ -143,7 +142,7 @@ public class TangoClient extends Client implements ClientAdaptor {
         listeners.remove(attr.name);
         try {
             this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(DeviceProxyFactory.get(getDeviceName())));
+                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
 
             proxy.get().unsubscribeFromEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
         } catch (TangoProxyException devFailed) {

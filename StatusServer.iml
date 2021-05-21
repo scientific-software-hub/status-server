@@ -30,14 +30,9 @@
     <orderEntry type="library" name="Maven: xpp3:xpp3:1.1.3.3" level="project" />
     <orderEntry type="library" name="Maven: de.desy:tine:4.6.0" level="project" />
     <orderEntry type="library" name="Maven: com.carrotsearch:hppc:0.7.1" level="project" />
-    <orderEntry type="library" name="Maven: de.hereon.tango.client.api:ez:3.0.1" level="project" />
+    <orderEntry type="library" name="Maven: de.hereon.tango:ez:1.0.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.javatuples:javatuples:1.2" level="project" />
-    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.5" level="project" />
-    <orderEntry type="library" name="Maven: de.hereon:utils:22" level="project" />
-    <orderEntry type="library" name="Maven: com.sun.xml.security:xml-security-impl:1.0" level="project" />
-    <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.2" level="project" />
-    <orderEntry type="library" name="Maven: de.hereon.tango:server:1.0.1" level="project" />
-    <orderEntry type="library" name="Maven: de.hereon.tango.orb:tangorb:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: de.hereon.tango.orb:tangorb:1.0.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.jacorb:jacorb:3.9" level="project" />
     <orderEntry type="library" name="Maven: org.jacorb:jacorb-omgapi:3.9" level="project" />
     <orderEntry type="library" name="Maven: org.jacorb:jacorb-services:3.9" level="project" />
@@ -57,13 +52,18 @@
     <orderEntry type="library" name="Maven: org.jboss.spec.javax.rmi:jboss-rmi-api_1.0_spec:1.0.6.Final" level="project" />
     <orderEntry type="library" name="Maven: org.zeromq:jeromq:0.4.3" level="project" />
     <orderEntry type="library" name="Maven: org.zeromq:jnacl:0.1.0" level="project" />
-    <orderEntry type="library" name="Maven: de.hereon.tango.lang:commons:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: de.hereon.tango.lang:commons:1.0.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.tango-controls:tango-idl-java:5" level="project" />
     <orderEntry type="library" name="Maven: org.jacorb:jacorb-idl-compiler:3.8" level="project" />
     <orderEntry type="library" name="Maven: org.apache.ant:ant:1.8.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.ant:ant-launcher:1.8.2" level="project" />
     <orderEntry type="library" name="Maven: java_cup:java_cup:0.9e" level="project" />
-    <orderEntry type="library" name="Maven: de.hereon.tango.lang:client:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.5" level="project" />
+    <orderEntry type="library" name="Maven: de.hereon:utils:22" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.xml.security:xml-security-impl:1.0" level="project" />
+    <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.2" level="project" />
+    <orderEntry type="library" name="Maven: de.hereon.tango:server:1.0.4-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: de.hereon.tango.lang:client:1.0.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.mozilla:rhino:1.7.7.1" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.2.3" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.2.3" level="project" />
