@@ -49,7 +49,7 @@
     <properties>
         <github.organization>hzg-wpi</github.organization>
         <github.repo>status-server</github.repo>
-        <dockerhub.username>ingvord</dockerhub.username>
+        <dockerhub.username>hzhereon</dockerhub.username>
         <dockerhub.repo>status-server</dockerhub.repo>
         <jtango.ver>1.0.5</jtango.ver>
     </properties>
