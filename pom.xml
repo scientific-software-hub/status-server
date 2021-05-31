@@ -49,6 +49,9 @@
     <properties>
         <github.organization>hzg-wpi</github.organization>
         <github.repo>status-server</github.repo>
+        <dockerhub.username>ingvord</dockerhub.username>
+        <dockerhub.repo>status-server</dockerhub.repo>
+        <jtango.ver>1.0.5</jtango.ver>
     </properties>
 
     <scm>
@@ -114,7 +117,7 @@
         <dependency>
             <groupId>de.hereon.tango</groupId>
             <artifactId>ez</artifactId>
-            <version>1.0.4</version>
+            <version>${jtango.ver}</version>
         </dependency>
         <dependency>
             <groupId>de.hereon</groupId>
@@ -124,7 +127,7 @@
         <dependency>
             <groupId>de.hereon.tango</groupId>
             <artifactId>server</artifactId>
-            <version>1.0.4</version>
+            <version>${jtango.ver}</version>
         </dependency>
     </dependencies>
 
@@ -142,12 +145,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>jar-distribution</id>
@@ -207,6 +212,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -214,6 +220,29 @@
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                     </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.4.12</version>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>push</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <repository>registry.hub.docker.com/${dockerhub.username}/${dockerhub.repo}</repository>
+                    <tag>latest</tag>
+                    <buildArgs>
+                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                    </buildArgs>
+                    <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
                 </configuration>
             </plugin>
         </plugins>
@@ -224,6 +253,29 @@
             <id>release</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>com.spotify</groupId>
+                        <artifactId>dockerfile-maven-plugin</artifactId>
+                        <version>1.4.12</version>
+                        <executions>
+                            <execution>
+                                <id>default</id>
+                                <goals>
+                                    <goal>build</goal>
+                                    <goal>push</goal>
+                                </goals>
+                                <phase>deploy</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <repository>registry.hub.docker.com/${dockerhub.username}/${dockerhub.repo}</repository>
+                            <tag>${project.version}</tag>
+                            <buildArgs>
+                                <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
+                            </buildArgs>
+                            <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>de.jutzig</groupId>
                         <artifactId>github-release-plugin</artifactId>
