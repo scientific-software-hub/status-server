@@ -51,7 +51,7 @@
         <github.repo>status-server</github.repo>
         <dockerhub.username>hzhereon</dockerhub.username>
         <dockerhub.repo>status-server</dockerhub.repo>
-        <jtango.ver>1.0.5</jtango.ver>
+        <jtango.ver>1.0.6</jtango.ver>
     </properties>
 
     <scm>
