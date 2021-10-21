@@ -47,7 +47,7 @@
     </developers>
 
     <properties>
-        <github.organization>hzg-wpi</github.organization>
+        <github.organization>hereon-wpi</github.organization>
         <github.repo>status-server</github.repo>
         <dockerhub.username>hzhereon</dockerhub.username>
         <dockerhub.repo>status-server</dockerhub.repo>
@@ -313,7 +313,7 @@
     <repositories>
         <repository>
             <id>github-hzg</id>
-            <url>https://maven.pkg.github.com/hzg-wpi/*</url>
+            <url>https://maven.pkg.github.com/hereon-wpi/*</url>
         </repository>
         <repository>
             <id>lib</id>
