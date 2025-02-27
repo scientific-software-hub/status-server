@@ -1,33 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ The main contributor to this project is Institute of Materials Research,
-  ~ Helmholtz-Zentrum Geesthacht,
-  ~ Germany.
-  ~
-  ~ This project is a contribution of the Helmholtz Association Centres and
-  ~ Technische Universitaet Muenchen to the ESS Design Update Phase.
-  ~
-  ~ The project's funding reference is FKZ05E11CG1.
-  ~
-  ~ Copyright (c) 2012. Institute of Materials Research,
-  ~ Helmholtz-Zentrum Geesthacht,
-  ~ Germany.
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
-  -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -47,17 +18,16 @@
     </developers>
 
     <properties>
-        <github.organization>hereon-wpi</github.organization>
+        <github.organization>scientific-software-hub</github.organization>
         <github.repo>status-server</github.repo>
         <dockerhub.username>hzhereon</dockerhub.username>
         <dockerhub.repo>status-server</dockerhub.repo>
-        <jtango.ver>1.0.6</jtango.ver>
     </properties>
 
     <scm>
         <connection>scm:git:git@github.com:${github.organization}/${github.repo}.git</connection>
         <developerConnection>scm:git:git@github.com:${github.organization}/${github.repo}.git</developerConnection>
-        <url>https://github.com/hzg-wpi/status-server</url>
+        <url>https://github.com/${github.organization}/${github.repo}</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -125,9 +95,9 @@
             <version>22</version>
         </dependency>
         <dependency>
-            <groupId>de.hereon.tango</groupId>
+            <groupId>org.waltz.tango</groupId>
             <artifactId>server</artifactId>
-            <version>${jtango.ver}</version>
+            <version>1.0.10</version>
         </dependency>
     </dependencies>
 
@@ -312,8 +282,8 @@
 
     <repositories>
         <repository>
-            <id>github-hzg</id>
-            <url>https://maven.pkg.github.com/hereon-wpi/*</url>
+            <id>github-upstream</id>
+            <url>https://maven.pkg.github.com/${github.organization}/*</url>
         </repository>
         <repository>
             <id>lib</id>
