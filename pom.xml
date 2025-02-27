@@ -85,9 +85,9 @@
             <version>0.7.1</version>
         </dependency>
         <dependency>
-            <groupId>de.hereon.tango</groupId>
+            <groupId>org.waltz.tango</groupId>
             <artifactId>ez</artifactId>
-            <version>${jtango.ver}</version>
+            <version>1.0.10</version>
         </dependency>
         <dependency>
             <groupId>de.hereon</groupId>
