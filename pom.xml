@@ -22,6 +22,7 @@
         <github.repo>status-server</github.repo>
         <dockerhub.username>hzhereon</dockerhub.username>
         <dockerhub.repo>status-server</dockerhub.repo>
+        <jtango.version>1.1.10</jtango.version>
     </properties>
 
     <scm>
@@ -87,17 +88,17 @@
         <dependency>
             <groupId>org.waltz.tango</groupId>
             <artifactId>ez</artifactId>
-            <version>1.0.10</version>
+            <version>${jtango.version}</version>
         </dependency>
         <dependency>
-            <groupId>de.hereon</groupId>
+            <groupId>org.waltz.tango</groupId>
             <artifactId>utils</artifactId>
-            <version>22</version>
+            <version>${jtango.version}</version>
         </dependency>
         <dependency>
             <groupId>org.waltz.tango</groupId>
             <artifactId>server</artifactId>
-            <version>1.0.10</version>
+            <version>${jtango.version}</version>
         </dependency>
     </dependencies>
 
