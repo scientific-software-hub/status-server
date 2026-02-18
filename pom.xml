@@ -5,7 +5,7 @@
     <groupId>de.hzg.wpi.xenv</groupId>
     <artifactId>StatusServer</artifactId>
     <description>StatusServer is dedicated to gather information during the experiment in a non-disturbing way.</description>
-    <version>3.0.7-SNAPSHOT</version>
+    <version>4.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <developers>
@@ -96,9 +96,9 @@
             <version>${jtango.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.waltz.tango</groupId>
-            <artifactId>server</artifactId>
-            <version>${jtango.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.2</version>
         </dependency>
     </dependencies>
 
@@ -109,7 +109,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <release>11</release>
+                    <release>21</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -138,7 +138,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>wpn.hdri.ss.tango.StatusServer2</mainClass>
+                                    <mainClass>wpn.hdri.ss.Main</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>

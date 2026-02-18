@@ -3,6 +3,7 @@ package wpn.hdri.ss.engine2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.Attribute;
+import wpn.hdri.ss.writer.RecordWriter;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,7 +23,7 @@ public class Engine {
 
     public final ScheduledExecutorService exec;
 
-    private final DataStorage storage;
+    private final RecordWriter writer;
 
     private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
 
@@ -30,13 +31,11 @@ public class Engine {
     private final List<Attribute> eventDrivenAttributes;
 
     private final Map<String, ScheduledFuture<?>> runningTasks = new HashMap<>();
-    private ScheduledFuture<?> maintenance;
-    private long maintenanceDelay = 30L;
 
-    public Engine(ScheduledExecutorService exec, DataStorage storage,
+    public Engine(ScheduledExecutorService exec, RecordWriter writer,
                   List<Attribute> polledAttributes, List<Attribute> eventDrivenAttributes) {
         this.exec = exec;
-        this.storage = storage;
+        this.writer = writer;
         this.polledAttributes = polledAttributes;
         for (Attribute<?> attr : polledAttributes) {
             attributesByName.put(attr.fullName, attr);
@@ -50,7 +49,7 @@ public class Engine {
     private void start(boolean append, long delay){
         for(Attribute attr : polledAttributes){
             logger.debug("Scheduling polling task for {}", attr.fullName);
-            PollTask task = new PollTask(attr, storage, append);
+            PollTask task = new PollTask(attr, writer, append);
             runningTasks.put(attr.fullName,
                     exec.scheduleWithFixedDelay(
                             task, 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
@@ -59,9 +58,8 @@ public class Engine {
         }
         for (Attribute attr : eventDrivenAttributes) {
             logger.debug("Subscribing to {}", attr.fullName);
-            attr.devClient.subscribe(new EventTask(attr, storage, append));
+            attr.devClient.subscribe(new EventTask(attr, writer, append));
         }
-        this.maintenance = exec.scheduleAtFixedRate(new MaintenanceTask(), maintenanceDelay, maintenanceDelay, TimeUnit.SECONDS);
     }
 
 
@@ -81,7 +79,6 @@ public class Engine {
             logger.debug("Unsubscribing from {}", attr.fullName);
             attr.devClient.unsubscribe(attr);
         }
-        this.maintenance.cancel(true);
         logger.info("Stopped!");
     }
 
@@ -96,14 +93,6 @@ public class Engine {
         logger.debug("Starting light polling at fixed rate...");
         start(false, delay);
         logger.debug("Done!");
-    }
-
-    public long getMaintenanceDelay() {
-        return this.maintenanceDelay;
-    }
-
-    public DataStorage getStorage() {
-        return storage;
     }
 
     /**
@@ -122,21 +111,4 @@ public class Engine {
         return attributesByName.values();
     }
 
-    //TODO thread safety?
-    public void setMaintenanceDelay(long newDelay) {
-        this.maintenanceDelay = newDelay;
-    }
-    //TODO erase data
-
-    private class MaintenanceTask implements Runnable {
-        private long lastTimestamp = System.currentTimeMillis();
-
-        @Override
-        public void run() {
-            long timestamp = this.lastTimestamp;
-            Engine.this.storage.getAllRecords().clear(timestamp);
-
-            this.lastTimestamp = System.currentTimeMillis();
-        }
-    }
 }

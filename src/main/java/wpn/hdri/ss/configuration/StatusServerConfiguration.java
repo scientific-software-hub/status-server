@@ -29,9 +29,8 @@
 
 package wpn.hdri.ss.configuration;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.Serializer;
@@ -41,6 +40,7 @@ import org.simpleframework.xml.transform.Transform;
 import wpn.hdri.ss.data.Method;
 
 import java.io.*;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,27 +69,27 @@ public final class StatusServerConfiguration {
         }
     });
 
-    @Attribute(name = "use-aliases")
+    @Attribute(name = "use-aliases", required = false)
     private boolean useAliases;
-    @ElementList(name = "devices")
+
+    /** Static device list. Used when no {@code <frappe>} element is present. */
+    @ElementList(name = "devices", required = false)
     private List<Device> devices;
-    @ElementList(name = "attributes")
-    private List<StatusServerAttribute> attributes;
 
     /**
-     * Do not use this constructor directly. Use {@link ConfigurationBuilder} instead.
-     *
-     * @param useAliases
-     * @param devices
-     * @param attributes
+     * When present, devices are loaded from Frappe Assets and downtime events
+     * are written back to ERPNext. Mutually exclusive with {@code <devices>}.
      */
+    @Element(name = "frappe", required = false)
+    private FrappeConfiguration frappe;
+
     public StatusServerConfiguration(
-            @Attribute(name = "use-aliases") boolean useAliases,
-            @ElementList(name = "devices") List<Device> devices,
-            @ElementList(name = "attributes") List<StatusServerAttribute> attributes) {
+            @Attribute(name = "use-aliases", required = false) boolean useAliases,
+            @ElementList(name = "devices", required = false) List<Device> devices,
+            @Element(name = "frappe", required = false) FrappeConfiguration frappe) {
         this.useAliases = useAliases;
-        this.devices = devices;
-        this.attributes = attributes;
+        this.devices = devices != null ? devices : Collections.emptyList();
+        this.frappe = frappe;
     }
 
     public static StatusServerConfiguration fromXml(String pathToXml) throws ConfigurationException {
@@ -111,16 +111,16 @@ public final class StatusServerConfiguration {
         }
     }
 
+    public FrappeConfiguration getFrappe() {
+        return frappe;
+    }
+
     public boolean isUseAliases() {
         return useAliases;
     }
 
     public List<Device> getDevices() {
         return devices;
-    }
-
-    public List<StatusServerAttribute> getStatusServerAttributes() {
-        return attributes;
     }
 
     @Override
@@ -131,17 +131,4 @@ public final class StatusServerConfiguration {
     }
 
 
-    public DeviceAttribute getDeviceAttribute(final String deviceName, final String name) {
-        return Iterables.filter(Iterables.filter(devices, new Predicate<Device>() {
-            @Override
-            public boolean apply(Device input) {
-                return input.getName().equals(deviceName);
-            }
-        }).iterator().next().getAttributes(), new Predicate<DeviceAttribute>() {
-            @Override
-            public boolean apply(DeviceAttribute input) {
-                return input.getName().equals(name);
-            }
-        }).iterator().next();
-    }
 }

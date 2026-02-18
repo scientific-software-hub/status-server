@@ -2,10 +2,10 @@ package wpn.hdri.ss.engine2;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tango.client.ez.proxy.EventData;
 import wpn.hdri.ss.client.EventCallback;
 import wpn.hdri.ss.data2.Attribute;
 import wpn.hdri.ss.data2.SingleRecord;
+import wpn.hdri.ss.writer.RecordWriter;
 
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
@@ -14,15 +14,11 @@ import wpn.hdri.ss.data2.SingleRecord;
 public class EventTask extends AbsTask {
     private static final Logger logger = LoggerFactory.getLogger(EventTask.class);
 
-
-    public EventTask(Attribute attr, DataStorage storage, boolean append) {
-        super(attr, storage, append);
+    public EventTask(Attribute attr, RecordWriter writer, boolean append) {
+        super(attr, writer, append);
     }
 
     public void onEvent(SingleRecord<?> record) {
-        if(append)
-            storage.appendRecord(record);
-         else
-            storage.writeRecord(record);
+        writer.write(record, append);
     }
 }
