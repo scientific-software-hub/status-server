@@ -1,13 +1,31 @@
-version: '2'
+networks:
+  tango-net:
+    name: tango-net
+    driver: bridge
+
 services:
   tango-db:
-    container_name: tango-mysql
-    image: tangocs/mysql:9.2.2
+    image: artefact.skao.int/ska-tango-images-tango-db:11.8.3
+    platform: linux/x86_64
+    networks:
+      - tango-net
     environment:
-      - MYSQL_ROOT_PASSWORD=root
-  tango-cs:
-    container_name: tango-cs
-    image: tangocs/tango-cs:9
+      - MARIADB_ROOT_PASSWORD=root
+      - MARIADB_DATABASE=tango
+      - MARIADB_USER=tango
+      - MARIADB_PASSWORD=tango
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect"]
+      start_period: 10s
+      interval: 500ms
+      timeout: 1s
+      retries: 3
+
+  tango-dbds:
+    image: artefact.skao.int/ska-tango-images-tango-databaseds:5.26.1
+    platform: linux/x86_64
+    networks:
+      - tango-net
     ports:
       - "10000:10000"
     environment:
@@ -17,4 +35,56 @@ services:
       - MYSQL_PASSWORD=tango
       - MYSQL_DATABASE=tango
     depends_on:
-      - tango-db
+      tango-db:
+        condition: service_healthy
+    entrypoint: Databaseds
+    command:
+      - "2"
+      - -ORBendPoint
+      - giop:tcp::10000
+    healthcheck:
+      test: ["CMD", "sh", "-c", "/usr/local/bin/tango_admin --ping-database || exit 1"]
+      start_period: 10s
+      start_interval: 500ms
+      timeout: 3s
+      retries: 3
+
+  tango-test:
+    image: artefact.skao.int/ska-tango-images-tango-test:3.12.1
+    platform: linux/x86_64
+    networks:
+      - tango-net
+    environment:
+      - TANGO_HOST=tango-dbds:10000
+    depends_on:
+      tango-dbds:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "/usr/local/bin/tango_admin --ping-device sys/tg_test/1 || exit 1"]
+      start_period: 10s
+      start_interval: 500ms
+      timeout: 1s
+      retries: 3
+    command:
+      - "test"
+
+  tango-rest:
+    image: artefact.skao.int/ska-tango-images-rest-server:1.22.5
+    platform: linux/x86_64
+    networks:
+      - tango-net
+    environment:
+      - TANGO_HOST=tango-dbds:10000
+    ports:
+      - "8080:8080"
+    depends_on:
+      tango-dbds:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "/usr/local/bin/tango_admin --ping-device sys/rest/0 || exit 1"]
+      start_period: 10s
+      start_interval: 500ms
+      timeout: 1s
+      retries: 3
+    command:
+      - "rest"
