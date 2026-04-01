@@ -71,6 +71,14 @@ public final class StatusServerConfiguration {
     @Attribute(name = "use-aliases", required = false)
     private boolean useAliases;
 
+    /** Consecutive failures before an attribute is considered STALE. Default: 3. */
+    @Attribute(name = "stale-after", required = false)
+    private int staleAfter = 3;
+
+    /** Consecutive failures before a STALE attribute is considered DOWN. Default: 6. */
+    @Attribute(name = "down-after", required = false)
+    private int downAfter = 6;
+
     @ElementList(name = "devices", required = false)
     private List<Device> devices;
 
@@ -102,6 +110,14 @@ public final class StatusServerConfiguration {
 
     public boolean isUseAliases() {
         return useAliases;
+    }
+
+    public int getStaleAfter() {
+        return staleAfter;
+    }
+
+    public int getDownAfter() {
+        return downAfter;
     }
 
     public List<Device> getDevices() {

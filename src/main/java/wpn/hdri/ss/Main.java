@@ -7,6 +7,8 @@ import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
+import wpn.hdri.ss.engine2.AvailabilityAnalyzer;
+import wpn.hdri.ss.event.DomainEvent;
 import wpn.hdri.ss.event.EventSink;
 import wpn.hdri.ss.event.TechnicalEvent;
 import wpn.hdri.ss.http.MetricsServer;
@@ -57,9 +59,10 @@ public class Main {
         WriterDispatcher dispatcher = new WriterDispatcher(List.of(inMemory));
 
         // --- build and start engine ---
-        // TODO Step 3: replace no-op with AvailabilityAnalyzer
-        EventSink<TechnicalEvent> technicalSink = event -> {};
-        EngineFactory factory = new EngineFactory(devices, dispatcher, technicalSink);
+        EventSink<DomainEvent> domainSink = event -> logger.info("Domain event: {}", event);
+        AvailabilityAnalyzer analyzer = new AvailabilityAnalyzer(
+                config.getStaleAfter(), config.getDownAfter(), domainSink);
+        EngineFactory factory = new EngineFactory(devices, dispatcher, analyzer);
         Engine engine = factory.newEngine();
 
         if (!factory.getFailedAttributes().isEmpty()) {
