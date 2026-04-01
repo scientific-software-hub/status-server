@@ -30,7 +30,6 @@
 package wpn.hdri.ss.configuration;
 
 import org.simpleframework.xml.Attribute;
-import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.Serializer;
@@ -72,24 +71,14 @@ public final class StatusServerConfiguration {
     @Attribute(name = "use-aliases", required = false)
     private boolean useAliases;
 
-    /** Static device list. Used when no {@code <frappe>} element is present. */
     @ElementList(name = "devices", required = false)
     private List<Device> devices;
 
-    /**
-     * When present, devices are loaded from Frappe Assets and downtime events
-     * are written back to ERPNext. Mutually exclusive with {@code <devices>}.
-     */
-    @Element(name = "frappe", required = false)
-    private FrappeConfiguration frappe;
-
     public StatusServerConfiguration(
             @Attribute(name = "use-aliases", required = false) boolean useAliases,
-            @ElementList(name = "devices", required = false) List<Device> devices,
-            @Element(name = "frappe", required = false) FrappeConfiguration frappe) {
+            @ElementList(name = "devices", required = false) List<Device> devices) {
         this.useAliases = useAliases;
         this.devices = devices != null ? devices : Collections.emptyList();
-        this.frappe = frappe;
     }
 
     public static StatusServerConfiguration fromXml(String pathToXml) throws ConfigurationException {
@@ -109,10 +98,6 @@ public final class StatusServerConfiguration {
         } catch (Exception e) {
             throw new ConfigurationException(e);
         }
-    }
-
-    public FrappeConfiguration getFrappe() {
-        return frappe;
     }
 
     public boolean isUseAliases() {

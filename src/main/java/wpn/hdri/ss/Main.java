@@ -7,7 +7,6 @@ import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
 import wpn.hdri.ss.http.MetricsServer;
 import wpn.hdri.ss.source.DeviceSource;
-import wpn.hdri.ss.source.FrappeDeviceSource;
 import wpn.hdri.ss.source.XmlDeviceSource;
 import wpn.hdri.ss.writer.InMemoryWriter;
 import wpn.hdri.ss.writer.RecordWriter;
@@ -21,10 +20,6 @@ import java.util.List;
  * Entry point for the status collection server.
  *
  * Usage: StatusServer &lt;path-to-config.xml&gt; [http-port]
- *
- * Configuration routing:
- *   - {@code <frappe>} present  → devices loaded from ERPNext Assets
- *   - {@code <devices>} present → devices loaded from static XML (testing / standalone)
  */
 public class Main {
 
@@ -43,18 +38,13 @@ public class Main {
         logger.info("Configuration loaded from {}", args[0]);
 
         // --- choose device source ---
-        DeviceSource deviceSource;
-        if (config.getFrappe() != null) {
-            logger.info("Frappe configured — loading devices from ERPNext Assets");
-            deviceSource = new FrappeDeviceSource(config.getFrappe());
-        } else if (!config.getDevices().isEmpty()) {
-            logger.info("Static XML devices configured — loading {} device(s)", config.getDevices().size());
-            deviceSource = new XmlDeviceSource(config);
-        } else {
-            System.err.println("Configuration must contain either <frappe> or a non-empty <devices> list.");
+        if (config.getDevices().isEmpty()) {
+            System.err.println("Configuration must contain a non-empty <devices> list.");
             System.exit(1);
             return;
         }
+        logger.info("Loading {} device(s) from XML config", config.getDevices().size());
+        DeviceSource deviceSource = new XmlDeviceSource(config);
 
         List<Device> devices = deviceSource.load();
         logger.info("Loaded {} device(s)", devices.size());
@@ -66,9 +56,6 @@ public class Main {
 
         List<RecordWriter> writers = new ArrayList<>();
         writers.add(inMemory);
-        // Future writers (ERPNextWriter, ElasticsearchWriter, …) are added here
-        // based on configuration elements, e.g.:
-        //   if (config.getFrappe() != null) writers.add(new ERPNextWriter(config.getFrappe()));
 
         WriterDispatcher dispatcher = new WriterDispatcher(writers);
 
