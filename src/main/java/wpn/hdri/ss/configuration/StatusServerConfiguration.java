@@ -30,6 +30,7 @@
 package wpn.hdri.ss.configuration;
 
 import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.Serializer;
@@ -82,6 +83,10 @@ public final class StatusServerConfiguration {
     @ElementList(name = "devices", required = false)
     private List<Device> devices;
 
+    /** When present, domain events are persisted to MariaDB. Optional. */
+    @Element(name = "mariadb", required = false)
+    private MariaDbConfiguration mariaDb;
+
     public StatusServerConfiguration(
             @Attribute(name = "use-aliases", required = false) boolean useAliases,
             @ElementList(name = "devices", required = false) List<Device> devices) {
@@ -118,6 +123,10 @@ public final class StatusServerConfiguration {
 
     public int getDownAfter() {
         return downAfter;
+    }
+
+    public MariaDbConfiguration getMariaDb() {
+        return mariaDb;
     }
 
     public List<Device> getDevices() {

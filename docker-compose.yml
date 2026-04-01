@@ -3,7 +3,29 @@ networks:
     name: tango-net
     driver: bridge
 
+volumes:
+  mariadb_data:
+
 services:
+  status-server-db:
+    image: mariadb:11
+    container_name: status-server-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: statusserver
+      MYSQL_USER: ss
+      MYSQL_PASSWORD: ss
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   tango-db:
     image: artefact.skao.int/ska-tango-images-tango-db:11.8.3
     platform: linux/x86_64

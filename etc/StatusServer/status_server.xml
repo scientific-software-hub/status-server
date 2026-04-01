@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <!-- server-name - a tango server name for this server; instance-name - a tango instance name for this server-->
 <StatusServer use-aliases="true">
+    <mariadb host="localhost" port="3306" database="statusserver" user="ss" password="ss"/>
     <devices>
         <!-- tango or tine full device name-->
         <device name="tango://localhost:10000/sys/tg_test/1" url="tango://localhost:10000/sys/tg_test/1">

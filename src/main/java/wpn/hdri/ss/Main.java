@@ -5,18 +5,19 @@ import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data2.SingleRecord;
+import wpn.hdri.ss.engine2.AvailabilityAnalyzer;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
-import wpn.hdri.ss.engine2.AvailabilityAnalyzer;
 import wpn.hdri.ss.event.DomainEvent;
 import wpn.hdri.ss.event.EventSink;
-import wpn.hdri.ss.event.TechnicalEvent;
 import wpn.hdri.ss.http.MetricsServer;
 import wpn.hdri.ss.source.DeviceSource;
 import wpn.hdri.ss.source.XmlDeviceSource;
+import wpn.hdri.ss.writer.EventDispatcher;
 import wpn.hdri.ss.writer.InMemoryWriter;
-import wpn.hdri.ss.writer.WriterDispatcher;
+import wpn.hdri.ss.writer.MariaDbSink;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public class Main {
         StatusServerConfiguration config = StatusServerConfiguration.fromXml(args[0]);
         logger.info("Configuration loaded from {}", args[0]);
 
-        // --- choose device source ---
+        // --- device source ---
         if (config.getDevices().isEmpty()) {
             System.err.println("Configuration must contain a non-empty <devices> list.");
             System.exit(1);
@@ -48,28 +49,44 @@ public class Main {
         }
         logger.info("Loading {} device(s) from XML config", config.getDevices().size());
         DeviceSource deviceSource = new XmlDeviceSource(config);
-
         List<Device> devices = deviceSource.load();
         logger.info("Loaded {} device(s)", devices.size());
 
         int totalAttributes = devices.stream().mapToInt(d -> d.getAttributes().size()).sum();
 
-        // --- build sink chain ---
+        // --- telemetry sink chain ---
         InMemoryWriter inMemory = new InMemoryWriter(totalAttributes, true);
-        WriterDispatcher dispatcher = new WriterDispatcher(List.of(inMemory));
+        EventDispatcher<SingleRecord<?>> telemetryDispatcher = new EventDispatcher<>(List.of(inMemory));
 
-        // --- build and start engine ---
-        EventSink<DomainEvent> domainSink = event -> logger.info("Domain event: {}", event);
+        // --- domain event sink chain ---
+        List<EventSink<DomainEvent>> domainSinks = new ArrayList<>();
+        domainSinks.add(event -> logger.info("Domain event: {}", event));
+
+        MariaDbSink mariaDbSink = null;
+        if (config.getMariaDb() != null) {
+            mariaDbSink = new MariaDbSink(config.getMariaDb());
+            domainSinks.add(mariaDbSink);
+            logger.info("MariaDB sink enabled ({})", config.getMariaDb().jdbcUrl());
+        }
+        EventDispatcher<DomainEvent> domainDispatcher = new EventDispatcher<>(domainSinks);
+
+        // --- engine ---
         AvailabilityAnalyzer analyzer = new AvailabilityAnalyzer(
-                config.getStaleAfter(), config.getDownAfter(), domainSink);
-        EngineFactory factory = new EngineFactory(devices, dispatcher, analyzer);
+                config.getStaleAfter(), config.getDownAfter(), domainDispatcher);
+        EngineFactory factory = new EngineFactory(devices, telemetryDispatcher, analyzer);
         Engine engine = factory.newEngine();
 
         if (!factory.getFailedAttributes().isEmpty()) {
             logger.warn("Failed attributes will not be monitored: {}", factory.getFailedAttributes());
         }
 
-        // --- start HTTP server ---
+        // Register attribute names for human-readable DB records
+        if (mariaDbSink != null) {
+            final MariaDbSink sink = mariaDbSink;
+            engine.getAttributes().forEach(attr -> sink.registerAttribute(attr.id, attr.fullName));
+        }
+
+        // --- HTTP server ---
         MetricsServer httpServer = new MetricsServer(httpPort, inMemory);
         httpServer.start();
 
@@ -78,14 +95,16 @@ public class Main {
         logger.info("Engine started, ready to collect");
 
         // --- graceful shutdown ---
+        final MariaDbSink finalMariaDbSink = mariaDbSink;
         Runtime.getRuntime().addShutdownHook(Thread.ofVirtual().unstarted(() -> {
             logger.info("Shutting down...");
             engine.stop();
             httpServer.stop();
-            try {
-                dispatcher.close();
-            } catch (Exception e) {
-                logger.error("Error closing sinks: {}", e.getMessage(), e);
+            try { telemetryDispatcher.close(); } catch (Exception e) {
+                logger.error("Error closing telemetry dispatcher: {}", e.getMessage(), e);
+            }
+            try { domainDispatcher.close(); } catch (Exception e) {
+                logger.error("Error closing domain dispatcher: {}", e.getMessage(), e);
             }
             logger.info("Shutdown complete");
         }));
