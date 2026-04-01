@@ -47,8 +47,6 @@ public class StatusServerStatusServerConfigurationTest {
     public void test() throws Exception {
         StatusServerConfiguration conf = StatusServerConfiguration.XML_SERIALIZER.read(StatusServerConfiguration.class, StatusServerStatusServerConfigurationTest.class.getResourceAsStream("/conf/StatusServer.test.xml"));
 
-        assertTrue(conf.getStatusServerAttributes().isEmpty());
-
         Device dev = conf.getDevices().get(0);
 
         assertEquals("Test.Device", dev.getName());

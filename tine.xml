@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- server-name - a tango server name for this server; instance-name - a tango instance name for this server-->
+<StatusServer use-aliases="true">
+    <devices>
+        <device name="/TEST/JSINESRV/SINEDEV_0" url="tine:/TEST/JSINESRV/SINEDEV_0">
+            <attributes>
+                <attribute name="Sine" method="poll" interpolation="last" delay="500"/>
+            </attributes>
+        </device>
+    </devices>
+</StatusServer>

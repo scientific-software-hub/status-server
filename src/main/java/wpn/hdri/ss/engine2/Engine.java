@@ -3,7 +3,9 @@ package wpn.hdri.ss.engine2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.Attribute;
-import wpn.hdri.ss.writer.RecordWriter;
+import wpn.hdri.ss.data2.SingleRecord;
+import wpn.hdri.ss.event.EventSink;
+import wpn.hdri.ss.event.TechnicalEvent;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,7 +25,8 @@ public class Engine {
 
     public final ScheduledExecutorService exec;
 
-    private final RecordWriter writer;
+    private final EventSink<SingleRecord<?>> telemetrySink;
+    private final EventSink<TechnicalEvent> technicalSink;
 
     private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
 
@@ -32,40 +35,42 @@ public class Engine {
 
     private final Map<String, ScheduledFuture<?>> runningTasks = new HashMap<>();
 
-    public Engine(ScheduledExecutorService exec, RecordWriter writer,
-                  List<Attribute> polledAttributes, List<Attribute> eventDrivenAttributes) {
+    public Engine(ScheduledExecutorService exec,
+                  EventSink<SingleRecord<?>> telemetrySink,
+                  List<Attribute> polledAttributes,
+                  List<Attribute> eventDrivenAttributes,
+                  EventSink<TechnicalEvent> technicalSink) {
         this.exec = exec;
-        this.writer = writer;
+        this.telemetrySink = telemetrySink;
+        this.technicalSink = technicalSink;
         this.polledAttributes = polledAttributes;
         for (Attribute<?> attr : polledAttributes) {
             attributesByName.put(attr.fullName, attr);
         }
         this.eventDrivenAttributes = eventDrivenAttributes;
-        for(Attribute<?> attr : eventDrivenAttributes){
+        for (Attribute<?> attr : eventDrivenAttributes) {
             attributesByName.put(attr.fullName, attr);
         }
     }
 
-    private void start(boolean append, long delay){
-        for(Attribute attr : polledAttributes){
+    private void start(long delay) {
+        for (Attribute attr : polledAttributes) {
             logger.debug("Scheduling polling task for {}", attr.fullName);
-            PollTask task = new PollTask(attr, writer, append);
+            PollTask task = new PollTask(attr, telemetrySink, technicalSink);
             runningTasks.put(attr.fullName,
                     exec.scheduleWithFixedDelay(
                             task, 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
-
             CompletableFuture.runAsync(task);
         }
         for (Attribute attr : eventDrivenAttributes) {
             logger.debug("Subscribing to {}", attr.fullName);
-            attr.devClient.subscribe(new EventTask(attr, writer, append));
+            attr.devClient.subscribe(new EventTask(attr, telemetrySink, technicalSink));
         }
     }
 
-
     public void start() {
         logger.debug("Starting...");
-        start(true, -1);
+        start(-1);
         logger.debug("Done!");
     }
 
@@ -82,33 +87,7 @@ public class Engine {
         logger.info("Stopped!");
     }
 
-    public void startLightPolling() {
-        logger.debug("Starting light polling...");
-        start(false, -1);
-        logger.debug("Done!");
-    }
-
-    public void startLightPollingAtFixedRate(long delay) {
-        if (delay < 0) throw new IllegalArgumentException("delay must be positive!");
-        logger.debug("Starting light polling at fixed rate...");
-        start(false, delay);
-        logger.debug("Done!");
-    }
-
-    /**
-     *
-     * @param name
-     * @return
-     * @throws java.lang.IllegalArgumentException
-     */
-    public Attribute<?> getAttributeByName(String name) {
-        Attribute<?> attribute = attributesByName.get(name);
-        if (attribute == null) throw new IllegalArgumentException("No such attribute: " + name);
-        return attribute;
-    }
-
     public Collection<Attribute<?>> getAttributes() {
         return attributesByName.values();
     }
-
 }

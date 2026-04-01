@@ -108,16 +108,17 @@ public class MetricsServer {
         sb.append("# HELP ").append(METRIC_PREFIX).append("_age_seconds Age of the latest sample in seconds\n");
         sb.append("# TYPE ").append(METRIC_PREFIX).append("_age_seconds gauge\n");
 
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_up 1 if the last read succeeded, 0 if it failed\n");
+        sb.append("# TYPE ").append(METRIC_PREFIX).append("_up gauge\n");
+
 
         for (SingleRecord<?> record : snapshot) {
-            if (record == null || record.value == null || record.attribute == null) {
+            if (record == null || record.attribute == null) {
                 continue;
             }
 
             AttributeParts parts = splitAttribute(record.attribute.fullName);
             String alias = sanitize(record.attribute.alias);
-            double sourceTimestampSeconds = record.r_t / 1000.0d;
-            double ageSeconds = Math.max(0.0d, (nowMillis - record.r_t) / 1000.0d);
 
             String commonLabels = new StringBuilder(256)
                     .append("source=\"").append(parts.source).append('"')
@@ -126,6 +127,22 @@ public class MetricsServer {
                     .append(",attribute=\"").append(parts.full).append('"')
                     .append(",alias=\"").append(alias).append('"')
                     .toString();
+
+            if (record.value == null) {
+                // last read failed — emit _up=0, skip value/timestamp metrics
+                sb.append(METRIC_PREFIX).append("_up{")
+                        .append(commonLabels)
+                        .append("} 0\n");
+                continue;
+            }
+
+            // _up=1 for healthy attributes
+            sb.append(METRIC_PREFIX).append("_up{")
+                    .append(commonLabels)
+                    .append("} 1\n");
+
+            double sourceTimestampSeconds = record.r_t / 1000.0d;
+            double ageSeconds = Math.max(0.0d, (nowMillis - record.r_t) / 1000.0d);
 
             // numeric value
             if (record.value instanceof Number num) {

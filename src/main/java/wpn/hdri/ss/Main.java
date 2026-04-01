@@ -2,18 +2,19 @@ package wpn.hdri.ss;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import wpn.hdri.ss.configuration.Device;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
+import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
+import wpn.hdri.ss.event.EventSink;
+import wpn.hdri.ss.event.TechnicalEvent;
 import wpn.hdri.ss.http.MetricsServer;
 import wpn.hdri.ss.source.DeviceSource;
 import wpn.hdri.ss.source.XmlDeviceSource;
 import wpn.hdri.ss.writer.InMemoryWriter;
-import wpn.hdri.ss.writer.RecordWriter;
 import wpn.hdri.ss.writer.WriterDispatcher;
-import wpn.hdri.ss.configuration.Device;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,16 +52,14 @@ public class Main {
 
         int totalAttributes = devices.stream().mapToInt(d -> d.getAttributes().size()).sum();
 
-        // --- build writer chain ---
-        InMemoryWriter inMemory = new InMemoryWriter(totalAttributes);
-
-        List<RecordWriter> writers = new ArrayList<>();
-        writers.add(inMemory);
-
-        WriterDispatcher dispatcher = new WriterDispatcher(writers);
+        // --- build sink chain ---
+        InMemoryWriter inMemory = new InMemoryWriter(totalAttributes, true);
+        WriterDispatcher dispatcher = new WriterDispatcher(List.of(inMemory));
 
         // --- build and start engine ---
-        EngineFactory factory = new EngineFactory(devices, dispatcher);
+        // TODO Step 3: replace no-op with AvailabilityAnalyzer
+        EventSink<TechnicalEvent> technicalSink = event -> {};
+        EngineFactory factory = new EngineFactory(devices, dispatcher, technicalSink);
         Engine engine = factory.newEngine();
 
         if (!factory.getFailedAttributes().isEmpty()) {
@@ -83,7 +82,7 @@ public class Main {
             try {
                 dispatcher.close();
             } catch (Exception e) {
-                logger.error("Error closing writers: {}", e.getMessage(), e);
+                logger.error("Error closing sinks: {}", e.getMessage(), e);
             }
             logger.info("Shutdown complete");
         }));

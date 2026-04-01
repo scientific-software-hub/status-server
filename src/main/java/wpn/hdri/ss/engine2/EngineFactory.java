@@ -11,7 +11,9 @@ import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data2.Attribute;
 import wpn.hdri.ss.data2.Interpolation;
-import wpn.hdri.ss.writer.RecordWriter;
+import wpn.hdri.ss.data2.SingleRecord;
+import wpn.hdri.ss.event.EventSink;
+import wpn.hdri.ss.event.TechnicalEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +28,14 @@ public class EngineFactory {
     private static final Logger logger = LoggerFactory.getLogger(EngineFactory.class);
 
     private final List<Device> devices;
-    private final RecordWriter writer;
+    private final EventSink<SingleRecord<?>> telemetrySink;
+    private final EventSink<TechnicalEvent> technicalSink;
     private final List<String> failedAttributes = new ArrayList<>();
 
-    public EngineFactory(List<Device> devices, RecordWriter writer) {
+    public EngineFactory(List<Device> devices, EventSink<SingleRecord<?>> telemetrySink, EventSink<TechnicalEvent> technicalSink) {
         this.devices = devices;
-        this.writer = writer;
+        this.telemetrySink = telemetrySink;
+        this.technicalSink = technicalSink;
     }
 
     public Engine newEngine() {
@@ -82,7 +86,7 @@ public class EngineFactory {
                 Math.max(1, polledAttributes.size()),
                 Thread.ofVirtual().factory());
 
-        return new Engine(exec, writer, polledAttributes, eventDrivenAttributes);
+        return new Engine(exec, telemetrySink, polledAttributes, eventDrivenAttributes, technicalSink);
     }
 
     public List<String> getFailedAttributes() {
