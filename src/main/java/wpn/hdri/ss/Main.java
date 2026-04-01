@@ -36,7 +36,7 @@ public class Main {
             System.exit(1);
         }
 
-        int httpPort = args.length > 1 ? Integer.parseInt(args[1]) : 9090;
+        int httpPort = args.length > 1 ? Integer.parseInt(args[1]) : 9190;
 
         // --- load configuration ---
         StatusServerConfiguration config = StatusServerConfiguration.fromXml(args[0]);

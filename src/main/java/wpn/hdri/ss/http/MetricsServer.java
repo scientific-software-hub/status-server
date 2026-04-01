@@ -27,7 +27,7 @@ public class MetricsServer {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricsServer.class);
 
-    private static final String METRIC_NAME = "control_system_attribute";
+    private static final String METRIC_PREFIX = "control_system_attribute";
     private static final String CONTENT_TYPE_PROMETHEUS = "text/plain; version=0.0.4; charset=utf-8";
     private static final String CONTENT_TYPE_TEXT = "text/plain; charset=utf-8";
 
@@ -38,8 +38,8 @@ public class MetricsServer {
         server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/metrics", exchange -> handle(exchange, () -> buildMetrics(inMemory.getStorage())));
-        server.createContext("/health",  exchange -> handle(exchange, () -> "OK"));
-        server.createContext("/ready",   exchange -> handle(exchange, () -> ready ? "READY" : null));
+        server.createContext("/health", exchange -> handle(exchange, () -> "OK"));
+        server.createContext("/ready", exchange -> handle(exchange, () -> ready ? "READY" : null));
 
         // Each request handled by a virtual thread — no blocking the selector
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
@@ -68,7 +68,8 @@ public class MetricsServer {
     private void handle(HttpExchange exchange, BodySupplier supplier) throws IOException {
         try (exchange) {
             String contentType = exchange.getRequestURI().getPath().equals("/metrics")
-                    ? CONTENT_TYPE_PROMETHEUS : CONTENT_TYPE_TEXT;
+                    ? CONTENT_TYPE_PROMETHEUS
+                    : CONTENT_TYPE_TEXT;
             try {
                 String body = supplier.get();
                 if (body == null) {
@@ -88,49 +89,166 @@ public class MetricsServer {
 
     private String buildMetrics(DataStorage storage) {
         Snapshot snapshot = storage.getSnapshot();
-        StringBuilder sb = new StringBuilder(4096);
+        StringBuilder sb = new StringBuilder(8192);
+        long nowMillis = System.currentTimeMillis();
 
-        sb.append("# HELP ").append(METRIC_NAME).append("_value Latest numeric value of a monitored control system attribute\n");
-        sb.append("# TYPE ").append(METRIC_NAME).append("_value gauge\n");
+        // --- metric headers ---
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_value Latest numeric value of a monitored control system attribute\n");
+        sb.append("# TYPE ").append(METRIC_PREFIX).append("_value gauge\n");
 
-        sb.append("# HELP ").append(METRIC_NAME).append("_state Latest string/enum state of a monitored control system attribute\n");
-        sb.append("# TYPE ").append(METRIC_NAME).append("_state gauge\n");
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_state Latest string/enum state of a monitored control system attribute\n");
+        sb.append("# TYPE ").append(METRIC_PREFIX).append("_state gauge\n");
+
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_status Human-readable status text of a monitored control system attribute\n");
+        sb.append("# TYPE ").append(METRIC_PREFIX).append("_status gauge\n");
+
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_source_timestamp_seconds Source/read timestamp reported by Status Server for the latest sample\n");
+        sb.append("# TYPE ").append(METRIC_PREFIX).append("_source_timestamp_seconds gauge\n");
+
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_age_seconds Age of the latest sample in seconds\n");
+        sb.append("# TYPE ").append(METRIC_PREFIX).append("_age_seconds gauge\n");
+
 
         for (SingleRecord<?> record : snapshot) {
-            if (record == null || record.value == null) continue;
-
-            String attrLabel = sanitize(record.attribute.fullName);
-            String aliasLabel = sanitize(record.attribute.alias);
-            long timestamp = record.r_t;
-
-            if (record.value instanceof Number num) {
-                sb.append(METRIC_NAME).append("_value{")
-                        .append("attribute=\"").append(attrLabel).append('"')
-                        .append(",alias=\"").append(aliasLabel).append('"')
-                        .append("} ").append(num.doubleValue())
-                        .append(' ').append(timestamp).append('\n');
-            } else {
-                // String / enum — encode as labelled gauge with value=1
-                sb.append(METRIC_NAME).append("_state{")
-                        .append("attribute=\"").append(attrLabel).append('"')
-                        .append(",alias=\"").append(aliasLabel).append('"')
-                        .append(",state=\"").append(escape(record.value.toString())).append('"')
-                        .append("} 1")
-                        .append(' ').append(timestamp).append('\n');
+            if (record == null || record.value == null || record.attribute == null) {
+                continue;
             }
+
+            AttributeParts parts = splitAttribute(record.attribute.fullName);
+            String alias = sanitize(record.attribute.alias);
+            double sourceTimestampSeconds = record.r_t / 1000.0d;
+            double ageSeconds = Math.max(0.0d, (nowMillis - record.r_t) / 1000.0d);
+
+            String commonLabels = new StringBuilder(256)
+                    .append("source=\"").append(parts.source).append('"')
+                    .append(",device=\"").append(parts.device).append('"')
+                    .append(",name=\"").append(parts.name).append('"')
+                    .append(",attribute=\"").append(parts.full).append('"')
+                    .append(",alias=\"").append(alias).append('"')
+                    .toString();
+
+            // numeric value
+            if (record.value instanceof Number num) {
+                sb.append(METRIC_PREFIX).append("_value{")
+                        .append(commonLabels)
+                        .append("} ")
+                        .append(num.doubleValue())
+                        .append('\n');
+            } else {
+                String valueStr = record.value.toString();
+
+                boolean isShortState =
+                        valueStr.length() < 32 &&
+                                valueStr.equals(valueStr.toUpperCase()) &&
+                                !valueStr.contains(" ");
+
+                if (isShortState) {
+                    // SHORT ENUM STATE (RUNNING, FAULT, etc.)
+                    sb.append(METRIC_PREFIX).append("_state{")
+                            .append(commonLabels)
+                            .append(",state=\"").append(escape(valueStr)).append('"')
+                            .append("} 1\n");
+                } else {
+                    // LONG STATUS TEXT
+                    sb.append(METRIC_PREFIX).append("_status{")
+                            .append(commonLabels)
+                            .append(",status=\"").append(escape(valueStr)).append('"')
+                            .append("} 1\n");
+                }
+            }
+
+            // source/read timestamp as its own metric
+            sb.append(METRIC_PREFIX).append("_source_timestamp_seconds{")
+                    .append(commonLabels)
+                    .append("} ")
+                    .append(sourceTimestampSeconds)
+                    .append('\n');
+
+            // freshness metric
+            sb.append(METRIC_PREFIX).append("_age_seconds{")
+                    .append(commonLabels)
+                    .append("} ")
+                    .append(ageSeconds)
+                    .append('\n');
         }
 
         return sb.toString();
     }
 
-    /** Replace characters not allowed in Prometheus label values with '_'. */
+    /**
+     * Splits a full attribute path into Prometheus-friendly labels.
+     *
+     * Examples:
+     * tango://localhost:10000/sys/tg_test/1/float_scalar
+     *   -> source=tango, device=sys/tg_test/1, name=float_scalar
+     *
+     * tine:/TEST/JSINESRV/SINEDEV_0/Sine
+     *   -> source=tine, device=TEST/JSINESRV/SINEDEV_0, name=Sine
+     */
+    private static AttributeParts splitAttribute(String fullName) {
+        if (fullName == null || fullName.isBlank()) {
+            return new AttributeParts("unknown", "unknown", "unknown", "unknown");
+        }
+
+        String normalized = fullName.trim();
+        String source = "unknown";
+        String remainder = normalized;
+
+        int schemeIdx = normalized.indexOf(':');
+        if (schemeIdx > 0) {
+            source = sanitize(normalized.substring(0, schemeIdx).toLowerCase());
+            remainder = normalized.substring(schemeIdx + 1);
+        }
+
+        // strip leading //host:port/ or / when present
+        if (remainder.startsWith("//")) {
+            int firstSlashAfterHost = remainder.indexOf('/', 2);
+            if (firstSlashAfterHost >= 0) {
+                remainder = remainder.substring(firstSlashAfterHost + 1);
+            } else {
+                remainder = "";
+            }
+        } else if (remainder.startsWith("/")) {
+            remainder = remainder.substring(1);
+        }
+
+        String device = "unknown";
+        String name = "unknown";
+
+        int lastSlash = remainder.lastIndexOf('/');
+        if (lastSlash >= 0) {
+            device = remainder.substring(0, lastSlash);
+            name = remainder.substring(lastSlash + 1);
+        } else if (!remainder.isBlank()) {
+            name = remainder;
+        }
+
+        return new AttributeParts(
+                source,
+                sanitize(device),
+                sanitize(name),
+                sanitize(normalized)
+        );
+    }
+
+    /** Replace problematic characters in label values with '_'. */
     private static String sanitize(String s) {
-        if (s == null) return "unknown";
-        return s.replaceAll("[^a-zA-Z0-9_:/.]", "_");
+        if (s == null || s.isBlank()) {
+            return "unknown";
+        }
+        return s.replaceAll("[^a-zA-Z0-9_:/.\\-]", "_");
     }
 
     /** Escape backslashes, double-quotes, and newlines in label values. */
     private static String escape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
+        if (s == null) {
+            return "unknown";
+        }
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n");
+    }
+
+    private record AttributeParts(String source, String device, String name, String full) {
     }
 }
