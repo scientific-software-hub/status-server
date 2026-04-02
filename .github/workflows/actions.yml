@@ -17,5 +17,5 @@ jobs:
       - name: Build
         run: mvn -B package -Dmaven.test.skip=true --file pom.xml
         env:
-          GITHUB_USER: ${{ secrets.MAVEN_GITHUB_USER }}
-          GITHUB_TOKEN: ${{ secrets.MAVEN_GITHUB_TOKEN }}
+          GITHUB_USER: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
