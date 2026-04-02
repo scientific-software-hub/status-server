@@ -24,6 +24,24 @@ CREATE TABLE IF NOT EXISTS `tabState Transition` (
     INDEX `idx_transitioned_at` (`transitioned_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `tabCurrent State` (
+    -- ERPNext standard fields
+    `name`              varchar(140)    NOT NULL,
+    `creation`          datetime(6)     DEFAULT NULL,
+    `modified`          datetime(6)     DEFAULT NULL,
+    `modified_by`       varchar(140)    DEFAULT NULL,
+    `owner`             varchar(140)    DEFAULT NULL,
+    `docstatus`         tinyint(1)      NOT NULL DEFAULT 0,
+    `idx`               int             NOT NULL DEFAULT 0,
+    -- domain fields
+    `attribute_id`      int             NOT NULL,
+    `attribute_name`    varchar(255)    NOT NULL,
+    `state`             varchar(10)     NOT NULL,
+    `since`             datetime(6)     NOT NULL,
+    PRIMARY KEY (`name`),
+    UNIQUE INDEX `udx_attribute_id` (`attribute_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `tabDowntime Interval` (
     -- ERPNext standard fields
     `name`              varchar(140)    NOT NULL,

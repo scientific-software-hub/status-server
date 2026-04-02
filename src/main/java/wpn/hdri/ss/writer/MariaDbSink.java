@@ -15,7 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Persists domain events to MariaDB in ERPNext-compatible tables.
  *
  * <ul>
- *   <li>{@code AvailabilityTransitioned} → INSERT into {@code tabState Transition}</li>
+ *   <li>{@code AvailabilityTransitioned} → INSERT into {@code tabState Transition}
+ *                                          + UPSERT into {@code tabCurrent State}</li>
  *   <li>{@code DowntimeOpened}           → INSERT into {@code tabDowntime Interval} (closed_at = NULL)</li>
  *   <li>{@code DowntimeClosed}           → UPDATE {@code tabDowntime Interval} SET closed_at, duration_seconds</li>
  * </ul>
@@ -27,6 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MariaDbSink implements EventSink<DomainEvent>, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(MariaDbSink.class);
+
+    private static final String UPSERT_CURRENT_STATE =
+            "INSERT INTO `tabCurrent State` " +
+            "(name, creation, modified, modified_by, owner, docstatus, idx, " +
+            " attribute_id, attribute_name, state, since) " +
+            "VALUES (?, NOW(6), NOW(6), 'status-server', 'status-server', 1, 0, ?, ?, ?, ?) " +
+            "ON DUPLICATE KEY UPDATE " +
+            "  state = VALUES(state), since = VALUES(since), modified = NOW(6)";
 
     private static final String INSERT_TRANSITION =
             "INSERT INTO `tabState Transition` " +
@@ -86,13 +95,25 @@ public class MariaDbSink implements EventSink<DomainEvent>, AutoCloseable {
     // --- private ---
 
     private void insertTransition(AvailabilityTransitioned t) throws SQLException {
-        try (PreparedStatement ps = connection().prepareStatement(INSERT_TRANSITION)) {
+        String attrName = attributeNames.getOrDefault(t.attributeId(), "attr-" + t.attributeId());
+        Timestamp ts = Timestamp.from(t.timestamp());
+        Connection conn = connection();
+
+        try (PreparedStatement ps = conn.prepareStatement(INSERT_TRANSITION)) {
             ps.setString(1, newName());
             ps.setInt(2, t.attributeId());
-            ps.setString(3, attributeNames.getOrDefault(t.attributeId(), "attr-" + t.attributeId()));
+            ps.setString(3, attrName);
             ps.setString(4, t.from().name());
             ps.setString(5, t.to().name());
-            ps.setTimestamp(6, Timestamp.from(t.timestamp()));
+            ps.setTimestamp(6, ts);
+            ps.executeUpdate();
+        }
+        try (PreparedStatement ps = conn.prepareStatement(UPSERT_CURRENT_STATE)) {
+            ps.setString(1, "CS-" + t.attributeId());
+            ps.setInt(2, t.attributeId());
+            ps.setString(3, attrName);
+            ps.setString(4, t.to().name());
+            ps.setTimestamp(5, ts);
             ps.executeUpdate();
         }
     }
