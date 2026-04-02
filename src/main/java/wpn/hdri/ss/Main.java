@@ -55,7 +55,7 @@ public class Main {
         int totalAttributes = devices.stream().mapToInt(d -> d.getAttributes().size()).sum();
 
         // --- telemetry sink chain ---
-        InMemoryWriter inMemory = new InMemoryWriter(totalAttributes, true);
+        InMemoryWriter inMemory = new InMemoryWriter(totalAttributes);
         EventDispatcher<SingleRecord<?>> telemetryDispatcher = new EventDispatcher<>(List.of(inMemory));
 
         // --- domain event sink chain ---

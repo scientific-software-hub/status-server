@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +59,6 @@ public class Engine {
             runningTasks.put(attr.fullName,
                     exec.scheduleWithFixedDelay(
                             task, 0L, delay == -1 ? attr.delay : delay, TimeUnit.MILLISECONDS));
-            CompletableFuture.runAsync(task);
         }
         for (Attribute attr : eventDrivenAttributes) {
             logger.debug("Subscribing to {}", attr.fullName);

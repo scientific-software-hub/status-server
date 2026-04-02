@@ -111,12 +111,15 @@ public class MetricsServer {
         sb.append("# HELP ").append(METRIC_PREFIX).append("_up 1 if the last read succeeded, 0 if it failed\n");
         sb.append("# TYPE ").append(METRIC_PREFIX).append("_up gauge\n");
 
+        int monitored = 0;
+        int up = 0;
 
         for (SingleRecord<?> record : snapshot) {
             if (record == null || record.attribute == null) {
                 continue;
             }
 
+            monitored++;
             AttributeParts parts = splitAttribute(record.attribute.fullName);
             String alias = sanitize(record.attribute.alias);
 
@@ -135,6 +138,8 @@ public class MetricsServer {
                         .append("} 0\n");
                 continue;
             }
+
+            up++;
 
             // _up=1 for healthy attributes
             sb.append(METRIC_PREFIX).append("_up{")
@@ -188,6 +193,19 @@ public class MetricsServer {
                     .append(ageSeconds)
                     .append('\n');
         }
+
+        // --- service-level summary metrics ---
+        sb.append("# HELP status_server_monitored_attributes Total number of attributes currently monitored\n");
+        sb.append("# TYPE status_server_monitored_attributes gauge\n");
+        sb.append("status_server_monitored_attributes ").append(monitored).append('\n');
+
+        sb.append("# HELP status_server_up_attributes Number of attributes whose last read succeeded\n");
+        sb.append("# TYPE status_server_up_attributes gauge\n");
+        sb.append("status_server_up_attributes ").append(up).append('\n');
+
+        sb.append("# HELP status_server_failed_attributes Number of attributes whose last read failed\n");
+        sb.append("# TYPE status_server_failed_attributes gauge\n");
+        sb.append("status_server_failed_attributes ").append(monitored - up).append('\n');
 
         return sb.toString();
     }
