@@ -47,6 +47,17 @@ class AttributeAvailability {
         return state;
     }
 
+    /**
+     * Restores persisted state on startup without emitting any domain events.
+     * For DOWN state, {@code since} becomes the downtimeStart so a subsequent
+     * recovery correctly closes the existing interval.
+     */
+    void restore(AvailabilityState restoredState, Instant since) {
+        this.state = restoredState;
+        this.consecutiveFailures = restoredState == AvailabilityState.UP ? 0 : downAfter;
+        this.downtimeStart = restoredState == AvailabilityState.DOWN ? since : null;
+    }
+
     private void handleSuccess(Instant ts) {
         consecutiveFailures = 0;
         if (state == AvailabilityState.UP) return;

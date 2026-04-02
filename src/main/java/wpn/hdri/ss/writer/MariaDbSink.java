@@ -5,8 +5,11 @@ import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.configuration.MariaDbConfiguration;
 import wpn.hdri.ss.event.*;
 
+import static wpn.hdri.ss.event.AvailabilityState.*;
+
 import java.sql.*;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,6 +65,29 @@ public class MariaDbSink implements EventSink<DomainEvent>, AutoCloseable {
     public MariaDbSink(MariaDbConfiguration config) {
         this.config = config;
     }
+
+    /**
+     * Reads all rows from {@code tabCurrent State} and returns them keyed by attribute_id.
+     * Used at startup to restore {@link wpn.hdri.ss.engine2.AvailabilityAnalyzer} state.
+     */
+    public Map<Integer, CurrentState> loadCurrentStates() throws SQLException {
+        Map<Integer, CurrentState> result = new HashMap<>();
+        String sql = "SELECT attribute_id, state, since FROM `tabCurrent State`";
+        try (PreparedStatement ps = connection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                int id = rs.getInt("attribute_id");
+                AvailabilityState state = AvailabilityState.valueOf(rs.getString("state"));
+                Instant since = rs.getTimestamp("since").toInstant();
+                result.put(id, new CurrentState(id, state, since));
+            }
+        }
+        logger.info("Loaded {} persisted attribute state(s) from tabCurrent State", result.size());
+        return result;
+    }
+
+    /** Snapshot of a persisted attribute availability state. */
+    public record CurrentState(int attributeId, AvailabilityState state, Instant since) {}
 
     /** Called after engine start so attribute names appear in DB records. */
     public void registerAttribute(int id, String fullName) {

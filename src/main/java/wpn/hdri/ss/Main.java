@@ -80,10 +80,20 @@ public class Main {
             logger.warn("Failed attributes will not be monitored: {}", factory.getFailedAttributes());
         }
 
-        // Register attribute names for human-readable DB records
         if (mariaDbSink != null) {
             final MariaDbSink sink = mariaDbSink;
+
+            // Register attribute names for human-readable DB records
             engine.getAttributes().forEach(attr -> sink.registerAttribute(attr.id, attr.fullName));
+
+            // Restore persisted availability state before the engine starts collecting
+            try {
+                sink.loadCurrentStates().forEach((id, cs) ->
+                        analyzer.seed(id, cs.state(), cs.since()));
+                logger.info("Availability state restored from MariaDB");
+            } catch (Exception e) {
+                logger.warn("Could not restore state from MariaDB, starting fresh: {}", e.getMessage());
+            }
         }
 
         // --- HTTP server ---

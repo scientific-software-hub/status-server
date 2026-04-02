@@ -145,6 +145,46 @@ public class AvailabilityAnalyzerTest {
         assertEquals(3, aEvents);
     }
 
+    // --- recovery tests ---
+
+    @Test
+    public void seedDownStateClosesDowntimeOnRecovery() {
+        Instant downtimeStart = Instant.now().minusSeconds(300);
+        analyzer.seed(ATTR_ID, AvailabilityState.DOWN, downtimeStart);
+
+        succeed();
+
+        assertEquals(2, emitted.size());
+        assertTransition(emitted.get(0), AvailabilityState.DOWN, AvailabilityState.UP);
+        DowntimeClosed closed = (DowntimeClosed) emitted.get(1);
+        assertEquals(downtimeStart, closed.openedAt());
+    }
+
+    @Test
+    public void seedStaleStateTransitionsToUpOnRecovery() {
+        analyzer.seed(ATTR_ID, AvailabilityState.STALE, Instant.now().minusSeconds(60));
+
+        succeed();
+
+        assertEquals(1, emitted.size());
+        assertTransition(emitted.get(0), AvailabilityState.STALE, AvailabilityState.UP);
+    }
+
+    @Test
+    public void seedUpStateEmitsNothingOnSuccess() {
+        analyzer.seed(ATTR_ID, AvailabilityState.UP, Instant.now());
+        succeed();
+        assertTrue(emitted.isEmpty());
+    }
+
+    @Test
+    public void seedDownStateContinuesAccumulatingFailures() {
+        analyzer.seed(ATTR_ID, AvailabilityState.DOWN, Instant.now().minusSeconds(60));
+        // more failures while DOWN should not emit anything new
+        fail(3);
+        assertTrue(emitted.isEmpty());
+    }
+
     // --- assertion helpers ---
 
     private static void assertTransition(DomainEvent event, AvailabilityState from, AvailabilityState to) {

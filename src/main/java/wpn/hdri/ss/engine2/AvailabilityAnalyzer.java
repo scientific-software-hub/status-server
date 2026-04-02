@@ -1,9 +1,11 @@
 package wpn.hdri.ss.engine2;
 
+import wpn.hdri.ss.event.AvailabilityState;
 import wpn.hdri.ss.event.DomainEvent;
 import wpn.hdri.ss.event.EventSink;
 import wpn.hdri.ss.event.TechnicalEvent;
 
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -33,6 +35,16 @@ public class AvailabilityAnalyzer implements EventSink<TechnicalEvent> {
         states.computeIfAbsent(event.attributeId(),
                         id -> new AttributeAvailability(id, staleAfter, downAfter, domainSink))
                 .process(event);
+    }
+
+    /**
+     * Seeds a single attribute's state machine from persisted storage.
+     * Must be called before {@code engine.start()} so no live events race with the restore.
+     */
+    public void seed(int attributeId, AvailabilityState state, Instant since) {
+        states.computeIfAbsent(attributeId,
+                        id -> new AttributeAvailability(id, staleAfter, downAfter, domainSink))
+                .restore(state, since);
     }
 
     @Override
