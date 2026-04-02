@@ -67,67 +67,10 @@
   "panels": [
     {
       "id": 1,
-      "type": "timeseries",
-      "title": "$alias — Value",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
-      "targets": [
-        {
-          "expr": "control_system_attribute_value{alias=\"$alias\"}",
-          "legendFormat": "{{alias}}",
-          "refId": "A"
-        }
-      ],
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single" }
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      }
-    },
-    {
-      "id": 2,
-      "type": "timeseries",
-      "title": "$alias — Freshness",
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
-      "targets": [
-        {
-          "expr": "control_system_attribute_age_seconds{alias=\"$alias\"}",
-          "legendFormat": "{{alias}}",
-          "refId": "A"
-        }
-      ],
-      "options": {
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single" }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green",  "value": null },
-              { "color": "yellow", "value": 0.5  },
-              { "color": "red",    "value": 2    }
-            ]
-          },
-          "custom": {
-            "thresholdsStyle": { "mode": "line" }
-          }
-        },
-        "overrides": []
-      }
-    },
-    {
-      "id": 3,
       "type": "table",
       "title": "Current Values Snapshot",
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
       "targets": [
         {
           "expr": "control_system_attribute_age_seconds",
@@ -209,11 +152,11 @@
       }
     },
     {
-      "id": 4,
+      "id": 2,
       "type": "timeseries",
       "title": "All Signal Values",
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
       "targets": [
         {
           "expr": "control_system_attribute_value",
@@ -231,11 +174,11 @@
       }
     },
     {
-      "id": 5,
+      "id": 3,
       "type": "timeseries",
       "title": "Signal Freshness — All",
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 8 },
       "targets": [
         {
           "expr": "control_system_attribute_age_seconds",
@@ -246,6 +189,63 @@
       "options": {
         "legend": { "displayMode": "table", "placement": "bottom", "showLegend": true },
         "tooltip": { "mode": "multi" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 0.5  },
+              { "color": "red",    "value": 2    }
+            ]
+          },
+          "custom": {
+            "thresholdsStyle": { "mode": "line" }
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "$alias — Value",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "control_system_attribute_value{alias=\"$alias\"}",
+          "legendFormat": "{{alias}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single" }
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "$alias — Freshness",
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "control_system_attribute_age_seconds{alias=\"$alias\"}",
+          "legendFormat": "{{alias}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single" }
       },
       "fieldConfig": {
         "defaults": {
