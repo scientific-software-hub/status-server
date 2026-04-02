@@ -15,7 +15,7 @@ jobs:
           server-username: GITHUB_USER
           server-password: GITHUB_TOKEN
       - name: Build
-        run: mvn -B package -Dmaven.test.skip=true --file pom.xml
+        run: mvn -B --no-transfer-progress package -Dmaven.test.skip=true --file pom.xml
         env:
           GITHUB_USER: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
