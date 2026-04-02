@@ -76,15 +76,17 @@ public class Main {
         EngineFactory factory = new EngineFactory(devices, telemetryDispatcher, analyzer);
         Engine engine = factory.newEngine();
 
-        if (!factory.getFailedAttributes().isEmpty()) {
-            logger.warn("Failed attributes will not be monitored: {}", factory.getFailedAttributes());
+        if (!factory.getPendingAttributes().isEmpty()) {
+            logger.warn("{} attribute(s) unavailable at startup, will retry every 30 s",
+                    factory.getPendingAttributes().size());
         }
 
         if (mariaDbSink != null) {
             final MariaDbSink sink = mariaDbSink;
 
-            // Register attribute names for human-readable DB records
+            // Register attribute names for human-readable DB records (including pending ones)
             engine.getAttributes().forEach(attr -> sink.registerAttribute(attr.id, attr.fullName));
+            factory.getPendingAttributes().forEach(p -> sink.registerAttribute(p.id(), p.fullName()));
 
             // Restore persisted availability state before the engine starts collecting
             try {

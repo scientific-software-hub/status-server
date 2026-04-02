@@ -211,12 +211,16 @@ public class TineClient extends Client implements ClientAdaptor {
                         SingleRecord<?> record = new SingleRecord<>(attr,System.currentTimeMillis(),time,getDataObject(dout));
                         eventTask.onEvent(record);
                     } else {
-                        LOGGER.error(TErrorList.getErrorString(LinkStatus));
+                        String errMsg = TErrorList.getErrorString(LinkStatus);
+                        LOGGER.warn("{}/{}: {}", getDeviceName(), attr.name, errMsg);
+                        eventTask.onError(new Exception("TLink callback error: " + errMsg));
                     }
                 }
             });
             if (rc < 0) {
-                LOGGER.error("Failed subscribe to {}/{}: {}", getDeviceName(), attr.name, link.getLastError());
+                String errMsg = link.getLastError();
+                LOGGER.error("Failed subscribe to {}/{}: {}", getDeviceName(), attr.name, errMsg);
+                eventTask.onError(new ClientException("Subscribe failed for " + getDeviceName() + "/" + attr.name + ": " + errMsg, null));
             }
     }
 

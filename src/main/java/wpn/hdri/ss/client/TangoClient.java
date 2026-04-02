@@ -124,16 +124,20 @@ public class TangoClient extends Client implements ClientAdaptor {
 
                 @Override
                 public void onError(Exception cause) {
-                    logger.error(cause.getMessage(), cause);
+                    logger.warn("{}/{}: {}", getDeviceName(), attr.name, cause.getMessage());
+                    cbk.onError(cause);
                 }
             };
             proxy.get().addEventListener(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType), listener);
 
             listeners.put(attr.name, listener);
-        } catch (TangoProxyException | NoSuchAttributeException devFailed) {
-            logger.error(devFailed.toString());
+        } catch (TangoProxyException | NoSuchAttributeException e) {
+            logger.error("Failed to subscribe to {}/{}: {}", getDeviceName(), attr.name, e.getMessage());
+            cbk.onError(new wpn.hdri.ss.client.ClientException("Subscribe failed for " + getDeviceName() + "/" + attr.name, e));
         } catch (DevFailed devFailed) {
             DevFailedUtils.logDevFailed(devFailed, logger);
+            cbk.onError(new wpn.hdri.ss.client.ClientException("Subscribe failed for " + getDeviceName() + "/" + attr.name,
+                    TangoUtils.convertDevFailedToException(devFailed)));
         }
     }
 

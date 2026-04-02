@@ -17,8 +17,17 @@ import java.time.Instant;
 public class EventTask extends AbsTask {
     private static final Logger logger = LoggerFactory.getLogger(EventTask.class);
 
+    private Runnable resubscribeCallback;
+
     public EventTask(Attribute attr, EventSink<SingleRecord<?>> sink, EventSink<TechnicalEvent> technicalSink) {
         super(attr, sink, technicalSink);
+    }
+
+    /**
+     * Called by Engine so that when onError() fires, the engine can queue a re-subscription attempt.
+     */
+    public void setResubscribeCallback(Runnable resubscribeCallback) {
+        this.resubscribeCallback = resubscribeCallback;
     }
 
     public void onEvent(SingleRecord<?> record) {
@@ -30,5 +39,8 @@ public class EventTask extends AbsTask {
         logger.warn("{}/{}: {}", attr.devClient, attr.name, e.getMessage());
         sink.onEvent(new SingleRecord<>(attr, System.currentTimeMillis(), 0, null));
         technicalSink.onEvent(classifyException(e));
+        if (resubscribeCallback != null) {
+            resubscribeCallback.run();
+        }
     }
 }

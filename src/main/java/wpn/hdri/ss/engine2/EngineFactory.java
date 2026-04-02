@@ -30,7 +30,7 @@ public class EngineFactory {
     private final List<Device> devices;
     private final EventSink<SingleRecord<?>> telemetrySink;
     private final EventSink<TechnicalEvent> technicalSink;
-    private final List<String> failedAttributes = new ArrayList<>();
+    private final List<PendingAttribute> pendingAttributes = new ArrayList<>();
 
     public EngineFactory(List<Device> devices, EventSink<SingleRecord<?>> telemetrySink, EventSink<TechnicalEvent> technicalSink) {
         this.devices = devices;
@@ -49,12 +49,16 @@ public class EngineFactory {
             Client client = clientFactory.createClient(dev.getUrl());
 
             for (DeviceAttribute devAttr : dev.getAttributes()) {
+                // Pre-assign the ID so the Snapshot slot is always reserved
+                int id = attrId++;
+                String fullName = client.getDeviceName() + "/" + devAttr.getName();
+
                 Class<?> type;
                 try {
                     type = client.getAttributeClass(devAttr.getName());
                 } catch (ClientException e) {
-                    logger.warn("Failed to connect to {}/{}: {}", dev.getUrl(), devAttr.getName(), e.getMessage());
-                    failedAttributes.add(dev.getUrl() + "/" + devAttr.getName());
+                    logger.warn("Failed to connect to {} — will retry every 30 s: {}", fullName, e.getMessage());
+                    pendingAttributes.add(new PendingAttribute(id, client, devAttr, fullName));
                     continue;
                 }
 
@@ -62,10 +66,9 @@ public class EngineFactory {
                 Interpolation interpolation = Interpolation.valueOf(devAttr.getInterpolation().toUpperCase());
 
                 Attribute<?> attr = new Attribute<>(
-                        attrId++, (ClientAdaptor) client, devAttr.getDelay(),
+                        id, (ClientAdaptor) client, devAttr.getDelay(),
                         eventType, type, devAttr.getAlias(),
-                        client.getDeviceName() + "/" + devAttr.getName(),
-                        devAttr.getName(), interpolation);
+                        fullName, devAttr.getName(), interpolation);
 
                 logger.debug("Monitoring attribute {}", attr.fullName);
 
@@ -77,19 +80,22 @@ public class EngineFactory {
             }
         }
 
-        if (!failedAttributes.isEmpty()) {
-            logger.warn("{} attribute(s) failed to initialize: {}", failedAttributes.size(), failedAttributes);
+        if (!pendingAttributes.isEmpty()) {
+            logger.warn("{} attribute(s) unavailable at startup, retry scheduled: {}",
+                    pendingAttributes.size(),
+                    pendingAttributes.stream().map(PendingAttribute::fullName).toList());
         }
 
         // Virtual threads: one per polling task, blocking I/O does not consume OS threads.
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(
-                Math.max(1, polledAttributes.size()),
+                Math.max(1, polledAttributes.size() + 1), // +1 for the retry task
                 Thread.ofVirtual().factory());
 
-        return new Engine(exec, telemetrySink, polledAttributes, eventDrivenAttributes, technicalSink);
+        return new Engine(exec, telemetrySink, polledAttributes, eventDrivenAttributes, technicalSink,
+                new ArrayList<>(pendingAttributes));
     }
 
-    public List<String> getFailedAttributes() {
-        return failedAttributes;
+    public List<PendingAttribute> getPendingAttributes() {
+        return pendingAttributes;
     }
 }
