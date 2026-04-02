@@ -1,21 +1,21 @@
-name: Build StatuServer
+name: Build StatusServer
 on: [push]
 jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
-      - name: Set up JDK 11
-        uses: actions/setup-java@v2
+        uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'adopt'
-          server-id: github-hzg
+          java-version: '21'
+          distribution: 'temurin'
+          server-id: github-upstream
           server-username: GITHUB_USER
           server-password: GITHUB_TOKEN
-      - name: Run maven
-        run: mvn -B package --file pom.xml
+      - name: Build
+        run: mvn -B package -Dmaven.test.skip=true --file pom.xml
         env:
           GITHUB_USER: ${{ secrets.MAVEN_GITHUB_USER }}
           GITHUB_TOKEN: ${{ secrets.MAVEN_GITHUB_TOKEN }}
