@@ -35,11 +35,14 @@ class AttributeAvailability {
 
     void process(TechnicalEvent event) {
         switch (event) {
-            case ReadSuccess s  -> handleSuccess(s.timestamp());
-            case Reconnect r    -> handleSuccess(r.timestamp());
-            case ReadFailure f  -> handleFailure(f.timestamp());
-            case Timeout t      -> handleFailure(t.timestamp());
-            case Disconnect d   -> handleFailure(d.timestamp());
+            case ReadSuccess s        -> handleSuccess(s.timestamp());
+            case Reconnect r          -> handleSuccess(r.timestamp());
+            case ReadFailure f        -> handleFailure(f.timestamp());
+            case Timeout t            -> handleFailure(t.timestamp());
+            case Disconnect d         -> handleFailure(d.timestamp());
+            case ConnectionRefused c  -> handleFailure(c.timestamp());
+            case DeviceNotExported d  -> handleFailure(d.timestamp());
+            case DevError e           -> handleFailure(e.timestamp());
         }
     }
 

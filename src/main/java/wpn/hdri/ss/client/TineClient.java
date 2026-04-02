@@ -165,7 +165,8 @@ public class TineClient extends Client implements ClientAdaptor {
     private TPropertyQuery getTPropertyQuery(String attrName) throws ClientException {
         TPropertyQuery[] result = TQuery.getPropertyInformation(context, serverName, deviceName, attrName);
         if (result == null) {
-            throw new ClientException("Cannot read meta info for " + getDeviceName() + "/" + attrName, new NullPointerException());
+            throw new ClientException("Cannot read meta info for " + getDeviceName() + "/" + attrName,
+                    new NullPointerException(), ClientException.FailureType.CONNECTION_REFUSED);
         }
         return result[0];
     }
@@ -177,14 +178,30 @@ public class TineClient extends Client implements ClientAdaptor {
             TLink tLink = futureLink.get();
             int rc = tLink.execute();
             if (rc != TErrorList.success) {
-                throw new Exception("TLink has failed: " + TErrorList.getErrorString(rc));
+                String errMsg = TErrorList.getErrorString(rc);
+                throw new ClientException("TLink failed: " + errMsg, null, classifyTineError(rc));
             }
             TDataType dout = tLink.dOutput;
             long time = tLink.getLastTimeStamp();
             return new SingleRecord<T>(attr, System.currentTimeMillis(), time, (T)getDataObject(dout));
+        } catch (ClientException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ClientException("Read from " + getDeviceName() + "/" + attr.name + " has failed:" + e.getMessage(), e);
+            throw new ClientException("Read from " + getDeviceName() + "/" + attr.name + " failed: " + e.getMessage(),
+                    e, ClientException.FailureType.CONNECTION_REFUSED);
         }
+    }
+
+    private static ClientException.FailureType classifyTineError(int rc) {
+        if (rc == TErrorList.non_existent_server || rc == TErrorList.device_not_connected
+                || rc == TErrorList.tcp_connect_error || rc == TErrorList.link_error) {
+            return ClientException.FailureType.CONNECTION_REFUSED;
+        }
+        if (rc == TErrorList.link_timeout || rc == TErrorList.operation_timeout
+                || rc == TErrorList.connection_timeout) {
+            return ClientException.FailureType.TIMEOUT;
+        }
+        return ClientException.FailureType.DEVICE_ERROR;
     }
 
     @Override

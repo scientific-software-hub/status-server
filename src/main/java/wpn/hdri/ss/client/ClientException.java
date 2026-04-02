@@ -1,40 +1,38 @@
-/*
- * The main contributor to this project is Institute of Materials Research,
- * Helmholtz-Zentrum Geesthacht,
- * Germany.
- *
- * This project is a contribution of the Helmholtz Association Centres and
- * Technische Universitaet Muenchen to the ESS Design Update Phase.
- *
- * The project's funding reference is FKZ05E11CG1.
- *
- * Copyright (c) 2012. Institute of Materials Research,
- * Helmholtz-Zentrum Geesthacht,
- * Germany.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
 package wpn.hdri.ss.client;
 
 /**
- * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
- * @since 27.04.12
+ * Wraps any protocol-level error from a Tango or TINE client.
+ * The {@link FailureType} is set by the client at throw-site so the engine
+ * can map it to a precise {@link wpn.hdri.ss.event.TechnicalEvent} subtype
+ * without importing protocol-specific exception classes.
  */
 public class ClientException extends Exception {
+
+    public enum FailureType {
+        /** TCP connection could not be established — host/port unreachable. */
+        CONNECTION_REFUSED,
+        /** Tango: API_DeviceNotExported — server process up, device not started. */
+        DEVICE_NOT_EXPORTED,
+        /** Device is reachable but returned a protocol-level error (DevFailed, TINE link error). */
+        DEVICE_ERROR,
+        /** Read timed out waiting for a response. */
+        TIMEOUT,
+        /** Unclassified — fall back to message-string inspection. */
+        OTHER
+    }
+
+    private final FailureType failureType;
+
     public ClientException(String msg, Throwable cause) {
+        this(msg, cause, FailureType.OTHER);
+    }
+
+    public ClientException(String msg, Throwable cause, FailureType failureType) {
         super(msg, cause);
+        this.failureType = failureType;
+    }
+
+    public FailureType getFailureType() {
+        return failureType;
     }
 }

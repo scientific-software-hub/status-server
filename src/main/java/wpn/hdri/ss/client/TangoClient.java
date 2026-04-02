@@ -83,10 +83,10 @@ public class TangoClient extends Client implements ClientAdaptor {
                 throw new ClientException("Exception in " + proxy.get().getName(), new NullPointerException("attributeInfo is null"));
             return attributeInfo.getClazz();
         } catch (TangoProxyException | NoSuchAttributeException e) {
-            throw new ClientException("Exception in " + proxy.get().getName(), e);
+            throw new ClientException("Exception in " + getDeviceName(), e, classifyTangoProxyException(e));
         } catch (DevFailed devFailed) {
-            throw new ClientException("DevFailed when tried to read attribute",
-                    TangoUtils.convertDevFailedToException(devFailed));
+            throw new ClientException("DevFailed: " + firstReason(devFailed),
+                    TangoUtils.convertDevFailedToException(devFailed), classifyDevFailed(devFailed));
         }
     }
 
@@ -96,14 +96,13 @@ public class TangoClient extends Client implements ClientAdaptor {
             this.proxy.compareAndSet(null,
                     TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
 
-
             ValueTime<?> value = proxy.get().readAttributeValueAndTime(attr.name);
             return new SingleRecord<>(attr, System.currentTimeMillis(), value.getTime(), (T)value.getValue());
-        } catch (TangoProxyException|NoSuchAttributeException e) {
-            throw new ClientException(e.getMessage(),e);
+        } catch (TangoProxyException | NoSuchAttributeException e) {
+            throw new ClientException(e.getMessage(), e, classifyTangoProxyException(e));
         } catch (DevFailed devFailed) {
-            throw new ClientException("DevFailed when tried to read attribute",
-                    TangoUtils.convertDevFailedToException(devFailed));
+            throw new ClientException("DevFailed: " + firstReason(devFailed),
+                    TangoUtils.convertDevFailedToException(devFailed), classifyDevFailed(devFailed));
         }
     }
 
@@ -133,12 +132,41 @@ public class TangoClient extends Client implements ClientAdaptor {
             listeners.put(attr.name, listener);
         } catch (TangoProxyException | NoSuchAttributeException e) {
             logger.error("Failed to subscribe to {}/{}: {}", getDeviceName(), attr.name, e.getMessage());
-            cbk.onError(new wpn.hdri.ss.client.ClientException("Subscribe failed for " + getDeviceName() + "/" + attr.name, e));
+            cbk.onError(new ClientException("Subscribe failed for " + getDeviceName() + "/" + attr.name,
+                    e, classifyTangoProxyException(e)));
         } catch (DevFailed devFailed) {
             DevFailedUtils.logDevFailed(devFailed, logger);
-            cbk.onError(new wpn.hdri.ss.client.ClientException("Subscribe failed for " + getDeviceName() + "/" + attr.name,
-                    TangoUtils.convertDevFailedToException(devFailed)));
+            cbk.onError(new ClientException("Subscribe failed for " + getDeviceName() + "/" + attr.name,
+                    TangoUtils.convertDevFailedToException(devFailed), classifyDevFailed(devFailed)));
         }
+    }
+
+    // --- classification helpers ---
+
+    private static String firstReason(DevFailed df) {
+        return (df.errors != null && df.errors.length > 0) ? df.errors[0].reason : "unknown";
+    }
+
+    private static ClientException.FailureType classifyDevFailed(DevFailed df) {
+        String reason = firstReason(df).toLowerCase();
+        if (reason.contains("devicenotexported") || reason.contains("device_not_exported")) {
+            return ClientException.FailureType.DEVICE_NOT_EXPORTED;
+        }
+        if (reason.contains("cantconnect") || reason.contains("cant_connect")
+                || reason.contains("corbaexception") || reason.contains("corba_exception")
+                || reason.contains("connection refused")) {
+            return ClientException.FailureType.CONNECTION_REFUSED;
+        }
+        return ClientException.FailureType.DEVICE_ERROR;
+    }
+
+    private static ClientException.FailureType classifyTangoProxyException(Exception e) {
+        String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+        if (msg.contains("connection refused") || msg.contains("cantconnect")
+                || msg.contains("unreachable") || msg.contains("corba")) {
+            return ClientException.FailureType.CONNECTION_REFUSED;
+        }
+        return ClientException.FailureType.OTHER;
     }
 
     @Override

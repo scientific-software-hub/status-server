@@ -8,7 +8,8 @@ import java.time.Instant;
  * consumes these events and produces domain-level availability transitions.
  */
 public sealed interface TechnicalEvent
-        permits ReadSuccess, ReadFailure, Timeout, Disconnect, Reconnect {
+        permits ReadSuccess, ReadFailure, Timeout, Disconnect, Reconnect,
+                ConnectionRefused, DeviceNotExported, DevError {
 
     /** Internal attribute id (matches {@link wpn.hdri.ss.data2.Attribute#id}). */
     int attributeId();
