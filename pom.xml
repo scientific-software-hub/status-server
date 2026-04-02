@@ -20,7 +20,7 @@
     <properties>
         <github.organization>scientific-software-hub</github.organization>
         <github.repo>status-server</github.repo>
-        <dockerhub.username>hzhereon</dockerhub.username>
+        <ghcr.org>scientific-software-hub</ghcr.org>
         <dockerhub.repo>status-server</dockerhub.repo>
         <jtango.version>1.1.10</jtango.version>
     </properties>
@@ -213,7 +213,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <repository>registry.hub.docker.com/${dockerhub.username}/${dockerhub.repo}</repository>
+                    <repository>ghcr.io/${ghcr.org}/${dockerhub.repo}</repository>
                     <tag>latest</tag>
                     <buildArgs>
                         <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
@@ -244,7 +244,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <repository>registry.hub.docker.com/${dockerhub.username}/${dockerhub.repo}</repository>
+                            <repository>ghcr.io/${ghcr.org}/${dockerhub.repo}</repository>
                             <tag>${project.version}</tag>
                             <buildArgs>
                                 <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
