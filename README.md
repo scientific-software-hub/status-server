@@ -149,6 +149,81 @@ docker exec -i status-server-db mariadb -u ss -pss statusserver < db/schema.sql
 
 On startup, if MariaDB is configured, StatusServer reads `tabCurrent State` and seeds the in-memory state machines — attributes that were DOWN when the server last stopped resume tracking correctly.
 
+## Observability
+
+The `observability/` directory contains a pre-configured Prometheus + Grafana stack.
+
+```bash
+# Start the full stack (MariaDB + Prometheus + Grafana)
+docker compose up -d status-server-db prometheus grafana
+
+# Or bring everything up at once including the Tango test stack
+docker compose up -d
+```
+
+| Service | URL | Credentials |
+|---|---|---|
+| Prometheus | http://localhost:9090 | — |
+| Grafana | http://localhost:3000 | admin / admin |
+
+Prometheus scrapes StatusServer at `host.docker.internal:9190` every 5 seconds.
+
+### Grafana Dashboards
+
+Two dashboards are provided in `observability/grafana/`. Import them via **Dashboards → Import → Upload JSON**.
+
+**Status Server Health** (`status-server-grafana-dashboard.json`)
+
+Operational overview — no time series. Designed for a monitoring wall or quick health check.
+
+```
+┌─────────────────────────────────────────┐
+│         Monitored Attributes: N         │
+├────────────────────┬────────────────────┤
+│   Max Signal Age   │ Freshness / Source │
+├────────────────────┼────────────────────┤
+│   Up Attributes    │ Failed Attributes  │
+├────────────────────┴────────────────────┤
+│         Device State & Status           │
+├─────────────────────────────────────────┤
+│         Failed Attributes (table)       │
+└─────────────────────────────────────────┘
+```
+
+**Status Server Live Values** (`status-server-grafana-dashboard-v2.json`)
+
+Live signal explorer. Use the `Alias` variable to drill into a specific attribute.
+
+```
+┌─────────────────────────────────────────┐
+│      Current Values Snapshot (table)    │
+├─────────────────────────────────────────┤
+│      All Signal Values (timeseries)     │
+├─────────────────────────────────────────┤
+│      Signal Freshness — All             │
+├────────────────────┬────────────────────┤
+│  $alias — Value    │  $alias — Freshness│
+├────────────────────┴────────────────────┤
+│      Device State & Status              │
+└─────────────────────────────────────────┘
+```
+
+### Prometheus Metrics
+
+| Metric | Type | Description |
+|---|---|---|
+| `control_system_attribute_value` | gauge | Latest numeric value |
+| `control_system_attribute_state` | gauge | Latest enum state (label `state=`) |
+| `control_system_attribute_status` | gauge | Latest status text (label `status=`) |
+| `control_system_attribute_up` | gauge | 1 = last read succeeded, 0 = failed |
+| `control_system_attribute_age_seconds` | gauge | Age of the latest sample |
+| `control_system_attribute_source_timestamp_seconds` | gauge | Source timestamp of latest sample |
+| `status_server_monitored_attributes` | gauge | Total attributes being monitored |
+| `status_server_up_attributes` | gauge | Attributes with a successful last read |
+| `status_server_failed_attributes` | gauge | Attributes with a failed last read |
+
+All per-attribute metrics carry labels: `source`, `device`, `name`, `attribute`, `alias`.
+
 ## Development
 
 ```bash
