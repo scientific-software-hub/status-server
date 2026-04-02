@@ -23,6 +23,15 @@ java -jar target/status-server-*.jar path/to/config.xml [http-port]
 # http-port defaults to 9190
 ```
 
+### Docker 
+
+```bash
+docker run -v /path/to/etc:/app/etc \                                                                                                                                                                                                                                                                                                                                                                                     
+             -e SS_CONFIG=/app/etc/config.xml \
+             -p 9190:9190 \                                                                                                                                                                                                                                                                                                                                                                                                 
+             ghcr.io/scientific-software-hub/status-server:latest
+```
+
 ## Configuration
 
 Configuration is an XML file. Minimal example:

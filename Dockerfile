@@ -13,7 +13,7 @@ RUN chown -R javauser /app
 USER javauser
 WORKDIR /app
 
-ENV SS_CONFIG=/app/etc/StatusServer/conf/config.xml
+ENV SS_CONFIG=/app/etc/config.xml
 ENV SS_PORT=9190
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
