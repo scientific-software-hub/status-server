@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.data2.Snapshot;
 import wpn.hdri.ss.engine2.DataStorage;
-import wpn.hdri.ss.engine2.FailureTypeStore;
 import wpn.hdri.ss.writer.InMemoryWriter;
 
 import java.io.IOException;
@@ -35,10 +34,10 @@ public class MetricsServer {
     private final HttpServer server;
     private volatile boolean ready = false;
 
-    public MetricsServer(int port, InMemoryWriter inMemory, FailureTypeStore failureTypeStore) throws IOException {
+    public MetricsServer(int port, InMemoryWriter inMemory) throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        server.createContext("/metrics", exchange -> handle(exchange, () -> buildMetrics(inMemory.getStorage(), failureTypeStore)));
+        server.createContext("/metrics", exchange -> handle(exchange, () -> buildMetrics(inMemory.getStorage())));
         server.createContext("/health", exchange -> handle(exchange, () -> "OK"));
         server.createContext("/ready", exchange -> handle(exchange, () -> ready ? "READY" : null));
 
@@ -88,7 +87,7 @@ public class MetricsServer {
         }
     }
 
-    private String buildMetrics(DataStorage storage, FailureTypeStore failureTypeStore) {
+    private String buildMetrics(DataStorage storage) {
         Snapshot snapshot = storage.getSnapshot();
         StringBuilder sb = new StringBuilder(8192);
         long nowMillis = System.currentTimeMillis();
@@ -134,11 +133,9 @@ public class MetricsServer {
 
             if (record.value == null) {
                 // last read failed — emit _up=0 with failure classification labels
-                FailureTypeStore.FailureInfo fi = failureTypeStore.get(record.id);
-                String failureLabels = buildFailureLabels(fi);
                 sb.append(METRIC_PREFIX).append("_up{")
                         .append(commonLabels)
-                        .append(failureLabels)
+                        .append(buildFailureLabels(record.failureType, record.failureDetail))
                         .append("} 0\n");
                 continue;
             }
@@ -214,12 +211,12 @@ public class MetricsServer {
         return sb.toString();
     }
 
-    private static String buildFailureLabels(FailureTypeStore.FailureInfo fi) {
-        if (fi == null) return "";
+    private static String buildFailureLabels(String failureType, String failureDetail) {
+        if (failureType == null) return "";
         StringBuilder sb = new StringBuilder();
-        sb.append(",failure_type=\"").append(fi.type()).append('"');
-        if (fi.detail() != null && !fi.detail().isBlank()) {
-            sb.append(",failure_detail=\"").append(escape(fi.detail())).append('"');
+        sb.append(",failure_type=\"").append(failureType).append('"');
+        if (failureDetail != null && !failureDetail.isBlank()) {
+            sb.append(",failure_detail=\"").append(escape(failureDetail)).append('"');
         }
         return sb.toString();
     }

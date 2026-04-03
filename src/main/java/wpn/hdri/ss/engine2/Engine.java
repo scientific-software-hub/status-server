@@ -109,7 +109,7 @@ public class Engine {
                     p.id(), null, 0L, Method.EventType.NONE, Object.class,
                     p.devAttr().getAlias(), p.fullName(), p.devAttr().getName(),
                     Interpolation.LAST);
-            telemetrySink.onEvent(new SingleRecord<>(stub, now, 0L, null));
+            telemetrySink.onEvent(new SingleRecord<>(stub, now, 0L, null, "ReadFailure", null));
             technicalSink.onEvent(new ReadFailure(p.id(), java.time.Instant.now(),
                     "Upstream unavailable at startup"));
         }

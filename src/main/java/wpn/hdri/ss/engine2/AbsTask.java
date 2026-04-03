@@ -29,6 +29,22 @@ public class AbsTask {
         return attr;
     }
 
+    /** Builds a null-value record carrying failure classification from an already-classified event. */
+    protected SingleRecord<?> failedRecord(TechnicalEvent tech) {
+        String type = switch (tech) {
+            case Timeout t            -> "Timeout";
+            case ConnectionRefused c  -> "ConnectionRefused";
+            case DeviceNotExported d  -> "DeviceNotExported";
+            case DevError e           -> "DevError";
+            case ReadFailure f        -> "ReadFailure";
+            case Disconnect d         -> "Disconnect";
+            case ReadSuccess s        -> null;
+            case Reconnect r          -> null;
+        };
+        String detail = tech instanceof DevError e ? e.reason() : null;
+        return new SingleRecord<>(attr, System.currentTimeMillis(), 0, null, type, detail);
+    }
+
     protected TechnicalEvent classifyException(Exception e) {
         Instant now = Instant.now();
 

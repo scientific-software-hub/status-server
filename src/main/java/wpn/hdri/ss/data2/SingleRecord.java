@@ -11,14 +11,23 @@ public class SingleRecord<T> {
     public final long r_t; //read_timestamp
     public final long w_t; //write_timestamp
     public final T value; //value bits
-    //TODO do we need padding here?
+    /** Non-null when value is null — carries the failure event class name, e.g. "ConnectionRefused". */
+    public final String failureType;
+    /** Non-null only for DevError — carries the protocol-level reason string. */
+    public final String failureDetail;
 
     public SingleRecord(Attribute<T> attribute, long r_t, long w_t, T value) {
+        this(attribute, r_t, w_t, value, null, null);
+    }
+
+    public SingleRecord(Attribute<T> attribute, long r_t, long w_t, T value, String failureType, String failureDetail) {
         this.attribute = attribute;
         this.id = attribute == null ? 0 : attribute.id;
         this.r_t = r_t;
         this.w_t = w_t;
         this.value = value;
+        this.failureType = failureType;
+        this.failureDetail = failureDetail;
     }
 
     @Override

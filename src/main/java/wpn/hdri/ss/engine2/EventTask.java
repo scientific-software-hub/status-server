@@ -37,8 +37,9 @@ public class EventTask extends AbsTask {
 
     public void onError(Exception e) {
         logger.warn("{}/{}: {}", attr.devClient, attr.name, e.getMessage());
-        sink.onEvent(new SingleRecord<>(attr, System.currentTimeMillis(), 0, null));
-        technicalSink.onEvent(classifyException(e));
+        TechnicalEvent tech = classifyException(e);
+        sink.onEvent(failedRecord(tech));
+        technicalSink.onEvent(tech);
         if (resubscribeCallback != null) {
             resubscribeCallback.run();
         }

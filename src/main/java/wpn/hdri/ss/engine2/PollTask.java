@@ -29,8 +29,9 @@ public class PollTask extends AbsTask implements Runnable {
             technicalSink.onEvent(new ReadSuccess(attr.id, Instant.now()));
         } catch (ClientException e) {
             logger.warn("{}/{}: {}", attr.devClient, attr.name, e.getMessage());
-            sink.onEvent(new SingleRecord<>(attr, System.currentTimeMillis(), 0, null));
-            technicalSink.onEvent(classifyException(e));
+            TechnicalEvent tech = classifyException(e);
+            sink.onEvent(failedRecord(tech));
+            technicalSink.onEvent(tech);
         }
     }
 }
