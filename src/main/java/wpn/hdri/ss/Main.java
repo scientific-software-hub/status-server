@@ -8,6 +8,7 @@ import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.engine2.AvailabilityAnalyzer;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
+import wpn.hdri.ss.engine2.FailureTypeStore;
 import wpn.hdri.ss.event.DomainEvent;
 import wpn.hdri.ss.event.EventSink;
 import wpn.hdri.ss.http.MetricsServer;
@@ -71,9 +72,12 @@ public class Main {
         EventDispatcher<DomainEvent> domainDispatcher = new EventDispatcher<>(domainSinks);
 
         // --- engine ---
+        FailureTypeStore failureTypeStore = new FailureTypeStore();
         AvailabilityAnalyzer analyzer = new AvailabilityAnalyzer(
                 config.getStaleAfter(), config.getDownAfter(), domainDispatcher);
-        EngineFactory factory = new EngineFactory(devices, telemetryDispatcher, analyzer);
+        EventDispatcher<wpn.hdri.ss.event.TechnicalEvent> technicalDispatcher =
+                new EventDispatcher<>(List.of(analyzer, failureTypeStore));
+        EngineFactory factory = new EngineFactory(devices, telemetryDispatcher, technicalDispatcher);
         Engine engine = factory.newEngine();
 
         if (!factory.getPendingAttributes().isEmpty()) {
@@ -99,7 +103,7 @@ public class Main {
         }
 
         // --- HTTP server ---
-        MetricsServer httpServer = new MetricsServer(httpPort, inMemory);
+        MetricsServer httpServer = new MetricsServer(httpPort, inMemory, failureTypeStore);
         httpServer.start();
 
         engine.start();
