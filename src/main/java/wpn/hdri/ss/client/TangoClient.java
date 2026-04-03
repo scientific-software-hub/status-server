@@ -98,6 +98,12 @@ public class TangoClient extends Client implements ClientAdaptor {
 
             ValueTime<?> value = proxy.get().readAttributeValueAndTime(attr.name);
             return new SingleRecord<>(attr, System.currentTimeMillis(), value.getTime(), (T)value.getValue());
+        } catch(ReadAttributeException e) {
+            String detail = e.reason + ": " + e.desc;
+            ClientException.FailureType type = e.devFailed != null
+                    ? classifyDevFailed(e.devFailed)
+                    : ClientException.FailureType.DEVICE_ERROR;
+            throw new ClientException(detail, e, type);
         } catch (TangoProxyException | NoSuchAttributeException e) {
             throw new ClientException(e.getMessage(), e, classifyTangoProxyException(e));
         } catch (DevFailed devFailed) {
@@ -161,6 +167,10 @@ public class TangoClient extends Client implements ClientAdaptor {
     }
 
     private static ClientException.FailureType classifyTangoProxyException(Exception e) {
+        // TangoProxyException (and its subclasses) expose a structured reason field
+        if (e instanceof TangoProxyException tpe && tpe.devFailed != null) {
+            return classifyDevFailed(tpe.devFailed);
+        }
         String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
         if (msg.contains("connection refused") || msg.contains("cantconnect")
                 || msg.contains("unreachable") || msg.contains("corba")) {
