@@ -7,11 +7,18 @@ import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.data2.Snapshot;
 import wpn.hdri.ss.engine2.DataStorage;
+import wpn.hdri.ss.event.AvailabilityState;
 import wpn.hdri.ss.writer.InMemoryWriter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 /**
@@ -30,6 +37,9 @@ public class MetricsServer {
     private static final String METRIC_PREFIX = "control_system_attribute";
     private static final String CONTENT_TYPE_PROMETHEUS = "text/plain; version=0.0.4; charset=utf-8";
     private static final String CONTENT_TYPE_TEXT = "text/plain; charset=utf-8";
+    private static final String CONTENT_TYPE_HTML = "text/html; charset=utf-8";
+    private static final DateTimeFormatter TS_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     private final HttpServer server;
     private volatile boolean ready = false;
@@ -37,9 +47,12 @@ public class MetricsServer {
     public MetricsServer(int port, InMemoryWriter inMemory) throws IOException {
         server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        server.createContext("/metrics", exchange -> handle(exchange, () -> buildMetrics(inMemory.getStorage())));
-        server.createContext("/health", exchange -> handle(exchange, () -> "OK"));
-        server.createContext("/ready", exchange -> handle(exchange, () -> ready ? "READY" : null));
+        server.createContext("/metrics", exchange -> handle(exchange, CONTENT_TYPE_PROMETHEUS,
+                () -> buildMetrics(inMemory.getStorage())));
+        server.createContext("/status", exchange -> handle(exchange, CONTENT_TYPE_HTML,
+                () -> buildStatusPage(inMemory.getStorage())));
+        server.createContext("/health", exchange -> handle(exchange, CONTENT_TYPE_TEXT, () -> "OK"));
+        server.createContext("/ready", exchange -> handle(exchange, CONTENT_TYPE_TEXT, () -> ready ? "READY" : null));
 
         // Each request handled by a virtual thread — no blocking the selector
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
@@ -65,11 +78,8 @@ public class MetricsServer {
         String get() throws Exception;
     }
 
-    private void handle(HttpExchange exchange, BodySupplier supplier) throws IOException {
+    private void handle(HttpExchange exchange, String contentType, BodySupplier supplier) throws IOException {
         try (exchange) {
-            String contentType = exchange.getRequestURI().getPath().equals("/metrics")
-                    ? CONTENT_TYPE_PROMETHEUS
-                    : CONTENT_TYPE_TEXT;
             try {
                 String body = supplier.get();
                 if (body == null) {
@@ -85,6 +95,132 @@ public class MetricsServer {
                 exchange.sendResponseHeaders(500, -1);
             }
         }
+    }
+
+    private String buildStatusPage(DataStorage storage) {
+        Snapshot snapshot = storage.getSnapshot();
+        long nowMillis = System.currentTimeMillis();
+        String timestamp = TS_FMT.format(Instant.now());
+
+        record Row(String device, String attrName, String alias, String value,
+                   String age, AvailabilityState state, String failureType, String failureDetail) {}
+
+        List<Row> rows = new ArrayList<>();
+        int countUp = 0, countDown = 0;
+
+        for (SingleRecord<?> record : snapshot) {
+            if (record == null || record.attribute == null) continue;
+
+            AttributeParts parts = splitAttribute(record.attribute.fullName);
+            String fullDeviceName = parts.source + "://" + parts.device;
+            String alias = record.attribute.alias != null ? record.attribute.alias : "";
+            AvailabilityState state = record.value != null ? AvailabilityState.UP : AvailabilityState.DOWN;
+
+            if (state == AvailabilityState.UP) countUp++; else countDown++;
+
+            String value, age;
+            if (record.value == null) {
+                value = null;
+                age = null;
+            } else {
+                value = htmlEscape(record.value.toString());
+                double ageSeconds = Math.max(0.0, (nowMillis - record.r_t) / 1000.0);
+                age = ageSeconds < 60
+                        ? String.format("%.1fs", ageSeconds)
+                        : String.format("%.0fm %.0fs", Math.floor(ageSeconds / 60), ageSeconds % 60);
+            }
+
+            rows.add(new Row(fullDeviceName, parts.name, alias, value, age, state,
+                    record.failureType, record.failureDetail));
+        }
+
+        rows.sort(Comparator.comparing(Row::device).thenComparing(Row::attrName));
+
+        int total = countUp + countDown;
+
+        StringBuilder sb = new StringBuilder(16384);
+        sb.append("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">")
+          .append("<title>StatusServer</title>")
+          .append("<style>")
+          .append("body{font-family:monospace;font-size:13px;margin:1em 2em;background:#1a1a1a;color:#e0e0e0}")
+          .append("h1{font-size:1.1em;margin-bottom:0.3em}")
+          .append(".meta{color:#888;font-size:0.9em;margin-bottom:1em}")
+          .append(".summary{margin-bottom:1em;display:flex;gap:1.5em}")
+          .append(".badge{padding:2px 8px;border-radius:3px;font-weight:bold}")
+          .append(".up{background:#1a4a1a;color:#4caf50}")
+          .append(".stale{background:#4a3a00;color:#ffc107}")
+          .append(".down{background:#4a1a1a;color:#f44336}")
+          .append("table{border-collapse:collapse;width:100%}")
+          .append("th{text-align:left;padding:4px 8px;border-bottom:1px solid #444;color:#aaa}")
+          .append("td{padding:4px 8px;border-bottom:1px solid #2a2a2a;white-space:nowrap}")
+          .append("tr.up td{background:#1a2a1a}")
+          .append("tr.stale td{background:#2a2000}")
+          .append("tr.down td{background:#2a1010}")
+          .append(".failure{color:#f44336;font-size:0.85em}")
+          .append(".detail{color:#888;font-size:0.8em}")
+          .append(".sep td{border-top:1px solid #333;padding-top:6px}")
+          .append("</style></head><body>")
+          .append("<h1>StatusServer &mdash; Live Attribute Status</h1>")
+          .append("<div id=\"content\">")
+          .append("<p class=\"meta\">Last updated: ").append(timestamp)
+          .append(" &nbsp;|&nbsp; auto-refresh every 5 s</p>")
+          .append("<div class=\"summary\">")
+          .append("<span>Monitored: <strong>").append(total).append("</strong></span>")
+          .append("<span class=\"badge up\">UP ").append(countUp).append("</span>")
+          .append("<span class=\"badge down\">DOWN ").append(countDown).append("</span>")
+          .append("</div>")
+          .append("<table><thead><tr>")
+          .append("<th>Device</th><th>Attribute</th><th>Alias</th><th>Value</th><th>Age</th><th>State</th>")
+          .append("</tr></thead><tbody>");
+
+        String prevDevice = null;
+        for (Row row : rows) {
+            String stateClass = row.state().name().toLowerCase();
+            String sep = !row.device().equals(prevDevice) && prevDevice != null ? " sep" : "";
+            prevDevice = row.device();
+
+            sb.append("<tr class=\"").append(stateClass).append(sep).append("\">")
+              .append("<td>").append(htmlEscape(row.device())).append("</td>")
+              .append("<td>").append(htmlEscape(row.attrName())).append("</td>")
+              .append("<td>").append(htmlEscape(row.alias())).append("</td>");
+
+            if (row.value() != null) {
+                sb.append("<td>").append(row.value()).append("</td>")
+                  .append("<td>").append(row.age()).append("</td>");
+            } else {
+                sb.append("<td>");
+                if (row.failureType() != null) {
+                    sb.append("<span class=\"failure\">").append(htmlEscape(row.failureType())).append("</span>");
+                    if (row.failureDetail() != null && !row.failureDetail().isBlank()) {
+                        sb.append("<br><span class=\"detail\">").append(htmlEscape(row.failureDetail())).append("</span>");
+                    }
+                } else {
+                    sb.append("&mdash;");
+                }
+                sb.append("</td><td>&mdash;</td>");
+            }
+
+            sb.append("<td><span class=\"badge ").append(stateClass).append("\">")
+              .append(row.state().name()).append("</span></td>")
+              .append("</tr>");
+        }
+
+        sb.append("</tbody></table>")
+          .append("</div>") // #content
+          .append("<script>")
+          .append("setInterval(async()=>{")
+          .append("try{")
+          .append("const r=await fetch('/status');")
+          .append("const t=await r.text();")
+          .append("const d=new DOMParser().parseFromString(t,'text/html');")
+          .append("const nc=d.getElementById('content');")
+          .append("if(nc)document.getElementById('content').replaceWith(nc);")
+          .append("}catch(e){console.warn('status refresh failed',e);}")
+          .append("},5000);")
+          .append("</script>")
+          .append("</body></html>");
+
+        return sb.toString();
     }
 
     private String buildMetrics(DataStorage storage) {
@@ -283,6 +419,15 @@ public class MetricsServer {
             return "unknown";
         }
         return s.replaceAll("[^a-zA-Z0-9_:/.\\-]", "_");
+    }
+
+    /** Escape HTML special characters for safe embedding in HTML content. */
+    private static String htmlEscape(String s) {
+        if (s == null || s.isBlank()) return "";
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
     }
 
     /** Escape backslashes, double-quotes, and newlines in label values. */
