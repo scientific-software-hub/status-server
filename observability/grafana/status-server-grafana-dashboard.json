@@ -348,35 +348,66 @@
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "Value": true
+              "Value": true,
+              "job": true,
+              "instance": true
             },
             "indexByName": {
-              "alias":     0,
-              "device":    1,
-              "name":      2,
-              "source":    3,
-              "attribute": 4
+              "alias":          0,
+              "device":         1,
+              "name":           2,
+              "failure_type":   3,
+              "failure_detail": 4,
+              "source":         5,
+              "attribute":      6
             },
             "renameByName": {
-              "alias":     "Alias",
-              "device":    "Device",
-              "name":      "Attribute",
-              "source":    "Source",
-              "attribute": "Full Path"
+              "alias":          "Alias",
+              "device":         "Device",
+              "name":           "Attribute",
+              "failure_type":   "Failure Type",
+              "failure_detail": "Detail",
+              "source":         "Source",
+              "attribute":      "Full Path"
             }
           }
         }
       ],
       "options": {
         "showHeader": true,
-        "sortBy": [{ "desc": false, "displayName": "Device" }]
+        "sortBy": [{ "desc": false, "displayName": "Failure Type" }]
       },
       "fieldConfig": {
         "defaults": {
           "custom": { "align": "left" },
           "color": { "mode": "fixed", "fixedColor": "red" }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Failure Type" },
+            "properties": [
+              { "id": "custom.width", "value": 160 },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "ConnectionRefused":  { "text": "ConnectionRefused",  "color": "red"    } } },
+                  { "type": "value", "options": { "DeviceNotExported":  { "text": "DeviceNotExported",  "color": "orange" } } },
+                  { "type": "value", "options": { "DevError":           { "text": "DevError",           "color": "yellow" } } },
+                  { "type": "value", "options": { "Timeout":            { "text": "Timeout",            "color": "blue"   } } },
+                  { "type": "value", "options": { "ReadFailure":        { "text": "ReadFailure",        "color": "orange" } } },
+                  { "type": "value", "options": { "Disconnect":         { "text": "Disconnect",         "color": "red"    } } }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Detail" },
+            "properties": [
+              { "id": "custom.width", "value": 360 },
+              { "id": "custom.wrap", "value": true }
+            ]
+          }
+        ]
       }
     },
     {
