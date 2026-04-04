@@ -2,6 +2,7 @@ package wpn.hdri.ss.writer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import wpn.hdri.ss.event.Event;
 import wpn.hdri.ss.event.EventSink;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  * <p>Replaces the typed {@code WriterDispatcher} — works for any event type:
  * telemetry ({@code SingleRecord<?>}), domain events ({@code DomainEvent}), etc.
  */
-public class EventDispatcher<T> implements EventSink<T>, AutoCloseable {
+public class EventDispatcher<T extends Event> implements EventSink<T>, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(EventDispatcher.class);
 

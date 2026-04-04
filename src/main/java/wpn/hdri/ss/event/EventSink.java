@@ -14,7 +14,7 @@ package wpn.hdri.ss.event;
  * <p>Implementations that hold resources should additionally implement {@link AutoCloseable}.
  */
 @FunctionalInterface
-public interface EventSink<T> {
+public interface EventSink<T extends Event> {
 
     void onEvent(T event);
 

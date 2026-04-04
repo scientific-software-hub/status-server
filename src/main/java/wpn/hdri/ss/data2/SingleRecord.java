@@ -1,11 +1,15 @@
 package wpn.hdri.ss.data2;
 
+import wpn.hdri.ss.event.Event;
+
+import java.time.Instant;
+
 /**
  * @author Igor Khokhriakov <igor.khokhriakov@hzg.de>
  * @since 09.11.2015
  */
 
-public class SingleRecord<T> {
+public class SingleRecord<T> implements Event {
     public final int id;
     public final Attribute<T> attribute; //attr.id
     public final long r_t; //read_timestamp
@@ -28,6 +32,16 @@ public class SingleRecord<T> {
         this.value = value;
         this.failureType = failureType;
         this.failureDetail = failureDetail;
+    }
+
+    @Override
+    public int attributeId() {
+        return id;
+    }
+
+    @Override
+    public Instant timestamp() {
+        return Instant.ofEpochMilli(r_t);
     }
 
     @Override
