@@ -2,6 +2,11 @@ networks:
   tango-net:
     name: tango-net
     driver: bridge
+  tine:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/24
 
 volumes:
   mariadb_data:
@@ -9,6 +14,27 @@ volumes:
   grafana_data:
 
 services:
+  # ── TINE sine-wave test device server ────────────────────────────────────────
+  # Standalone — no ENS required.
+  # Exports Sine, Amplitude, Frequency, Noise on 10 devices (SINEDEV_0…SINEDEV_9).
+  #
+  # Context: TEST  |  Server: JSINESRV  |  Devices: SINEDEV_0..SINEDEV_9
+  # Client address: /TEST/JSINESRV/SINEDEV_0
+  jsinesrv:
+    build:
+      context: docker/
+    image: rxtine-testserver:latest
+    container_name: jsinesrv
+    networks:
+      tine:
+        ipv4_address: 172.25.0.11
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "172.25.0.11", "8503" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   status-server-db:
     image: mariadb:11
     container_name: status-server-db

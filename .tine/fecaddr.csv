@@ -1,0 +1,4 @@
+# TINE FEC address cache — maps FEC names to IP:port
+# PORT_OFFSET=0 → default TINE port (TCP 8503 / UDP 9003)
+FEC_NAME,IP_ADDR,PORT_OFFSET
+JSINESRV,172.25.0.11,0
