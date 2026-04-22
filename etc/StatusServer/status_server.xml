@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <!-- server-name - a tango server name for this server; instance-name - a tango instance name for this server-->
 <StatusServer use-aliases="true">
+    <http-metrics port="9190"/>
     <mariadb host="localhost" port="3306" database="vio_db" user="root" password="admin123"/>
     <devices>
         <!-- tango or tine full device name-->

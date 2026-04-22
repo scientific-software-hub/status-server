@@ -14,7 +14,7 @@ USER javauser
 WORKDIR /app
 
 ENV SS_CONFIG=/app/etc/config.xml
-ENV SS_PORT=9190
+ENV TINE_CONFIG=/app/etc/tine
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD java -jar /app/bin/ss.jar $SS_CONFIG $SS_PORT
+CMD java -jar /app/bin/ss.jar $SS_CONFIG

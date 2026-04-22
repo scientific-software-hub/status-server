@@ -83,6 +83,10 @@ public final class StatusServerConfiguration {
     @ElementList(name = "devices", required = false)
     private List<Device> devices;
 
+    /** When present, enables the HTTP metrics server on the given port. Optional. */
+    @Element(name = "http-metrics", required = false)
+    private HttpMetricsConfiguration httpMetrics;
+
     /** When present, domain events are persisted to MariaDB. Optional. */
     @Element(name = "mariadb", required = false)
     private MariaDbConfiguration mariaDb;
@@ -123,6 +127,10 @@ public final class StatusServerConfiguration {
 
     public int getDownAfter() {
         return downAfter;
+    }
+
+    public HttpMetricsConfiguration getHttpMetrics() {
+        return httpMetrics;
     }
 
     public MariaDbConfiguration getMariaDb() {

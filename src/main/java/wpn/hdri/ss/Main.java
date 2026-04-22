@@ -3,6 +3,7 @@ package wpn.hdri.ss;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.configuration.Device;
+import wpn.hdri.ss.configuration.HttpMetricsConfiguration;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.engine2.AvailabilityAnalyzer;
@@ -31,11 +32,9 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            System.err.println("Usage: StatusServer <path-to-config.xml> [http-port]");
+            System.err.println("Usage: StatusServer <path-to-config.xml>");
             System.exit(1);
         }
-
-        int httpPort = args.length > 1 ? Integer.parseInt(args[1]) : 9190;
 
         // --- load configuration ---
         StatusServerConfiguration config = StatusServerConfiguration.fromXml(args[0]);
@@ -98,20 +97,27 @@ public class Main {
             }
         }
 
-        // --- HTTP server ---
-        MetricsServer httpServer = new MetricsServer(httpPort, inMemory);
-        httpServer.start();
+        // --- HTTP metrics server (optional) ---
+        HttpMetricsConfiguration httpMetricsConfig = config.getHttpMetrics();
+        MetricsServer httpServer = null;
+        if (httpMetricsConfig != null) {
+            httpServer = new MetricsServer(httpMetricsConfig.getPort(), inMemory);
+            httpServer.start();
+        }
 
         engine.start();
-        httpServer.markReady();
+
+        if (httpServer != null) {
+            httpServer.markReady();
+        }
         logger.info("Engine started, ready to collect");
 
         // --- graceful shutdown ---
-        final MariaDbSink finalMariaDbSink = mariaDbSink;
+        final MetricsServer finalHttpServer = httpServer;
         Runtime.getRuntime().addShutdownHook(Thread.ofVirtual().unstarted(() -> {
             logger.info("Shutting down...");
             engine.stop();
-            httpServer.stop();
+            if (finalHttpServer != null) finalHttpServer.stop();
             try { telemetryDispatcher.close(); } catch (Exception e) {
                 logger.error("Error closing telemetry dispatcher: {}", e.getMessage(), e);
             }

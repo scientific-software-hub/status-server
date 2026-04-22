@@ -19,14 +19,13 @@ mvn clean package -Dmaven.test.skip=true
 docker compose up -d status-server-db
 
 # Run
-java -jar target/status-server-*.jar path/to/config.xml [http-port]
-# http-port defaults to 9190
+java -jar target/status-server-*.jar path/to/config.xml
 ```
 
 ### Docker 
 
 ```bash
-docker run -v /path/to/etc:/app/etc \                                                                                                                                                                                                                                                                                                                                                                                     
+docker run -v /path/to/etc:/app/etc \
              -e SS_CONFIG=/app/etc/config.xml \
              -p 9190:9190 \                                                                                                                                                                                                                                                                                                                                                                                                 
              ghcr.io/scientific-software-hub/status-server:latest
@@ -37,31 +36,31 @@ docker run -v /path/to/etc:/app/etc \
 Configuration is an XML file. Minimal example:
 
 ```xml
-<status-server stale-after="3" down-after="6">
+<StatusServer stale-after="3" down-after="6">
+  <http-metrics port="9190"/>
   <devices>
-    <device name="my/device/1" server="tango://host:10000">
+    <device name="my/device/1" url="tango://host:10000/domain/family/member">
       <attributes>
-        <attribute name="Temperature" poll-delay="1000" interpolation="LINEAR"/>
+        <attribute name="Temperature" method="poll" delay="1000" interpolation="LINEAR"/>
       </attributes>
     </device>
   </devices>
-</status-server>
+</StatusServer>
 ```
+
+`<http-metrics>` is optional — omit it to run without the HTTP server (useful when only MariaDB persistence is needed).
 
 Optional MariaDB section (omit to disable persistence):
 
 ```xml
-<mariadb>
-  <jdbc-url>jdbc:mariadb://localhost:3306/statusserver</jdbc-url>
-  <user>ss</user>
-  <password>ss</password>
-</mariadb>
+<mariadb host="localhost" port="3306" database="statusserver" user="ss" password="ss"/>
 ```
 
 | Parameter | Description | Default |
 |---|---|---|
 | `stale-after` | Consecutive failures before UP→STALE | 3 |
 | `down-after` | Consecutive failures before STALE→DOWN | 6 |
+| `http-metrics port` | Port for the HTTP metrics server | — (disabled if absent) |
 
 ## Architecture
 
@@ -109,6 +108,8 @@ any success                         →  any   → UP    (+ DowntimeClosed if fr
 **`MariaDbSink`** — persists domain events to MariaDB in ERPNext-compatible tables. Reconnects automatically on failure.
 
 ## HTTP Endpoints
+
+Available only when `<http-metrics port="…"/>` is present in the config.
 
 | Endpoint | Description |
 |---|---|
@@ -175,7 +176,7 @@ docker compose up -d
 | Prometheus | http://localhost:9090 | — |
 | Grafana | http://localhost:3000 | admin / admin |
 
-Prometheus scrapes StatusServer at `host.docker.internal:9190` every 5 seconds.
+Prometheus scrapes StatusServer at `host.docker.internal:9090` every 5 seconds (port matches `<http-metrics port="…"/>` in your config).
 
 ### Grafana Dashboards
 
