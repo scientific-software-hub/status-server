@@ -49,7 +49,7 @@ public class MetricsServer {
 
         server.createContext("/metrics", exchange -> handle(exchange, CONTENT_TYPE_PROMETHEUS,
                 () -> buildMetrics(inMemory.getStorage())));
-        server.createContext("/status", exchange -> handle(exchange, CONTENT_TYPE_HTML,
+        server.createContext("/", exchange -> handle(exchange, CONTENT_TYPE_HTML,
                 () -> buildStatusPage(inMemory.getStorage())));
         server.createContext("/health", exchange -> handle(exchange, CONTENT_TYPE_TEXT, () -> "OK"));
         server.createContext("/ready", exchange -> handle(exchange, CONTENT_TYPE_TEXT, () -> ready ? "READY" : null));
