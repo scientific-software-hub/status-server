@@ -165,8 +165,10 @@ public class TineClient extends Client implements ClientAdaptor {
     private TPropertyQuery getTPropertyQuery(String attrName) throws ClientException {
         TPropertyQuery[] result = TQuery.getPropertyInformation(context, serverName, deviceName, attrName);
         if (result == null) {
-            throw new ClientException("Cannot read meta info for " + getDeviceName() + "/" + attrName,
-                    new NullPointerException(), ClientException.FailureType.CONNECTION_REFUSED);
+            int status = TQuery.getLastQueriedStatus();
+            String reason = status != 0 ? TErrorList.getErrorString(status) : "no response";
+            throw new ClientException("Cannot read meta info for " + getDeviceName() + "/" + attrName + ": " + reason,
+                    null, ClientException.FailureType.CONNECTION_REFUSED);
         }
         return result[0];
     }

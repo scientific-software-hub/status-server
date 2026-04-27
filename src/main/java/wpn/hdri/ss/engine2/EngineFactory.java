@@ -80,11 +80,10 @@ public class EngineFactory {
         }
 
         if (!pendingAttributes.isEmpty()) {
-            String details = pendingAttributes.stream()
-                    .map(p -> p.fullName() + ": " + p.reason())
-                    .collect(java.util.stream.Collectors.joining(", ", "[", "]"));
-            logger.warn("{} attribute(s) unavailable at startup, retry scheduled: {}",
-                    pendingAttributes.size(), details);
+            logger.warn("{} attribute(s) unavailable at startup, retry scheduled", pendingAttributes.size());
+            for (PendingAttribute p : pendingAttributes) {
+                logger.warn("  unavailable: {} — {}", p.fullName(), p.reason());
+            }
         }
 
         // Virtual threads: one per polling task, blocking I/O does not consume OS threads.

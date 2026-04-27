@@ -83,7 +83,10 @@ public class TangoClient extends Client implements ClientAdaptor {
                 throw new ClientException("Exception in " + proxy.get().getName(), new NullPointerException("attributeInfo is null"));
             return attributeInfo.getClazz();
         } catch (TangoProxyException | NoSuchAttributeException e) {
-            throw new ClientException("Exception in " + getDeviceName(), e, classifyTangoProxyException(e));
+            String detail = (e instanceof TangoProxyException tpe && tpe.devFailed != null)
+                    ? firstReason(tpe.devFailed)
+                    : e.getMessage();
+            throw new ClientException("Exception in " + getDeviceName() + ": " + detail, e, classifyTangoProxyException(e));
         } catch (DevFailed devFailed) {
             throw new ClientException("DevFailed: " + firstReason(devFailed),
                     TangoUtils.convertDevFailedToException(devFailed), classifyDevFailed(devFailed));
