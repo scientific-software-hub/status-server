@@ -7,4 +7,4 @@ import wpn.hdri.ss.configuration.DeviceAttribute;
  * An attribute that could not be initialized at startup (upstream unavailable).
  * Held by the Engine for periodic retry.
  */
-public record PendingAttribute(int id, Client client, DeviceAttribute devAttr, String fullName) {}
+public record PendingAttribute(int id, Client client, DeviceAttribute devAttr, String fullName, String reason) {}

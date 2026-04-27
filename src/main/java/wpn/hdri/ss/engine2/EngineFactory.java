@@ -57,8 +57,7 @@ public class EngineFactory {
                 try {
                     type = client.getAttributeClass(devAttr.getName());
                 } catch (ClientException e) {
-                    logger.warn("Failed to connect to {} — will retry every 30 s: {}", fullName, e.getMessage());
-                    pendingAttributes.add(new PendingAttribute(id, client, devAttr, fullName));
+                    pendingAttributes.add(new PendingAttribute(id, client, devAttr, fullName, e.getMessage()));
                     continue;
                 }
 
@@ -81,9 +80,11 @@ public class EngineFactory {
         }
 
         if (!pendingAttributes.isEmpty()) {
+            String details = pendingAttributes.stream()
+                    .map(p -> p.fullName() + ": " + p.reason())
+                    .collect(java.util.stream.Collectors.joining(", ", "[", "]"));
             logger.warn("{} attribute(s) unavailable at startup, retry scheduled: {}",
-                    pendingAttributes.size(),
-                    pendingAttributes.stream().map(PendingAttribute::fullName).toList());
+                    pendingAttributes.size(), details);
         }
 
         // Virtual threads: one per polling task, blocking I/O does not consume OS threads.
