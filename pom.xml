@@ -199,27 +199,42 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.12</version>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <from>
+                        <image>eclipse-temurin:21-jre-alpine</image>
+                    </from>
+                    <to>
+                        <image>ghcr.io/${ghcr.org}/${dockerhub.repo}</image>
+                        <tags>
+                            <tag>latest</tag>
+                        </tags>
+                    </to>
+                    <container>
+                        <entrypoint>
+                            <entry>java</entry>
+                            <entry>-cp</entry>
+                            <entry>/app/resources:/app/classes:/app/libs/*</entry>
+                            <entry>wpn.hdri.ss.Main</entry>
+                            <entry>/app/config.xml</entry>
+                        </entrypoint>
+                        <user>1000:1000</user>
+                        <environment>
+                            <TINE_CONFIG>/app/etc/tine</TINE_CONFIG>
+                        </environment>
+                    </container>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default</id>
                         <goals>
                             <goal>build</goal>
-                            <goal>push</goal>
                         </goals>
                         <phase>deploy</phase>
                     </execution>
                 </executions>
-                <configuration>
-                    <repository>ghcr.io/${ghcr.org}/${dockerhub.repo}</repository>
-                    <tag>latest</tag>
-                    <buildArgs>
-                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
-                    </buildArgs>
-                    <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -230,27 +245,25 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>1.4.12</version>
+                        <groupId>com.google.cloud.tools</groupId>
+                        <artifactId>jib-maven-plugin</artifactId>
+                        <version>3.5.1</version>
+                        <configuration>
+                            <to>
+                                <tags combine.children="override">
+                                    <tag>${project.version}</tag>
+                                </tags>
+                            </to>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>default</id>
                                 <goals>
                                     <goal>build</goal>
-                                    <goal>push</goal>
                                 </goals>
                                 <phase>deploy</phase>
                             </execution>
                         </executions>
-                        <configuration>
-                            <repository>ghcr.io/${ghcr.org}/${dockerhub.repo}</repository>
-                            <tag>${project.version}</tag>
-                            <buildArgs>
-                                <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
-                            </buildArgs>
-                            <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>de.jutzig</groupId>
