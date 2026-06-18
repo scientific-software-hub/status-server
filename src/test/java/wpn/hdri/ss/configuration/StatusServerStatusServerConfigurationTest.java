@@ -73,6 +73,13 @@ public class StatusServerStatusServerConfigurationTest {
         assertEquals("linear", attr2.getInterpolation());
         assertEquals(3000L, attr2.getDelay());
         assertSame(BigDecimal.ZERO, attr2.getPrecision());
+        assertNull(attr2.getMin());
+        assertNull(attr2.getMax());
+
+        DeviceAttribute attr3 = dev.getAttributes().get(3);
+        assertEquals("BeamCurrent", attr3.getName());
+        assertEquals(200.0, attr3.getMin(), 0.0001);
+        assertEquals(500.0, attr3.getMax(), 0.0001);
     }
 
     @Test(expected = ValueRequiredException.class)

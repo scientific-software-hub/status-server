@@ -3,12 +3,14 @@ package wpn.hdri.ss;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.configuration.Device;
+import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.configuration.HttpMetricsConfiguration;
 import wpn.hdri.ss.configuration.StatusServerConfiguration;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.engine2.AvailabilityAnalyzer;
 import wpn.hdri.ss.engine2.Engine;
 import wpn.hdri.ss.engine2.EngineFactory;
+import wpn.hdri.ss.engine2.RangeAnalyzer;
 import wpn.hdri.ss.event.DomainEvent;
 import wpn.hdri.ss.event.EventSink;
 import wpn.hdri.ss.http.MetricsServer;
@@ -19,7 +21,9 @@ import wpn.hdri.ss.writer.InMemoryWriter;
 import wpn.hdri.ss.writer.MariaDbSink;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Entry point for the status collection server.
@@ -53,10 +57,6 @@ public class Main {
 
         int totalAttributes = devices.stream().mapToInt(d -> d.getAttributes().size()).sum();
 
-        // --- telemetry sink chain ---
-        InMemoryWriter inMemory = new InMemoryWriter(totalAttributes);
-        EventDispatcher<SingleRecord<?>> telemetryDispatcher = new EventDispatcher<>(List.of(inMemory));
-
         // --- domain event sink chain ---
         List<EventSink<DomainEvent>> domainSinks = new ArrayList<>();
         domainSinks.add(event -> logger.info("Domain event: {}", event));
@@ -68,6 +68,13 @@ public class Main {
             logger.info("MariaDB sink enabled ({})", config.getMariaDb().jdbcUrl());
         }
         EventDispatcher<DomainEvent> domainDispatcher = new EventDispatcher<>(domainSinks);
+
+        // --- telemetry sink chain ---
+        InMemoryWriter inMemory = new InMemoryWriter(totalAttributes);
+        Map<String, RangeAnalyzer.Bounds> rangeBounds = findRangeBounds(devices);
+        RangeAnalyzer rangeAnalyzer = new RangeAnalyzer(rangeBounds, domainDispatcher);
+        EventDispatcher<SingleRecord<?>> telemetryDispatcher =
+                new EventDispatcher<>(List.of(inMemory, rangeAnalyzer));
 
         // --- engine ---
         AvailabilityAnalyzer analyzer = new AvailabilityAnalyzer(
@@ -101,7 +108,7 @@ public class Main {
         HttpMetricsConfiguration httpMetricsConfig = config.getHttpMetrics();
         MetricsServer httpServer = null;
         if (httpMetricsConfig != null) {
-            httpServer = new MetricsServer(httpMetricsConfig.getPort(), inMemory);
+            httpServer = new MetricsServer(httpMetricsConfig.getPort(), inMemory, rangeBounds);
             httpServer.start();
         }
 
@@ -126,5 +133,18 @@ public class Main {
             }
             logger.info("Shutdown complete");
         }));
+    }
+
+    /** Collects the optional per-attribute {@code min="..."}/{@code max="..."} bounds, keyed by attribute name. */
+    private static Map<String, RangeAnalyzer.Bounds> findRangeBounds(List<Device> devices) {
+        Map<String, RangeAnalyzer.Bounds> bounds = new HashMap<>();
+        for (Device device : devices) {
+            for (DeviceAttribute attr : device.getAttributes()) {
+                if (attr.getMin() != null || attr.getMax() != null) {
+                    bounds.put(attr.getName(), new RangeAnalyzer.Bounds(attr.getMin(), attr.getMax()));
+                }
+            }
+        }
+        return bounds;
     }
 }

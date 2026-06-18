@@ -58,6 +58,12 @@ public final class DeviceAttribute {
     private BigDecimal precision;
     @Attribute(name = "type", required = false)
     private String eventType;
+    /** Optional lower bound; values below it open a {@code BelowMinOpened}/{@code BelowMinClosed} interval. */
+    @Attribute(name = "min", required = false)
+    private Double min;
+    /** Optional upper bound; values above it open an {@code AboveMaxOpened}/{@code AboveMaxClosed} interval. */
+    @Attribute(name = "max", required = false)
+    private Double max;
 
 
 //        if (method == Method.EVENT) {
@@ -77,6 +83,9 @@ public final class DeviceAttribute {
         }
         if(this.precision == null){
             this.precision = BigDecimal.ZERO;
+        }
+        if (this.min != null && this.max != null) {
+            Preconditions.checkArgument(this.min < this.max, "min must be less than max");
         }
     }
 
@@ -146,6 +155,22 @@ public final class DeviceAttribute {
         this.eventType = eventType;
     }
 
+    public Double getMin() {
+        return min;
+    }
+
+    public void setMin(Double min) {
+        this.min = min;
+    }
+
+    public Double getMax() {
+        return max;
+    }
+
+    public void setMax(Double max) {
+        this.max = max;
+    }
+
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + "@" + hashCode() + "{" +
@@ -154,6 +179,8 @@ public final class DeviceAttribute {
                 ";method=" + method +
                 ";interpolation=" + interpolation +
                 ";delay=" + delay +
+                ";min=" + min +
+                ";max=" + max +
                 "}";
     }
 }

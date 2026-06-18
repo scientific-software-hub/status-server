@@ -5,5 +5,6 @@ package wpn.hdri.ss.event;
  * Domain events carry meaning for billing, SLA, and audit — unlike raw technical signals.
  */
 public sealed interface DomainEvent extends Event
-        permits AvailabilityTransitioned, DowntimeOpened, DowntimeClosed {
+        permits AvailabilityTransitioned, DowntimeOpened, DowntimeClosed,
+                BelowMinOpened, BelowMinClosed, AboveMaxOpened, AboveMaxClosed {
 }

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.data2.Snapshot;
 import wpn.hdri.ss.engine2.DataStorage;
+import wpn.hdri.ss.engine2.RangeAnalyzer;
 import wpn.hdri.ss.event.AvailabilityState;
 import wpn.hdri.ss.writer.InMemoryWriter;
 
@@ -19,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
@@ -42,9 +44,11 @@ public class MetricsServer {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     private final HttpServer server;
+    private final Map<String, RangeAnalyzer.Bounds> rangeBounds;
     private volatile boolean ready = false;
 
-    public MetricsServer(int port, InMemoryWriter inMemory) throws IOException {
+    public MetricsServer(int port, InMemoryWriter inMemory, Map<String, RangeAnalyzer.Bounds> rangeBounds) throws IOException {
+        this.rangeBounds = rangeBounds;
         server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/metrics", exchange -> handle(exchange, CONTENT_TYPE_PROMETHEUS,
@@ -61,6 +65,11 @@ public class MetricsServer {
     public void start() {
         server.start();
         logger.info("HTTP server listening on port {}", server.getAddress().getPort());
+    }
+
+    /** Actual bound port — useful when constructed with port 0 (OS-assigned), e.g. in tests. */
+    public int getPort() {
+        return server.getAddress().getPort();
     }
 
     public void markReady() {
@@ -103,7 +112,8 @@ public class MetricsServer {
         String timestamp = TS_FMT.format(Instant.now());
 
         record Row(String device, String attrName, String alias, String value,
-                   String age, AvailabilityState state, String failureType, String failureDetail) {}
+                   String age, AvailabilityState state, String failureType, String failureDetail,
+                   boolean outOfRange) {}
 
         List<Row> rows = new ArrayList<>();
         int countUp = 0, countDown = 0;
@@ -119,6 +129,7 @@ public class MetricsServer {
             if (state == AvailabilityState.UP) countUp++; else countDown++;
 
             String value, age;
+            boolean outOfRange = false;
             if (record.value == null) {
                 value = null;
                 age = null;
@@ -128,10 +139,11 @@ public class MetricsServer {
                 age = ageSeconds < 60
                         ? String.format("%.1fs", ageSeconds)
                         : String.format("%.0fm %.0fs", Math.floor(ageSeconds / 60), ageSeconds % 60);
+                outOfRange = isOutOfRange(record.attribute.name, record.value);
             }
 
             rows.add(new Row(fullDeviceName, parts.name, alias, value, age, state,
-                    record.failureType, record.failureDetail));
+                    record.failureType, record.failureDetail, outOfRange));
         }
 
         rows.sort(Comparator.comparing(Row::device).thenComparing(Row::attrName));
@@ -156,6 +168,7 @@ public class MetricsServer {
           .append("tr.up td{background:#1a2a1a}")
           .append("tr.stale td{background:#2a2000}")
           .append("tr.down td{background:#2a1010}")
+          .append("tr.range-warn td{background:#3a2200;color:#ff9800}")
           .append(".failure{color:#f44336;font-size:0.85em}")
           .append(".detail{color:#888;font-size:0.8em}")
           .append(".sep td{border-top:1px solid #333;padding-top:6px}")
@@ -177,9 +190,10 @@ public class MetricsServer {
         for (Row row : rows) {
             String stateClass = row.state().name().toLowerCase();
             String sep = !row.device().equals(prevDevice) && prevDevice != null ? " sep" : "";
+            String rangeWarn = row.outOfRange() ? " range-warn" : "";
             prevDevice = row.device();
 
-            sb.append("<tr class=\"").append(stateClass).append(sep).append("\">")
+            sb.append("<tr class=\"").append(stateClass).append(rangeWarn).append(sep).append("\">")
               .append("<td>").append(htmlEscape(row.device())).append("</td>")
               .append("<td>").append(htmlEscape(row.attrName())).append("</td>")
               .append("<td>").append(htmlEscape(row.alias())).append("</td>");
@@ -345,6 +359,15 @@ public class MetricsServer {
         sb.append("status_server_failed_attributes ").append(monitored - up).append('\n');
 
         return sb.toString();
+    }
+
+    /** True if {@code value} is numeric and breaches the attribute's configured min/max bounds, if any. */
+    private boolean isOutOfRange(String attributeName, Object value) {
+        if (!(value instanceof Number number)) return false;
+        RangeAnalyzer.Bounds bounds = rangeBounds.get(attributeName);
+        if (bounds == null) return false;
+        double v = number.doubleValue();
+        return (bounds.min() != null && v < bounds.min()) || (bounds.max() != null && v > bounds.max());
     }
 
     private static String buildFailureLabels(String failureType, String failureDetail) {

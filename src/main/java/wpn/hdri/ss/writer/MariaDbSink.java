@@ -8,6 +8,7 @@ import wpn.hdri.ss.event.*;
 import static wpn.hdri.ss.event.AvailabilityState.*;
 
 import java.sql.*;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,9 +21,15 @@ import java.util.concurrent.ConcurrentHashMap;
  * <ul>
  *   <li>{@code AvailabilityTransitioned} → INSERT into {@code tabState Transition}
  *                                          + UPSERT into {@code tabCurrent State}</li>
- *   <li>{@code DowntimeOpened}           → INSERT into {@code tabDowntime Interval} (closed_at = NULL)</li>
- *   <li>{@code DowntimeClosed}           → UPDATE {@code tabDowntime Interval} SET closed_at, duration_seconds</li>
+ *   <li>{@code DowntimeOpened}, {@code BelowMinOpened}, {@code AboveMaxOpened}
+ *       → INSERT into {@code tabDowntime Interval} (closed_at = NULL)</li>
+ *   <li>{@code DowntimeClosed}, {@code BelowMinClosed}, {@code AboveMaxClosed}
+ *       → UPDATE {@code tabDowntime Interval} SET closed_at, duration_seconds</li>
  * </ul>
+ *
+ * <p>BelowMin/AboveMax breaches are reported as downtime intervals — a value out of its
+ * configured range is, from a billing/SLA perspective, indistinguishable from an attribute
+ * being unavailable.
  *
  * <p>Uses a single JDBC connection with automatic reconnect on failure.
  * Call {@link #registerAttribute(int, String)} for each monitored attribute after
@@ -99,8 +106,12 @@ public class MariaDbSink implements EventSink<DomainEvent>, AutoCloseable {
         try {
             switch (event) {
                 case AvailabilityTransitioned t -> insertTransition(t);
-                case DowntimeOpened o           -> insertDowntime(o);
-                case DowntimeClosed c           -> closeDowntime(c);
+                case DowntimeOpened o           -> insertDowntime(o.attributeId(), o.timestamp());
+                case DowntimeClosed c           -> closeDowntime(c.attributeId(), c.timestamp(), c.duration());
+                case BelowMinOpened b           -> insertDowntime(b.attributeId(), b.timestamp());
+                case BelowMinClosed c           -> closeDowntime(c.attributeId(), c.timestamp(), c.duration());
+                case AboveMaxOpened b           -> insertDowntime(b.attributeId(), b.timestamp());
+                case AboveMaxClosed c           -> closeDowntime(c.attributeId(), c.timestamp(), c.duration());
             }
         } catch (SQLException e) {
             logger.error("Failed to persist {}: {}", event.getClass().getSimpleName(), e.getMessage(), e);
@@ -144,24 +155,24 @@ public class MariaDbSink implements EventSink<DomainEvent>, AutoCloseable {
         }
     }
 
-    private void insertDowntime(DowntimeOpened o) throws SQLException {
+    private void insertDowntime(int attributeId, Instant openedAt) throws SQLException {
         try (PreparedStatement ps = connection().prepareStatement(INSERT_DOWNTIME)) {
             ps.setString(1, newName());
-            ps.setInt(2, o.attributeId());
-            ps.setString(3, attributeNames.getOrDefault(o.attributeId(), "attr-" + o.attributeId()));
-            ps.setTimestamp(4, Timestamp.from(o.timestamp()));
+            ps.setInt(2, attributeId);
+            ps.setString(3, attributeNames.getOrDefault(attributeId, "attr-" + attributeId));
+            ps.setTimestamp(4, Timestamp.from(openedAt));
             ps.executeUpdate();
         }
     }
 
-    private void closeDowntime(DowntimeClosed c) throws SQLException {
+    private void closeDowntime(int attributeId, Instant closedAt, Duration duration) throws SQLException {
         try (PreparedStatement ps = connection().prepareStatement(UPDATE_DOWNTIME)) {
-            ps.setTimestamp(1, Timestamp.from(c.timestamp()));
-            ps.setBigDecimal(2, java.math.BigDecimal.valueOf(c.duration().toMillis() / 1000.0));
-            ps.setInt(3, c.attributeId());
+            ps.setTimestamp(1, Timestamp.from(closedAt));
+            ps.setBigDecimal(2, java.math.BigDecimal.valueOf(duration.toMillis() / 1000.0));
+            ps.setInt(3, attributeId);
             int updated = ps.executeUpdate();
             if (updated == 0) {
-                logger.warn("DowntimeClosed for attr {} found no open interval to close", c.attributeId());
+                logger.warn("Close-downtime event for attr {} found no open interval to close", attributeId);
             }
         }
     }

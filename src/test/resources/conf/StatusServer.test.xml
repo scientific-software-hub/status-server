@@ -8,6 +8,7 @@
                 <attribute name="Test.Attribute" method="poll" delay="100" interpolation="linear" precision="0.5"/>
                 <attribute name="Test.Attribute.1" method="event" interpolation="last" type="change"/>
                 <attribute name="Test.Attribute.2" method="poll" interpolation="linear"/>
+                <attribute name="BeamCurrent" method="poll" interpolation="last" min="200" max="500"/>
             </attributes>
         </device>
     </devices>
