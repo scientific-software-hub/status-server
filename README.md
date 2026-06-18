@@ -22,14 +22,78 @@ docker compose up -d status-server-db
 java -jar target/status-server-*.jar path/to/config.xml
 ```
 
-### Docker 
+### Docker
+
+Images are built with [Jib](https://github.com/GoogleContainerTools/jib) (`jib-maven-plugin`), which assembles the image directly from the compiled classes and resolved Maven dependencies — no Dockerfile involved. The container reads its config from the fixed path **`/app/config.xml`**; mount your config file there.
+
+#### Run the published image (production / remote)
+
+CI does not publish images automatically — they're pushed manually via `mvn deploy` (see [Publish a new image](#publish-a-new-image) below). Pull a specific released version (recommended) or `latest` if one has been published:
 
 ```bash
-docker run -v /path/to/etc:/app/etc \
-             -e SS_CONFIG=/app/etc/config.xml \
-             -p 9190:9190 \                                                                                                                                                                                                                                                                                                                                                                                                 
-             ghcr.io/scientific-software-hub/status-server:latest
+docker pull ghcr.io/scientific-software-hub/status-server:4.0.12
+
+docker run -d --name status-server \
+           -v /path/to/your/config.xml:/app/config.xml:ro \
+           -p 9190:9190 \
+           ghcr.io/scientific-software-hub/status-server:4.0.12
 ```
+
+Pulling is anonymous — `ghcr.io/scientific-software-hub/status-server` is a public package, no `docker login` required.
+
+If your config enables `<http-metrics port="…"/>`, publish that same port with `-p`. Omit `-p` entirely if you don't need the HTTP endpoints.
+
+#### Build and run locally (development)
+
+No `docker build` and no running Docker daemon are required to *build* — Jib talks to the registry/daemon API directly. Three ways to build, depending on what you need:
+
+```bash
+# 1. Build straight into your local Docker daemon (most common for local dev)
+mvn compile jib:dockerBuild -Dimage=status-server:local
+
+# 2. Build and push directly to a registry, skipping Docker entirely
+mvn compile jib:build -Dimage=ghcr.io/scientific-software-hub/status-server:dev
+
+# 3. Build to a tarball — useful in environments with no Docker daemon at all
+mvn compile jib:buildTar
+docker load --input target/jib-image.tar
+```
+
+Then run the locally built image the same way as the published one:
+
+```bash
+docker run -d --name status-server \
+           -v /path/to/your/config.xml:/app/config.xml:ro \
+           -p 9190:9190 \
+           status-server:local
+```
+
+The entrypoint is fixed (`java ... /app/config.xml`) — there's no way to point it at a different in-container path. To run multiple configs, bind-mount a different host file at `/app/config.xml` for each container/compose service.
+
+Other useful variations:
+
+```bash
+# Point TINE_CONFIG elsewhere (default baked into the image: /app/etc/tine)
+docker run -e TINE_CONFIG=/app/tine-config \
+           -v /path/to/tine-config:/app/tine-config:ro \
+           -v /path/to/your/config.xml:/app/config.xml:ro \
+           status-server:local
+
+# Tail logs / stop the container started above
+docker logs -f status-server
+docker stop status-server
+```
+
+#### Publish a new image
+
+Requires `ghcr.io` credentials in `~/.m2/settings.xml` (`<server><id>ghcr.io</id>...</server>`) — Jib picks these up automatically.
+
+```bash
+# Pushes the "latest" tag
+mvn deploy
+```
+
+A version-tagged image (e.g. `:4.0.12`, matching `${project.version}`) is pushed instead of `latest` automatically as part of the project's release process (`mvn release:prepare` / `release:perform`, which activates the `release` profile). Don't run `-Prelease` standalone outside that flow — the same profile also triggers the GitHub release step.
 
 ## Configuration
 
