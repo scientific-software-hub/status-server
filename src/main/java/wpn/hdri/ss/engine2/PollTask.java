@@ -6,6 +6,7 @@ import wpn.hdri.ss.client.ClientException;
 import wpn.hdri.ss.data2.Attribute;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.event.EventSink;
+import wpn.hdri.ss.event.ReadFailure;
 import wpn.hdri.ss.event.ReadSuccess;
 import wpn.hdri.ss.event.TechnicalEvent;
 
@@ -30,6 +31,14 @@ public class PollTask extends AbsTask implements Runnable {
         } catch (ClientException e) {
             logger.warn("{}/{}: {}", attr.devClient, attr.name, e.getMessage());
             TechnicalEvent tech = classifyException(e);
+            sink.onEvent(failedRecord(tech));
+            technicalSink.onEvent(tech);
+        } catch (Exception e) {
+            // Never let an unchecked exception escape run(): ScheduledExecutorService silently
+            // cancels all future executions of a periodic task on an uncaught throwable, with no
+            // log line, which would kill polling for this attribute permanently.
+            logger.error("{}/{}: unexpected error in poll task, task survives", attr.devClient, attr.name, e);
+            TechnicalEvent tech = new ReadFailure(attr.id, Instant.now(), e.toString());
             sink.onEvent(failedRecord(tech));
             technicalSink.onEvent(tech);
         }

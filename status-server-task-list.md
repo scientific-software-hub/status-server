@@ -106,7 +106,15 @@ Good options:
 
 ## 3. Publish real availability metrics from analyzer state, not from snapshot nullability
 
-### Problem
+**Status: addressed.** A stall watchdog (`Engine.checkStalls()`, every 30s) now detects polled
+attributes whose snapshot record has gone stale, marks the record `failureType="Stalled"`, and
+`MetricsServer` derives `_up` from that marker (plus a `_stale` gauge, see #4) instead of from
+`record.value != null` alone. The watchdog also feeds `Stalled` events into `AvailabilityAnalyzer`,
+so the two availability models described below are now driven by the same signal. Root-caused as
+part of the "attribute reports UP with a multi-day-old value" production incident — see README
+§ Availability Tracking.
+
+### Problem (as originally filed)
 
 `MetricsServer` currently emits `_up=0` only when `record.value == null`, otherwise `_up=1`.
 
@@ -149,7 +157,11 @@ based on analyzer state, not on record nullability
 
 ## 4. Add explicit `stale` metric
 
-### Problem
+**Status: addressed.** `control_system_attribute_stale{...} 0|1` is now emitted for every attribute
+holding a non-null value, plus a `status_server_stale_attributes` summary gauge. Driven by the same
+watchdog as #3, not a separate age-threshold computed in `MetricsServer`.
+
+### Problem (as originally filed)
 
 Freshness is already exposed via `control_system_attribute_age_seconds`, but dashboards still need to infer whether a signal is stale.
 

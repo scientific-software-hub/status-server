@@ -9,17 +9,22 @@ import wpn.hdri.ss.configuration.DeviceAttribute;
 import wpn.hdri.ss.data.Method;
 import wpn.hdri.ss.data2.Attribute;
 import wpn.hdri.ss.data2.Interpolation;
+import wpn.hdri.ss.data2.Snapshot;
 import wpn.hdri.ss.data2.SingleRecord;
 import wpn.hdri.ss.event.ReadFailure;
 import wpn.hdri.ss.event.EventSink;
+import wpn.hdri.ss.event.Stalled;
 import wpn.hdri.ss.event.TechnicalEvent;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -33,10 +38,16 @@ public class Engine {
 
     private static final long RETRY_INTERVAL_SECONDS = 30;
 
+    /** Floor for the stall threshold, so fast-polled attributes don't flap on ordinary jitter. */
+    private static final long MIN_STALL_THRESHOLD_MILLIS = 60_000L;
+    /** Multiple of an attribute's poll delay it may go unrefreshed before being marked Stalled. */
+    private static final long STALL_THRESHOLD_DELAY_MULTIPLIER = 5;
+
     public final ScheduledExecutorService exec;
 
     private final EventSink<SingleRecord<?>> telemetrySink;
     private final EventSink<TechnicalEvent> technicalSink;
+    private final DataStorage storage;
 
     private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
 
@@ -60,10 +71,12 @@ public class Engine {
                   List<Attribute> polledAttributes,
                   List<Attribute> eventDrivenAttributes,
                   EventSink<TechnicalEvent> technicalSink,
-                  List<PendingAttribute> pendingAttributes) {
+                  List<PendingAttribute> pendingAttributes,
+                  DataStorage storage) {
         this.exec = exec;
         this.telemetrySink = telemetrySink;
         this.technicalSink = technicalSink;
+        this.storage = storage;
         this.polledAttributes = polledAttributes;
         for (Attribute<?> attr : polledAttributes) {
             attributesByName.put(attr.fullName, attr);
@@ -138,6 +151,75 @@ public class Engine {
     private void retryFailed() {
         retryPendingAttributes();
         retryFailedSubscriptions();
+        checkStalls();
+    }
+
+    // --- stall detection & repair ---
+
+    /**
+     * Detects polled attributes whose snapshot record has not been refreshed for longer than
+     * their staleness threshold. Two distinct failure modes get identical symptoms — a dead
+     * ScheduledFuture (task killed by an uncaught throwable, silently, per
+     * ScheduledThreadPoolExecutor's contract) or a wedged one (a read blocking forever) — so both
+     * are diagnosed and repaired here rather than left for a process restart.
+     */
+    private void checkStalls() {
+        long now = System.currentTimeMillis();
+        Snapshot snapshot = storage.getSnapshot();
+
+        for (Map.Entry<String, ScheduledFuture<?>> entry : new ArrayList<>(runningTasks.entrySet())) {
+            String fullName = entry.getKey();
+            Attribute<?> attr = attributesByName.get(fullName);
+            if (attr == null || attr.delay <= 0) continue; // not a polled attribute
+
+            SingleRecord<?> record = snapshot.get(attr.id);
+            if (record == null || record.value == null) continue; // no successful read yet, or already reported failed
+
+            long age = now - record.r_t;
+            long threshold = Math.max(STALL_THRESHOLD_DELAY_MULTIPLIER * attr.delay, MIN_STALL_THRESHOLD_MILLIS);
+            if (age <= threshold) continue;
+
+            repairDeadOrWedgedTask(fullName, attr, entry.getValue());
+            markStalled(attr, record, age);
+            technicalSink.onEvent(new Stalled(attr.id, Instant.now(), age));
+        }
+    }
+
+    private void repairDeadOrWedgedTask(String fullName, Attribute<?> attr, ScheduledFuture<?> future) {
+        if (future.isDone()) {
+            // A periodic ScheduledFuture is only "done" if it was cancelled or terminated by an
+            // uncaught throwable — recover that throwable so the real production root cause is logged.
+            try {
+                future.get();
+                logger.error("{}: poll task stopped producing executions unexpectedly, rescheduling", fullName);
+            } catch (ExecutionException e) {
+                logger.error("{}: poll task died from an uncaught exception, rescheduling", fullName, e.getCause());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("{}: interrupted while inspecting dead poll task, rescheduling anyway", fullName);
+            } catch (Exception e) {
+                logger.error("{}: poll task stopped ({}), rescheduling", fullName, e.toString());
+            }
+        } else {
+            logger.error("{}: poll task appears stuck reading, interrupting and rescheduling", fullName);
+            future.cancel(true);
+        }
+
+        PollTask task = new PollTask(attr, telemetrySink, technicalSink);
+        ScheduledFuture<?> replacement = exec.scheduleWithFixedDelay(
+                task, 0L, attr.delay, TimeUnit.MILLISECONDS);
+        runningTasks.put(fullName, replacement);
+    }
+
+    /** Captures the wildcard so a properly-typed replacement {@link SingleRecord} can be built. */
+    private <T> void markStalled(Attribute<T> attr, SingleRecord<?> record, long age) {
+        @SuppressWarnings("unchecked")
+        T value = (T) record.value;
+        SingleRecord<T> stalledRecord = new SingleRecord<>(
+                attr, record.r_t, record.w_t, value, "Stalled", "no update for " + age + " ms");
+        // CAS against the exact instance inspected — if a repaired task already wrote a fresh
+        // record concurrently, don't clobber it with a stale marker.
+        storage.getSnapshot().compareAndSet(record, stalledRecord);
     }
 
     private void retryPendingAttributes() {

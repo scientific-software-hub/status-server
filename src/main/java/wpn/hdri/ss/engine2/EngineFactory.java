@@ -30,12 +30,15 @@ public class EngineFactory {
     private final List<Device> devices;
     private final EventSink<SingleRecord<?>> telemetrySink;
     private final EventSink<TechnicalEvent> technicalSink;
+    private final DataStorage storage;
     private final List<PendingAttribute> pendingAttributes = new ArrayList<>();
 
-    public EngineFactory(List<Device> devices, EventSink<SingleRecord<?>> telemetrySink, EventSink<TechnicalEvent> technicalSink) {
+    public EngineFactory(List<Device> devices, EventSink<SingleRecord<?>> telemetrySink,
+                          EventSink<TechnicalEvent> technicalSink, DataStorage storage) {
         this.devices = devices;
         this.telemetrySink = telemetrySink;
         this.technicalSink = technicalSink;
+        this.storage = storage;
     }
 
     public Engine newEngine() {
@@ -46,7 +49,7 @@ public class EngineFactory {
 
         ClientFactory clientFactory = new ClientFactory();
         for (Device dev : devices) {
-            Client client = clientFactory.createClient(dev.getUrl());
+            Client client = clientFactory.createClient(dev.getUrl(), dev.getTimeoutMillis());
 
             for (DeviceAttribute devAttr : dev.getAttributes()) {
                 // Pre-assign the ID so the Snapshot slot is always reserved
@@ -92,7 +95,7 @@ public class EngineFactory {
                 Thread.ofVirtual().factory());
 
         return new Engine(exec, telemetrySink, polledAttributes, eventDrivenAttributes, technicalSink,
-                new ArrayList<>(pendingAttributes));
+                new ArrayList<>(pendingAttributes), storage);
     }
 
     public List<PendingAttribute> getPendingAttributes() {

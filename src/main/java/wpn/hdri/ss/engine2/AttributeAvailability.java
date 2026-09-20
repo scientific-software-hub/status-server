@@ -43,6 +43,7 @@ class AttributeAvailability {
             case ConnectionRefused c  -> handleFailure(c.timestamp());
             case DeviceNotExported d  -> handleFailure(d.timestamp());
             case DevError e           -> handleFailure(e.timestamp());
+            case Stalled s            -> handleFailure(s.timestamp());
         }
     }
 

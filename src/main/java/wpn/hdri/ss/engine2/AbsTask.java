@@ -40,6 +40,7 @@ public class AbsTask {
             case Disconnect d         -> "Disconnect";
             case ReadSuccess s        -> null;
             case Reconnect r          -> null;
+            case Stalled s            -> "Stalled";
         };
         String detail = tech instanceof DevError e ? e.reason() : null;
         return new SingleRecord<>(attr, System.currentTimeMillis(), 0, null, type, detail);

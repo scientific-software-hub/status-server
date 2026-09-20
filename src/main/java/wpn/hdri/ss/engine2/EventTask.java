@@ -36,10 +36,15 @@ public class EventTask extends AbsTask {
     }
 
     public void onError(Exception e) {
-        logger.warn("{}/{}: {}", attr.devClient, attr.name, e.getMessage());
-        TechnicalEvent tech = classifyException(e);
-        sink.onEvent(failedRecord(tech));
-        technicalSink.onEvent(tech);
+        try {
+            logger.warn("{}/{}: {}", attr.devClient, attr.name, e.getMessage());
+            TechnicalEvent tech = classifyException(e);
+            sink.onEvent(failedRecord(tech));
+            technicalSink.onEvent(tech);
+        } catch (Exception inner) {
+            // Never let a failure in error-handling itself swallow the resubscribe attempt below.
+            logger.error("{}/{}: error while handling onError, resubscribe still attempted", attr.devClient, attr.name, inner);
+        }
         if (resubscribeCallback != null) {
             resubscribeCallback.run();
         }

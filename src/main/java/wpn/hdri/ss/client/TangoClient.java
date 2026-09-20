@@ -56,16 +56,42 @@ public class TangoClient extends Client implements ClientAdaptor {
     private final Logger logger = LoggerFactory.getLogger(TangoClient.class);
     private static final EnumMap<Method.EventType, Object> TANGO_EVENT_TYPES = new EnumMap<Method.EventType, Object>(Method.EventType.class);
 
+    /** Tango's own built-in default roundtrip timeout (see fr.esrf.TangoApi.TangoEnv), used absent an explicit override. */
+    public static final int DEFAULT_TIMEOUT_MILLIS = 3000;
+
     static {
         TANGO_EVENT_TYPES.put(Method.EventType.CHANGE, TangoEvent.CHANGE);
         TANGO_EVENT_TYPES.put(Method.EventType.PERIODIC, TangoEvent.PERIODIC);
     }
 
+    private final int timeoutMillis;
     private AtomicReference<TangoProxy> proxy = new AtomicReference<>(null);
     private Map<String, TangoEventListener<?>> listeners = new HashMap<>();
 
     public TangoClient(URI deviceName) {
+        this(deviceName, DEFAULT_TIMEOUT_MILLIS);
+    }
+
+    public TangoClient(URI deviceName, int timeoutMillis) {
         super(deviceName.toString());
+        this.timeoutMillis = timeoutMillis;
+    }
+
+    /**
+     * Lazily creates and caches the underlying {@link TangoProxy}, bounding every read/subscribe/
+     * unsubscribe call by {@link #timeoutMillis} so a wedged connection fails fast instead of
+     * parking the calling (virtual) thread forever. Must only be called from within a try/catch
+     * that handles {@link DevFailed} and {@link TangoProxyException} — {@code set_timeout_millis}
+     * itself opens the connection and can throw.
+     */
+    private TangoProxy proxy() throws DevFailed, TangoProxyException {
+        TangoProxy existing = proxy.get();
+        if (existing != null) return existing;
+
+        DeviceProxy dp = new DeviceProxy(getDeviceName());
+        dp.set_timeout_millis(timeoutMillis);
+        proxy.compareAndSet(null, TangoProxies.newDeviceProxyWrapper(dp));
+        return proxy.get();
     }
 
     protected EnumMap<Method.EventType, Object> mapEventTypes() {
@@ -75,12 +101,11 @@ public class TangoClient extends Client implements ClientAdaptor {
     @Override
     public Class<?> getAttributeClass(String attrName) throws ClientException {
         try {
-            this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
+            TangoProxy p = proxy();
 
-            TangoAttributeInfoWrapper attributeInfo = proxy.get().getAttributeInfo(attrName);
+            TangoAttributeInfoWrapper attributeInfo = p.getAttributeInfo(attrName);
             if (attributeInfo == null)
-                throw new ClientException("Exception in " + proxy.get().getName(), new NullPointerException("attributeInfo is null"));
+                throw new ClientException("Exception in " + p.getName(), new NullPointerException("attributeInfo is null"));
             return attributeInfo.getClazz();
         } catch (TangoProxyException | NoSuchAttributeException e) {
             throw new ClientException("Exception in " + getDeviceName() + ": " + e.getMessage(), e, classifyTangoProxyException(e));
@@ -93,10 +118,9 @@ public class TangoClient extends Client implements ClientAdaptor {
     @Override
     public <T> SingleRecord<T> read(Attribute<T> attr) throws ClientException {
         try {
-            this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
+            TangoProxy p = proxy();
 
-            ValueTime<?> value = proxy.get().readAttributeValueAndTime(attr.name);
+            ValueTime<?> value = p.readAttributeValueAndTime(attr.name);
             return new SingleRecord<>(attr, System.currentTimeMillis(), value.getTime(), (T)value.getValue());
         } catch(ReadAttributeException e) {
             String detail = e.reason + ": " + e.desc;
@@ -116,10 +140,9 @@ public class TangoClient extends Client implements ClientAdaptor {
     public void subscribe(final EventTask cbk) {
         final Attribute attr = cbk.getAttribute();
         try {
-            this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
+            TangoProxy p = proxy();
 
-            proxy.get().subscribeToEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
+            p.subscribeToEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
             TangoEventListener<Object> listener = new TangoEventListener<Object>() {
                 @Override
                 public void onEvent(org.tango.client.ez.proxy.EventData<Object> data) {
@@ -133,7 +156,7 @@ public class TangoClient extends Client implements ClientAdaptor {
                     cbk.onError(cause);
                 }
             };
-            proxy.get().addEventListener(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType), listener);
+            p.addEventListener(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType), listener);
 
             listeners.put(attr.name, listener);
         } catch (TangoProxyException | NoSuchAttributeException e) {
@@ -154,6 +177,9 @@ public class TangoClient extends Client implements ClientAdaptor {
     }
 
     private static ClientException.FailureType classifyDevFailed(DevFailed df) {
+        if (df instanceof fr.esrf.TangoApi.CommunicationTimeout) {
+            return ClientException.FailureType.TIMEOUT;
+        }
         String reason = firstReason(df).toLowerCase();
         if (reason.contains("devicenotexported") || reason.contains("device_not_exported")) {
             return ClientException.FailureType.DEVICE_NOT_EXPORTED;
@@ -183,10 +209,7 @@ public class TangoClient extends Client implements ClientAdaptor {
     public void unsubscribe(Attribute attr) {
         listeners.remove(attr.name);
         try {
-            this.proxy.compareAndSet(null,
-                    TangoProxies.newDeviceProxyWrapper(new DeviceProxy(getDeviceName())));
-
-            proxy.get().unsubscribeFromEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
+            proxy().unsubscribeFromEvent(attr.name, (TangoEvent) eventTypesMap.get(attr.eventType));
         } catch (TangoProxyException devFailed) {
             logger.error(devFailed.toString());
         } catch (DevFailed devFailed) {

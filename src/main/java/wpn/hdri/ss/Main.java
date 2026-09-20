@@ -79,7 +79,7 @@ public class Main {
         // --- engine ---
         AvailabilityAnalyzer analyzer = new AvailabilityAnalyzer(
                 config.getStaleAfter(), config.getDownAfter(), domainDispatcher);
-        EngineFactory factory = new EngineFactory(devices, telemetryDispatcher, analyzer);
+        EngineFactory factory = new EngineFactory(devices, telemetryDispatcher, analyzer, inMemory.getStorage());
         Engine engine = factory.newEngine();
 
         if (!factory.getPendingAttributes().isEmpty()) {

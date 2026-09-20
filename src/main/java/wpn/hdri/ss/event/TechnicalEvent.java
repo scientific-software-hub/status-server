@@ -7,5 +7,5 @@ package wpn.hdri.ss.event;
  */
 public sealed interface TechnicalEvent extends Event
         permits ReadSuccess, ReadFailure, Timeout, Disconnect, Reconnect,
-                ConnectionRefused, DeviceNotExported, DevError {
+                ConnectionRefused, DeviceNotExported, DevError, Stalled {
 }

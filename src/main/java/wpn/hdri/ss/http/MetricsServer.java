@@ -116,7 +116,7 @@ public class MetricsServer {
                    boolean outOfRange) {}
 
         List<Row> rows = new ArrayList<>();
-        int countUp = 0, countDown = 0;
+        int countUp = 0, countStale = 0, countDown = 0;
 
         for (SingleRecord<?> record : snapshot) {
             if (record == null || record.attribute == null) continue;
@@ -124,9 +124,15 @@ public class MetricsServer {
             AttributeParts parts = splitAttribute(record.attribute.fullName);
             String fullDeviceName = parts.source + "://" + parts.device;
             String alias = record.attribute.alias != null ? record.attribute.alias : "";
-            AvailabilityState state = record.value != null ? AvailabilityState.UP : AvailabilityState.DOWN;
+            AvailabilityState state = record.value == null ? AvailabilityState.DOWN
+                    : "Stalled".equals(record.failureType) ? AvailabilityState.STALE
+                    : AvailabilityState.UP;
 
-            if (state == AvailabilityState.UP) countUp++; else countDown++;
+            switch (state) {
+                case UP -> countUp++;
+                case STALE -> countStale++;
+                case DOWN -> countDown++;
+            }
 
             String value, age;
             boolean outOfRange = false;
@@ -148,7 +154,7 @@ public class MetricsServer {
 
         rows.sort(Comparator.comparing(Row::device).thenComparing(Row::attrName));
 
-        int total = countUp + countDown;
+        int total = countUp + countStale + countDown;
 
         StringBuilder sb = new StringBuilder(16384);
         sb.append("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">")
@@ -180,6 +186,7 @@ public class MetricsServer {
           .append("<div class=\"summary\">")
           .append("<span>Monitored: <strong>").append(total).append("</strong></span>")
           .append("<span class=\"badge up\">UP ").append(countUp).append("</span>")
+          .append("<span class=\"badge stale\">STALE ").append(countStale).append("</span>")
           .append("<span class=\"badge down\">DOWN ").append(countDown).append("</span>")
           .append("</div>")
           .append("<table><thead><tr>")
@@ -258,11 +265,15 @@ public class MetricsServer {
         sb.append("# HELP ").append(METRIC_PREFIX).append("_age_seconds Age of the latest sample in seconds\n");
         sb.append("# TYPE ").append(METRIC_PREFIX).append("_age_seconds gauge\n");
 
-        sb.append("# HELP ").append(METRIC_PREFIX).append("_up 1 if the last read succeeded, 0 if it failed\n");
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_up 1 if the last read succeeded and is fresh, 0 if it failed or has stalled\n");
         sb.append("# TYPE ").append(METRIC_PREFIX).append("_up gauge\n");
+
+        sb.append("# HELP ").append(METRIC_PREFIX).append("_stale 1 if the last known value has not been refreshed within its staleness threshold\n");
+        sb.append("# TYPE ").append(METRIC_PREFIX).append("_stale gauge\n");
 
         int monitored = 0;
         int up = 0;
+        int stale = 0;
 
         for (SingleRecord<?> record : snapshot) {
             if (record == null || record.attribute == null) {
@@ -290,12 +301,28 @@ public class MetricsServer {
                 continue;
             }
 
-            up++;
+            boolean isStalled = "Stalled".equals(record.failureType);
+            if (isStalled) {
+                stale++;
+                // last known value present, but the watchdog has flagged it as not refreshing —
+                // _up=0 so alerting on the single signal still catches this, without discarding
+                // the last known reading below.
+                sb.append(METRIC_PREFIX).append("_up{")
+                        .append(commonLabels)
+                        .append(buildFailureLabels(record.failureType, record.failureDetail))
+                        .append("} 0\n");
+            } else {
+                up++;
+                sb.append(METRIC_PREFIX).append("_up{")
+                        .append(commonLabels)
+                        .append("} 1\n");
+            }
 
-            // _up=1 for healthy attributes
-            sb.append(METRIC_PREFIX).append("_up{")
+            sb.append(METRIC_PREFIX).append("_stale{")
                     .append(commonLabels)
-                    .append("} 1\n");
+                    .append("} ")
+                    .append(isStalled ? 1 : 0)
+                    .append('\n');
 
             double sourceTimestampSeconds = record.r_t / 1000.0d;
             double ageSeconds = Math.max(0.0d, (nowMillis - record.r_t) / 1000.0d);
@@ -350,11 +377,15 @@ public class MetricsServer {
         sb.append("# TYPE status_server_monitored_attributes gauge\n");
         sb.append("status_server_monitored_attributes ").append(monitored).append('\n');
 
-        sb.append("# HELP status_server_up_attributes Number of attributes whose last read succeeded\n");
+        sb.append("# HELP status_server_up_attributes Number of attributes whose last read succeeded and is fresh\n");
         sb.append("# TYPE status_server_up_attributes gauge\n");
         sb.append("status_server_up_attributes ").append(up).append('\n');
 
-        sb.append("# HELP status_server_failed_attributes Number of attributes whose last read failed\n");
+        sb.append("# HELP status_server_stale_attributes Number of attributes holding a last-known value that has stopped refreshing\n");
+        sb.append("# TYPE status_server_stale_attributes gauge\n");
+        sb.append("status_server_stale_attributes ").append(stale).append('\n');
+
+        sb.append("# HELP status_server_failed_attributes Number of attributes whose last read failed or has stalled\n");
         sb.append("# TYPE status_server_failed_attributes gauge\n");
         sb.append("status_server_failed_attributes ").append(monitored - up).append('\n');
 

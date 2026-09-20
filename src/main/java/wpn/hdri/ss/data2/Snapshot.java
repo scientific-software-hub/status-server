@@ -67,6 +67,18 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
     }
 
     /**
+     * Replaces the slot's record only if it is still exactly {@code expect} (reference identity).
+     * Used by the stall watchdog to mark a record stalled without racing a concurrent recovery
+     * write from the attribute's own poll task.
+     *
+     * @return true if the slot was updated
+     */
+    public boolean compareAndSet(SingleRecord<?> expect, SingleRecord<?> update){
+        int ndx = update.id;
+        return data.compareAndSet(ndx, expect, update);
+    }
+
+    /**
      *
      *
      * @return Iterator that iterates over copies of underlying arrays

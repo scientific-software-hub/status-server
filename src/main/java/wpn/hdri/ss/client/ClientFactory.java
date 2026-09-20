@@ -55,13 +55,21 @@ public class ClientFactory {
      * @return new client (BadClient if neither factory was able to create a client)
      */
     public Client createClient(String deviceUrl) {
+        return createClient(deviceUrl, TangoClient.DEFAULT_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * @param timeoutMillis per-proxy read/connect timeout, applied to Tango clients only
+     *                       (TINE has its own link-level timeout handling)
+     */
+    public Client createClient(String deviceUrl, int timeoutMillis) {
         URI uri = URI.create(deviceUrl);
 
         switch (uri.getScheme()) {
             case "tine":
                 return new TineClient(uri);
             case "tango":
-                return new TangoClient(uri);
+                return new TangoClient(uri, timeoutMillis);
             default:
                 throw new IllegalArgumentException("Unknown device uri scheme:" + uri.getScheme());
         }

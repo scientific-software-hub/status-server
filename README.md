@@ -103,7 +103,7 @@ Configuration is an XML file. Minimal example:
 <StatusServer stale-after="3" down-after="6">
   <http-metrics port="9190"/>
   <devices>
-    <device name="my/device/1" url="tango://host:10000/domain/family/member">
+    <device name="my/device/1" url="tango://host:10000/domain/family/member" timeout="3000">
       <attributes>
         <attribute name="Temperature" method="poll" delay="1000" interpolation="LINEAR"/>
       </attributes>
@@ -111,6 +111,8 @@ Configuration is an XML file. Minimal example:
   </devices>
 </StatusServer>
 ```
+
+`timeout` (Tango devices only, milliseconds, default `3000`) bounds every read/subscribe/unsubscribe call to that device, so a wedged connection fails fast instead of parking the polling thread forever.
 
 `<http-metrics>` is optional — omit it to run without the HTTP server (useful when only MariaDB persistence is needed).
 
@@ -177,7 +179,7 @@ Available only when `<http-metrics port="…"/>` is present in the config.
 
 | Endpoint | Description |
 |---|---|
-| `GET /metrics` | Prometheus gauge format. Each attribute emits a value gauge and `_up` (1=healthy, 0=failing). |
+| `GET /metrics` | Prometheus gauge format. Each attribute emits a value gauge, `_up` (1=healthy, 0=failing or stalled), `_stale` (1=last value present but not refreshing), and `_age_seconds`. |
 | `GET /health` | Liveness — always 200. |
 | `GET /ready` | Readiness — 503 until engine has started. |
 
@@ -191,6 +193,9 @@ StatusServer classifies each read outcome as a technical event:
 | `ReadFailure` | Client exception during read |
 | `Timeout` | Read timed out |
 | `Disconnect` / `Reconnect` | Connection lost / restored |
+| `Stalled` | Watchdog found a polled attribute's snapshot record older than its staleness threshold — the poll task died silently or is wedged, but the last value is still on hand |
+
+A stall watchdog runs every 30s alongside the retry loop. For each polled attribute (`delay > 0`) whose snapshot record is older than `max(5 × delay, 60s)`, it: diagnoses whether the backing `ScheduledFuture` died (an uncaught exception silently cancels a periodic task — its `Future.get()` recovers and logs the real cause) or is merely wedged reading (interrupts and reschedules it either way), marks the record `failureType="Stalled"` while preserving the last known value and read timestamp, and emits a `Stalled` event. Event-driven attributes (`method=event`) are not watched this way — a quiet subscription is not itself abnormal — their failures still flow through the existing re-subscribe path. Because `Stalled` is fed through the same `stale-after`/`down-after` counters as read failures, at the default 30s tick a stalled attribute opens a `DowntimeOpened` interval after `down-after` ticks (~3 minutes with the defaults).
 
 The `AvailabilityAnalyzer` aggregates these per attribute and emits domain events when thresholds are crossed:
 

@@ -133,6 +133,31 @@ public class AvailabilityAnalyzerTest {
     }
 
     @Test
+    public void stalledCountsAsFailureAndDrivesDowntime() {
+        for (int i = 0; i < DOWN_AFTER; i++)
+            analyzer.onEvent(new Stalled(ATTR_ID, Instant.now(), 120_000L));
+
+        assertEquals(3, emitted.size());
+        assertTransition(emitted.get(0), AvailabilityState.UP, AvailabilityState.STALE);
+        assertTransition(emitted.get(1), AvailabilityState.STALE, AvailabilityState.DOWN);
+        assertInstanceOf(DowntimeOpened.class, emitted.get(2));
+    }
+
+    @Test
+    public void recoveryAfterStalledClosesDowntimeWithPositiveDuration() {
+        for (int i = 0; i < DOWN_AFTER; i++)
+            analyzer.onEvent(new Stalled(ATTR_ID, Instant.now(), 120_000L));
+        emitted.clear();
+
+        succeed();
+
+        assertEquals(2, emitted.size());
+        assertTransition(emitted.get(0), AvailabilityState.DOWN, AvailabilityState.UP);
+        DowntimeClosed closed = (DowntimeClosed) emitted.get(1);
+        assertFalse(closed.duration().isNegative());
+    }
+
+    @Test
     public void multipleAttributesTrackedIndependently() {
         int attrA = 1, attrB = 2;
         for (int i = 0; i < DOWN_AFTER; i++)

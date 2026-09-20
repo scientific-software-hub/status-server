@@ -44,12 +44,18 @@ import java.util.List;
 @Immutable
 @Element(name = "device")
 public final class Device {
+    /** Default Tango roundtrip timeout in ms when {@code timeout} is not set in the XML config. */
+    public static final int DEFAULT_TIMEOUT_MILLIS = 3000;
+
     @Attribute(name = "name")
     private String name;
     @Attribute
     private String url;
     @ElementList(name = "attributes")
     private List<DeviceAttribute> attributes;
+    /** Per-device read/connect timeout in ms. Optional; defaults to {@link #DEFAULT_TIMEOUT_MILLIS}. */
+    @Attribute(name = "timeout", required = false)
+    private int timeoutMillis = DEFAULT_TIMEOUT_MILLIS;
 
     public Device(
             @Attribute(name = "name") String name,
@@ -79,5 +85,9 @@ public final class Device {
 
     public String getUrl() {
         return url;
+    }
+
+    public int getTimeoutMillis() {
+        return timeoutMillis;
     }
 }
