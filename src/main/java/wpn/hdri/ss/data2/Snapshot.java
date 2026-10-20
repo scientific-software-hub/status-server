@@ -1,8 +1,5 @@
 package wpn.hdri.ss.data2;
 
-import hzg.wpn.UnsafeSupport;
-
-import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -15,42 +12,18 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 public class Snapshot implements Iterable<SingleRecord<?>>{
     private final AtomicReferenceArray<SingleRecord<?>> data;
 
-    private static final long FLD_ARRAY_OFFSET;
-    static {
-        try {
-            Field fldArray = AtomicReferenceArray.class.getDeclaredField("array");
-
-            FLD_ARRAY_OFFSET = UnsafeSupport.UNSAFE.objectFieldOffset(fldArray);
-        } catch (NoSuchFieldException e) {
-            throw new AssertionError("Should not happen!");
-        }
-    }
-
-    protected final long arrayBaseOffset;
-    protected final long arrayIndexScale;
-
     public Snapshot(int totalAttributesNumber) {
         //TODO initialize array with non-null values (SingleRecore with value == null)
         this.data = new AtomicReferenceArray<>(totalAttributesNumber);
-        arrayBaseOffset = UnsafeSupport.UNSAFE.arrayBaseOffset(getArray().getClass());
-        arrayIndexScale = UnsafeSupport.UNSAFE.arrayIndexScale(getArray().getClass());
     }
 
     protected Snapshot(){
         this.data = null;
-        arrayBaseOffset = 0L;
-        arrayIndexScale = 0L;
     }
 
     protected Snapshot(Object[] array){
         if (array == null ) this.data = null;
         else this.data = new AtomicReferenceArray(array);
-        arrayBaseOffset = UnsafeSupport.UNSAFE.arrayBaseOffset(array.getClass());
-        arrayIndexScale = UnsafeSupport.UNSAFE.arrayIndexScale(array.getClass());
-    }
-
-    protected Object getArray(){
-        return UnsafeSupport.UNSAFE.getObject(this.data, FLD_ARRAY_OFFSET);
     }
 
     /**
@@ -79,14 +52,11 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
     }
 
     /**
-     *
-     *
-     * @return Iterator that iterates over copies of underlying arrays
+     * @return Iterator over the slots, read with acquire semantics
      */
     @Override
     public final Iterator<SingleRecord<?>> iterator() {
-        final long size = data.length();
-        final Object array = getArray();
+        final int size = data.length();
 
         return new Iterator<SingleRecord<?>>() {
             private int pos = 0;
@@ -98,22 +68,12 @@ public class Snapshot implements Iterable<SingleRecord<?>>{
 
             @Override
             public SingleRecord next() {
-                return get(array, pos++);
+                return data.getAcquire(pos++);
             }
         };
     }
 
     public SingleRecord<?> get(int ndx){
         return data.get(ndx);
-    }
-
-    /**
-     *
-     * @param array must be the reference obtained via {@link this#getArray}
-     * @param ndx position
-     * @return SingleRecord stored in the array at position = ndx
-     */
-    protected SingleRecord<?> get(Object array, int ndx){
-        return SingleRecord.class.cast(UnsafeSupport.UNSAFE.getObject(array, arrayBaseOffset + ndx * arrayIndexScale));
     }
 }
